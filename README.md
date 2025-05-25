@@ -9,10 +9,10 @@ padelsociety.ci is a modern web application designed to streamline the process o
 This project is built with:
 
 - **Frontend**: React, TS
-- **Backend**: Supabase
+- **Backend**: Supabase (Database, Auth, Edge Functions)
 - **Styling**: Tailwind CSS + Shadcn
 - **Payments**: lomi.
-- **Emails**: Resend
+- **Email Notifications**: Resend (for booking confirmations)
 
 ## Features
 
@@ -33,6 +33,7 @@ Follow these instructions to get a local copy up and running for development and
 - Node.js (v16 or higher recommended)
 - An active Supabase account
 - An active lomi. account for payment processing
+- An active Resend account for sending email notifications
 
 ### Installation
 
@@ -54,7 +55,10 @@ Follow these instructions to get a local copy up and running for development and
     ```bash
     cp .env.example .env
     ```
-    Populate the `.env` file with your credentials and configuration details for Supabase and lomi. Refer to `.env.example` for the required variables.
+    Populate the `.env` file with your credentials and configuration details for Supabase, lomi., and Resend. Refer to `.env.example` for the required variables. Key variables include:
+    - Supabase: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (for frontend)
+    - Lomi: `LOMI_API_KEY` (for Supabase Edge Function), `LOMI_WEBHOOK_SECRET` (for Netlify function)
+    - Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL_ADDRESS`
 
 ### Running Locally
 
@@ -81,6 +85,10 @@ Follow these steps to get the application running on your machine:
     # Apply database schema changes from local migrations to your Supabase database
     supabase db push
     ```
+    This will apply migrations from `supabase/migrations/`, including:
+    - `01_db_init.sql`: Sets up initial tables (profiles, courts, reservations, payments) and basic RLS/triggers.
+    - `02_webhook_system.sql`: Defines the `record_padel_lomi_payment` RPC function.
+    - `03_email_system.sql`: Defines the `get_booking_confirmation_email_data` RPC function.
 
 3.  **Deploy the lomi. Checkout function (Initial setup or after function changes):**
     Ensure Docker Desktop (or Docker Engine for Linux) is **running** on your machine. Then, in the second terminal window, deploy the Supabase Edge Function:
@@ -104,13 +112,14 @@ The "Getting Started" section guides you through setting up the project locally.
     *   **Node.js:** Essential for running JavaScript/TypeScript outside the browser, managing project dependencies (`pnpm install`), and running the local development server (`pnpm run dev`). Ensure it's installed (`node -v`).
     *   **Supabase account:** Provides the backend (database, authentication, serverless functions). Sign up, create a project, and note your Project URL and API keys for the `.env` file.
     *   **lomi. account:** Handles secure payment processing. Sign up and get your Lomi API Key for the `.env` file.
+    *   **Resend account:** Handles sending email notifications. Sign up and get your Resend API Key and email address for the `.env` file.
 
 *   **Installation:**
     1.  `git clone ...`: Downloads the project code.
     2.  `cd ...`: Moves your terminal into the project directory.
     3.  `pnpm install`: Downloads required libraries listed in `package.json`. Install `pnpm` first if needed (`npm install -g pnpm`).
     4.  `cp .env.example .env`: Creates your personal configuration file from the template.
-    5.  **Populate `.env`:** Edit the `.env` file and replace placeholders with your actual Supabase and credentials. **This is critical for the app to connect to backend services.**
+    5.  **Populate `.env`:** Edit the `.env` file and replace placeholders with your actual Supabase, lomi., and Resend credentials. **This is critical for the app to connect to backend services.**
 
 *   **Running locally:**
 
@@ -129,23 +138,60 @@ This file defines a Supabase Edge Function, which is server-side code running on
 *   **Purpose:** Acts as a secure bridge between your frontend and the lomi. payment gateway.
 *   **Why an Edge function?** Keeps sensitive information (like your lomi. API Key) off the frontend (browser) and handles server-to-server communication securely.
 *   **How it Works:**
+    1. Frontend requests a checkout session from this Edge Function, sending reservation details.
+    2. Edge Function validates input and constructs a payload for Lomi.
+    3. Edge Function securely calls Lomi API with your `LOMI_API_KEY`.
+    4. Lomi returns a unique `checkout_url`.
+    5. Edge Function sends this `checkout_url` back to the frontend.
+    6. Frontend redirects the user to Lomi's payment page.
+    7. After payment, Lomi redirects the user back to your application (success or cancel URL).
+    8. Lomi also sends a separate, asynchronous notification (webhook) to your backend to confirm the payment status.
 
-    1.  **Receives request:** Listens for HTTP requests from your frontend (triggered when a user initiates checkout). The request includes details like amount, currency, and a unique reservation ID.
-    2.  **Reads Environment Variables:** Gets your secret `LOMI_API_KEY` and your `APP_BASE_URL` (needed for redirect URLs) from the Supabase function's settings (which you configure based on your `.env`).
-    3.  **Validates input:** Checks if required data (amount, currency, reservation ID) is present and if the Lomi API key is configured.
-    4.  **Prepares lomi. payload:** Constructs the data object required by the lomi. API. This includes:
-        *   `success_url` & `cancel_url`: Where Lomi redirects the user after payment attempt (back to your app). Includes the `reservation_id` so your app knows which booking was paid for.
-        *   `amount`, `currency_code`: Payment details.
-        *   `metadata`: Custom data (like `reservation_id`) sent to Lomi for tracking.
+*   For more details on the payload and specific parameters, refer to the code comments within `supabase/functions/create-lomi-checkout-session/index.ts`.
 
-        *   **Dynamic vs. Predefined product or subscription plan:**
-            *   **Dynamic:** By default, it creates a session for the specific `amount` sent in the request (an "instant" payment).
-            *   **Predefined:** If the frontend sends optional lomi. IDs like `product_id` or `plan_id` (which you'd set up in your lomi. dashboard), the function includes these in the payload, potentially linking the payment to a specific item in Lomi. The function supports both models based on what the frontend sends.
+### Understanding the Lomi Webhook and Email Notification Process (`apps/padel/api/lomi./webhook.js`)
 
-    5.  **Calls API:** Makes a secure `POST` request to Lomi's `/checkout-sessions` endpoint, sending the prepared payload and your `LOMI_API_KEY` in the headers.
-    6.  **Handles lomi. response:** Checks if Lomi successfully created the session and returned a `checkout_url`.
-    7.  **Returns checkout URL:** If successful, sends the unique `checkout_url` received from Lomi back to your frontend.
-    8.  **Frontend redirect:** Your frontend receives this URL and redirects the user's browser to Lomi's payment page.
-    9.  **lomi. handles payment:** User interacts with lomi.'s interface.
-    10. **Redirect back:** lomi. redirects the user back to your app's `success_url` or `cancel_url` or any other predefined URL.
-*   **Error handling:** Includes `try...catch` blocks and CORS headers to handle potential errors gracefully and allow communication between your frontend and the Supabase function.
+After a payment is attempted (successful or failed), Lomi sends an asynchronous webhook (HTTP POST request) to a predefined endpoint in your application. This project uses a Netlify Function (`apps/padel/api/lomi./webhook.js`) to handle these notifications.
+
+**Purpose of the Webhook Handler:**
+- Securely confirm payment success independently of the user's browser redirection.
+- Update the database to reflect the confirmed payment.
+- Send a booking confirmation email to the user.
+
+**How it Works:**
+
+1.  **Lomi Sends Webhook:** Lomi sends an event (e.g., `PAYMENT_SUCCEEDED` or `CHECKOUT_COMPLETED`) to your Netlify function endpoint `/api/lomi./webhook`.
+
+2.  **Signature Verification:**
+    - The `webhook.js` function first verifies the `X-Lomi-Signature` header using your `LOMI_WEBHOOK_SECRET`. This ensures the request is genuinely from Lomi and hasn't been tampered with.
+    - If verification fails, it returns an error and stops processing.
+
+3.  **Event Processing (on successful payment):**
+    - If the event indicates a successful payment, the function extracts `reservationId`, `amount`, `currency`, and Lomi payment identifiers from the webhook payload.
+
+4.  **Record Payment in Database (RPC Call 1):**
+    - It calls the Supabase RPC function `record_padel_lomi_payment` (defined in `supabase/migrations/02_webhook_system.sql`).
+    - This RPC function:
+        - Creates a new record in the `public.payments` table with status `completed`.
+        - A database trigger (`update_reservation_status_on_payment_trigger` from `01_db_init.sql`) then automatically updates the corresponding `public.reservations` record's status to `confirmed`.
+
+5.  **Fetch Data for Email (RPC Call 2):**
+    - After successfully recording the payment, the webhook calls the Supabase RPC function `get_booking_confirmation_email_data` (defined in `supabase/migrations/03_email_system.sql`) using the `reservationId`.
+    - This RPC function queries your database and returns necessary details for the email, such as the user's email address, court name, reservation start time, and total price.
+
+6.  **Send Booking Confirmation Email:**
+    - Using the data returned by the RPC and the Resend API (configured with `RESEND_API_KEY` and `RESEND_FROM_EMAIL_ADDRESS` environment variables):
+        - It crafts an HTML email body.
+        - It sends the email directly to the user.
+    - If email sending fails, an error is logged, but the webhook still aims to return a `200 OK` to Lomi because the payment itself was processed successfully. This prevents Lomi from unnecessarily retrying the webhook due to an email issue.
+
+7.  **Respond to Lomi:** The `webhook.js` function returns a `200 OK` status to Lomi to acknowledge successful receipt and processing of the webhook.
+
+**Key Environment Variables for `webhook.js` (Netlify):**
+- `SUPABASE_URL`: Your Supabase project URL.
+- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key.
+- `LOMI_WEBHOOK_SECRET`: Your secret for verifying Lomi webhooks.
+- `RESEND_API_KEY`: Your Resend API key.
+- `RESEND_FROM_EMAIL_ADDRESS`: The email address to send confirmations from.
+
+This direct email sending approach within the webhook simplifies the system by removing the need for a separate email queuing mechanism and a scheduled Edge Function. However, it's important to monitor its performance and reliability, as delays in the Resend API could potentially slow down the webhook response time, though the code attempts to mitigate failing the webhook due to email issues.
