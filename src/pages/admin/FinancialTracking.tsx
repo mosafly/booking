@@ -17,6 +17,7 @@ import {
 import { Download, Calendar, DollarSign } from "lucide-react";
 import toast from "react-hot-toast";
 import { Spinner } from "@/components/dashboard/spinner";
+import { formatFCFA } from "@/lib/utils/currency";
 
 const FinancialTracking: React.FC = () => {
   const { supabase } = useSupabase();

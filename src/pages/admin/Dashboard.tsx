@@ -15,10 +15,13 @@ import {
   CalendarCheck,
   DollarSign,
   Users,
+  ShoppingCart,
+  Package,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Court } from "@/components/booking/court-card";
 import { Spinner } from "@/components/dashboard/spinner";
+
 
 interface DashboardStat {
   icon: React.ReactNode;
@@ -192,11 +195,11 @@ const Dashboard: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, index) => (
           <div
             key={index}
-            className={`${stat.bgColor} p-6 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200`}
+            className="bg-white rounded-md shadow-sm p-6 border border-gray-200"
           >
             <div className="flex items-center mb-2">
               <div className="text-[var(--primary)]">{stat.icon}</div>
@@ -207,6 +210,29 @@ const Dashboard: React.FC = () => {
             <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-md shadow-sm p-6 border border-gray-200">
+          <h3 className="text-lg font-bold mb-4">Actions Rapides</h3>
+          <div className="space-y-3">
+            <a
+              href="/pos"
+              className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Interface Caisse
+            </a>
+            <a
+              href="/admin/products"
+              className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Gestion Produits
+            </a>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-md shadow-sm p-6">
@@ -220,7 +246,7 @@ const Dashboard: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="date" tick={{ fontSize: 12 }} tickMargin={10} />
               <YAxis
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value) => `${value} FCFA`}
                 tick={{ fontSize: 12 }}
                 tickMargin={10}
               />

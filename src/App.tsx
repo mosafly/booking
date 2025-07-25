@@ -27,10 +27,13 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import CourtsManagement from "./pages/admin/CourtsManagement";
 import ReservationsManagement from "./pages/admin/ReservationsManagement";
 import FinancialTracking from "./pages/admin/FinancialTracking";
+import ProductsManagement from "./pages/admin/ProductsManagement";
+import PosDashboard from "./pages/pos/PosDashboard";
 
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import LandingPage from "./pages/landing/LandingPage";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -81,13 +84,16 @@ function App() {
           <Router>
             <Toaster position="top-center" />
             <Routes>
+              {/* Landing Page */}
+              <Route path="/" element={<LandingPage />} />
+              
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
 
               {/* Client Routes */}
               <Route
-                path="/"
+                path="/home"
                 element={
                   <ProtectedRoute>
                     <ClientLayout />
@@ -115,7 +121,7 @@ function App() {
 
               {/* Admin Routes */}
               <Route
-                path="/admin"
+                path="/admin/*"
                 element={
                   <ProtectedRoute requiredRole="admin">
                     <AdminLayout />
@@ -124,12 +130,20 @@ function App() {
               >
                 <Route index element={<AdminDashboard />} />
                 <Route path="courts" element={<CourtsManagement />} />
-                <Route
-                  path="reservations"
-                  element={<ReservationsManagement />}
-                />
+                <Route path="reservations" element={<ReservationsManagement />} />
                 <Route path="financial" element={<FinancialTracking />} />
+                <Route path="products" element={<ProductsManagement />} />
               </Route>
+
+              {/* POS Route - accessible to staff and admin */}
+              <Route
+                path="/pos"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <PosDashboard />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Fallback Route */}
               <Route path="*" element={<Navigate to="/" replace />} />

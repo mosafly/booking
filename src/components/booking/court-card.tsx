@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Tag } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { formatFCFA } from "@/lib/utils/currency";
 
 export type Court = {
   id: string;
@@ -21,7 +22,7 @@ const CourtCard: React.FC<CourtCardProps> = ({ court }) => {
   const { t } = useTranslation();
 
   const handleBookNow = () => {
-    navigate(`/reservation/${court.id}`);
+    navigate(`/home/reservation/${court.id}`);
   };
 
   const getStatusBadge = () => {
@@ -61,7 +62,7 @@ const CourtCard: React.FC<CourtCardProps> = ({ court }) => {
           <div className="flex items-center text-sm text-gray-700">
             <Tag size={16} className="mr-1" />
             <span>
-              {new Intl.NumberFormat('fr-CI', { style: 'currency', currency: 'XOF', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(court.price_per_hour)} {t('courtCard.pricePerHourSuffix')}
+              {formatFCFA(court.price_per_hour)} {t('courtCard.pricePerHourSuffix')}
             </span>
           </div>
         </div>

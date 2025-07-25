@@ -72,7 +72,7 @@ const ClientLayout: React.FC = () => {
           <div className="flex justify-between h-12">
             <div className="flex space-x-8">
               <NavLink
-                to="/"
+                to="/home"
                 className={({ isActive }) =>
                   `flex items-center px-2 py-1 border-b-2 text-sm font-medium ${isActive
                     ? "border-[var(--primary)] text-[var(--primary)]"
@@ -85,7 +85,7 @@ const ClientLayout: React.FC = () => {
               </NavLink>
 
               <NavLink
-                to="/my-reservations"
+                to="/home/my-reservations"
                 className={({ isActive }) =>
                   `flex items-center px-2 py-1 border-b-2 text-sm font-medium ${isActive
                     ? "border-[var(--primary)] text-[var(--primary)]"

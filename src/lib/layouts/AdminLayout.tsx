@@ -5,6 +5,7 @@ import {
   Brackets as Racket,
   Calendar,
   DollarSign,
+  Package,
   Menu,
   X,
   LogOut,
@@ -126,6 +127,11 @@ const AdminLayout: React.FC = () => {
               to="/admin/financial"
               icon={<DollarSign size={20} />}
               label="Financial"
+            />
+            <NavItem
+              to="/admin/products"
+              icon={<Package size={20} />}
+              label="Produits"
             />
           </div>
 

@@ -10,14 +10,14 @@ import toast from "react-hot-toast";
 import PaymentMethodSelector from "@/components/booking/payment-method-selector";
 import { Spinner } from "@/components/dashboard/spinner";
 import { useTranslation } from "react-i18next";
-import { formatPrice } from "@/lib/actions/helpers";
+import { formatFCFA } from "@/lib/utils/currency";
 
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams();
   const navigate = useNavigate();
   const { supabase } = useSupabase();
   const { user } = useAuth();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [court, setCourt] = useState<Court | null>(null);
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
@@ -286,12 +286,13 @@ const ReservationPage: React.FC = () => {
     // No finally block setting isSubmitting false, because successful path redirects
   };
 
-  const hours =
-    selectedStartTime && selectedEndTime
-      ? (selectedEndTime.getTime() - selectedStartTime.getTime()) /
-      (1000 * 60 * 60)
-      : 0;
-  const totalPrice = court ? court.price_per_hour * hours : 0;
+  const calculateTotalPrice = () => {
+    if (!selectedStartTime || !selectedEndTime || !court) return 0;
+
+    const durationInHours =
+      (selectedEndTime.getTime() - selectedStartTime.getTime()) / (1000 * 60 * 60);
+    return durationInHours * court.price_per_hour;
+  };
 
   if (isLoading) {
     return (
@@ -305,8 +306,11 @@ const ReservationPage: React.FC = () => {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">{t("reservationPage.courtNotFound")}</p>
-        <button onClick={() => navigate("/")} className="mt-4 btn btn-primary">
-          {t("reservationPage.backToCourtsButton")}
+        <button
+          onClick={() => navigate("/home")}
+          className="btn btn-secondary"
+        >
+          {t("reservationPage.backButton")}
         </button>
       </div>
     );
@@ -316,7 +320,7 @@ const ReservationPage: React.FC = () => {
     <div>
       <div className="mb-6">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
           className="text-[var(--primary)] hover:text-[var(--primary-dark)] font-medium flex items-center"
         >
           ← {t("reservationPage.backToCourtsLink")}
@@ -342,7 +346,7 @@ const ReservationPage: React.FC = () => {
             <div className="mt-4 flex items-center text-gray-700">
               <DollarSign size={20} className="mr-1" />
               <span className="text-lg font-medium">
-                {formatPrice(court.price_per_hour, t("reservationPage.localeCode"), i18n.language === 'fr' ? 'XOF' : 'USD')}
+                {formatFCFA(court.price_per_hour)}
                 {' '}{t("courtCard.pricePerHourSuffix")}
               </span>
             </div>
@@ -399,7 +403,7 @@ const ReservationPage: React.FC = () => {
                 </div>
                 <div className="flex items-center text-sm text-gray-700">
                   <DollarSign size={16} className="mr-2" />
-                  <span>{t("reservationPage.summaryTotalLabel")} {formatPrice(totalPrice, t("reservationPage.localeCode"), i18n.language === 'fr' ? 'XOF' : 'USD')}</span>
+                  <span>{t("reservationPage.summaryTotalLabel")} {formatFCFA(calculateTotalPrice())}</span>
                 </div>
               </div>
             </div>
