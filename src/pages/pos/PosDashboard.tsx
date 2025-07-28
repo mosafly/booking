@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingCart, Package, DollarSign } from 'lucide-react';
+import { ShoppingCart, Package, DollarSign, CreditCard, Settings } from 'lucide-react';
 import { formatFCFA } from '@/lib/utils/currency';
+import ProductManagementModal from './ProductManagementModal';
 
 interface Product {
   id: string;
@@ -22,6 +23,7 @@ export default function PosDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showProductManagement, setShowProductManagement] = useState(false);
   const navigate = useNavigate();
 
   // Vérifier l'authentification
@@ -98,43 +100,133 @@ export default function PosDashboard() {
     return cart.reduce((total, item) => total + (item.price_cents * item.quantity), 0);
   };
 
-  const completeSale = async () => {
+  const completeSale = async (paymentMethod: 'cash' | 'online') => {
     if (cart.length === 0) return;
 
     try {
       const total = getTotalPrice();
       
-      // Créer la vente
-      const { data: sale, error: saleError } = await supabase
-        .from('sales')
-        .insert({
-          total_cents: total,
-          payment_method: 'cash',
-          status: 'completed'
-        })
-        .select()
-        .single();
+      if (paymentMethod === 'online') {
+        // 1. Create sale record with pending status (similar to reservation)
+        const { data: sale, error: saleError } = await supabase
+          .from('sales')
+          .insert({
+            total_cents: total,
+            payment_method: 'online',
+            status: 'pending' // Status remains pending until payment confirmed
+          })
+          .select()
+          .single();
 
-      if (saleError) throw saleError;
+        if (saleError) throw saleError;
+        const saleId = sale.id;
 
-      // Créer les items de vente
-      const saleItems = cart.map(item => ({
-        sale_id: sale.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        unit_price_cents: item.price_cents,
-        total_price_cents: item.price_cents * item.quantity
-      }));
+        // 2. Create sale items (similar to reservation items)
+        const saleItems = cart.map(item => ({
+          sale_id: saleId,
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price_cents: item.price_cents,
+          total_price_cents: item.price_cents * item.quantity
+        }));
 
-      const { error: itemsError } = await supabase
-        .from('sale_items')
-        .insert(saleItems);
+        const { error: itemsError } = await supabase
+          .from('sale_items')
+          .insert(saleItems);
 
-      if (itemsError) throw itemsError;
+        if (itemsError) throw itemsError;
 
-      // Vider le panier
-      setCart([]);
-      alert('Vente effectuée avec succès!');
+        // 3. Create payment record (similar to reservation payments)
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Utilisateur non connecté');
+
+        const { data: paymentData, error: paymentError } = await supabase
+          .from("payments")
+          .insert([
+            {
+              sale_id: saleId,
+              user_id: user.id,
+              amount: total,
+              currency: "XOF",
+              payment_method: "online",
+              payment_provider: "lomi",
+              status: "pending",
+            },
+          ])
+          .select()
+          .single();
+
+        if (paymentError) {
+          console.error("Error creating payment record:", paymentError);
+        } else {
+          console.log("Payment record created (pending):", paymentData);
+        }
+
+        // 4. Call Supabase Edge Function for Lomi checkout (same pattern as reservation)
+        console.log("Calling Supabase function 'create-pos-payment'...");
+        const { data: functionData, error: functionError } = await supabase.functions.invoke(
+          "create-pos-payment",
+          {
+            body: {
+              amount: total,
+              currencyCode: "XOF",
+              saleId: saleId,
+              userEmail: user.email,
+              userName: user.user_metadata?.full_name || user.email,
+              successUrlPath: "/pos/success",
+              cancelUrlPath: "/pos/cancel",
+            },
+          }
+        );
+
+        if (functionError) {
+          console.error("Supabase function error:", functionError);
+          throw new Error(`Failed to create payment session: ${functionError.message}`);
+        }
+
+        if (!functionData?.checkout_url) {
+          console.error("Supabase function did not return checkout_url:", functionData);
+          throw new Error("Payment session creation failed (no URL returned).");
+        }
+
+        console.log("Lomi checkout URL received:", functionData.checkout_url);
+
+        // 5. Redirect to Lomi checkout page
+        window.location.href = functionData.checkout_url;
+        return;
+      } else {
+        // Créer la vente
+        const { data: sale, error: saleError } = await supabase
+          .from('sales')
+          .insert({
+            total_cents: total,
+            payment_method: 'cash',
+            status: 'completed'
+          })
+          .select()
+          .single();
+
+        if (saleError) throw saleError;
+
+        // Créer les items de vente
+        const saleItems = cart.map(item => ({
+          sale_id: sale.id,
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price_cents: item.price_cents,
+          total_price_cents: item.price_cents * item.quantity
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('sale_items')
+          .insert(saleItems);
+
+        if (itemsError) throw itemsError;
+
+        // Vider le panier
+        setCart([]);
+        alert('Vente effectuée avec succès!');
+      }
     } catch (error) {
       console.error('Error completing sale:', error);
       alert('Erreur lors de la vente');
@@ -162,6 +254,15 @@ export default function PosDashboard() {
                   <Package className="h-5 w-5" />
                   Produits
                 </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowProductManagement(true)}
+                  className="ml-auto"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Gérer
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -224,18 +325,31 @@ export default function PosDashboard() {
                     ))}
                     
                     <div className="border-t pt-4">
-                      <div className="flex justify-between items-center text-lg font-bold">
+                      <div className="flex justify-between items-center text-lg font-bold mb-4">
                         <span>Total:</span>
                         <span>{formatFCFA(getTotalPrice())}</span>
                       </div>
-                      <Button 
-                        className="w-full mt-4" 
-                        onClick={completeSale}
-                        disabled={cart.length === 0}
-                      >
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Valider la vente
-                      </Button>
+                      
+                      <div className="space-y-3">
+                        <Button 
+                          className="w-full" 
+                          onClick={() => completeSale('cash')}
+                          disabled={cart.length === 0}
+                        >
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Payer en espèces
+                        </Button>
+                        
+                        <Button 
+                          className="w-full" 
+                          onClick={() => completeSale('online')}
+                          disabled={cart.length === 0}
+                          variant="outline"
+                        >
+                          <CreditCard className="h-4 w-4 mr-2" />
+                          Payer par carte (Lomi)
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -244,6 +358,12 @@ export default function PosDashboard() {
           </div>
         </div>
       </div>
+      
+      <ProductManagementModal
+        isOpen={showProductManagement}
+        onClose={() => setShowProductManagement(false)}
+        onProductUpdated={loadProducts}
+      />
     </div>
   );
 }

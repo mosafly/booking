@@ -11,6 +11,7 @@ import PaymentMethodSelector from "@/components/booking/payment-method-selector"
 import { Spinner } from "@/components/dashboard/spinner";
 import { useTranslation } from "react-i18next";
 import { formatFCFA } from "@/lib/utils/currency";
+import { getCourtImage } from "@/lib/utils/court-images";
 
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams();
@@ -331,12 +332,14 @@ const ReservationPage: React.FC = () => {
         <div className="md:flex">
           <div className="md:w-1/3">
             <img
-              src={
-                court.image_url ||
-                "https://images.pexels.com/photos/2277807/pexels-photo-2277807.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-              }
+              src={court.image_url || getCourtImage(court.id, court.name)}
               alt={court.name}
               className="w-full h-64 md:h-full object-cover"
+              onError={(e) => {
+                // Fallback to default image if local image fails to load
+                const target = e.target as HTMLImageElement;
+                target.src = "https://images.pexels.com/photos/2277807/pexels-photo-2277807.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
+              }}
             />
           </div>
           <div className="p-6 md:w-2/3">

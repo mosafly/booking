@@ -93,7 +93,11 @@ const AdminLayout: React.FC = () => {
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
             <div className="flex items-center">
-              <Racket className="h-8 w-8 text-[var(--primary)]" />
+              <img 
+                src="/images/logo/Logo-padel-palmeraie.png.png" 
+                alt="Padel Palmeraie Logo" 
+                className="h-8 w-auto"
+              />
               <h1 className="ml-2 text-xl font-bold text-[var(--primary)]">
                 Admin
               </h1>

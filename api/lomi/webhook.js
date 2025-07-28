@@ -3,55 +3,10 @@ const crypto = require('crypto');
 const { Buffer } = require('node:buffer');
 const { Resend } = require('resend');
 
-// --- Configuration ---
+// --- Supabase Setup for Padel App ---
+// These will be set in Netlify environment variables
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@yourdomain.com';
-
-if (!RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY is not set. Emails will not be sent.');
-}
-
-// Initialize Supabase client
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-// Initialize Resend
-const resend = new Resend(RESEND_API_KEY);
-
-/**
- * Envoie un email via Resend
- * @param {string} to - Adresse email du destinataire
- * @param {string} subject - Sujet de l'email
- * @param {string} html - Contenu HTML de l'email
- * @returns {Promise<Object>} Résultat de l'envoi
- */
-async function sendEmail(to, subject, html) {
-    if (!RESEND_API_KEY) {
-        console.warn('Cannot send email: RESEND_API_KEY is not set');
-        return { error: 'Email not sent: RESEND_API_KEY not configured' };
-    }
-
-    try {
-        const { data, error } = await resend.emails.send({
-            from: FROM_EMAIL,
-            to: to,
-            subject: subject,
-            html: html
-        });
-
-        if (error) {
-            console.error('Error sending email:', error);
-            return { error };
-        }
-
-        console.log('Email sent successfully:', data);
-        return { data };
-    } catch (error) {
-        console.error('Exception when sending email:', error);
-        return { error };
-    }
-}
 
 if (!supabaseUrl) {
     console.error('Error: Padel Supabase URL is required.');

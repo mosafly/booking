@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSupabase } from "@/lib/contexts/Supabase";
 import { format } from "date-fns";
+import { GlobalSchedule } from "../../components/schedule/GlobalSchedule";
 import {
   AreaChart,
   Area,
@@ -328,6 +329,12 @@ const Dashboard: React.FC = () => {
               <p className="text-gray-500 text-center py-4">Aucun court</p>
             )}
           </div>
+        </div>
+
+        {/* Planning Global Section */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Planning Global</h2>
+          <GlobalSchedule viewMode="admin" />
         </div>
       </div>
     </div>
