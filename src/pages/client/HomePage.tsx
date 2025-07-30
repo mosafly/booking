@@ -81,6 +81,24 @@ const HomePage: React.FC = () => {
       ),
   );
 
+  // Categorize courts
+  const padelCourts = filteredCourts.filter((court) => 
+    court.name.toLowerCase().includes('terrain') || 
+    court.description?.toLowerCase().includes('padel') ||
+    court.description?.toLowerCase().includes('terrain')
+  );
+
+  const gymEquipment = filteredCourts.filter((court) => 
+    court.name.toLowerCase().includes('vélo') ||
+    court.name.toLowerCase().includes('velo') ||
+    court.name.toLowerCase().includes('tapis') ||
+    court.name.toLowerCase().includes('elliptique') ||
+    court.description?.toLowerCase().includes('vélo') ||
+    court.description?.toLowerCase().includes('velo') ||
+    court.description?.toLowerCase().includes('tapis') ||
+    court.description?.toLowerCase().includes('elliptique')
+  );
+
   return (
     <div>
       <div className="mb-8">
@@ -163,10 +181,53 @@ const HomePage: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourts.map((court) => (
-            <CourtCard key={court.id} court={court} />
-          ))}
+        <div className="space-y-12">
+          {/* Section Terrain réservation */}
+          {padelCourts.length > 0 && (
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Terrain réservation
+                </h2>
+                <p className="text-gray-600">
+                  Réservez nos terrains de padel pour vos matchs
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {padelCourts.map((court) => (
+                  <CourtCard key={court.id} court={court} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section Salle de sport */}
+          {gymEquipment.length > 0 && (
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Salle de sport
+                </h2>
+                <p className="text-gray-600">
+                  Équipements de fitness disponibles à la réservation
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {gymEquipment.map((court) => (
+                  <CourtCard key={court.id} court={court} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Message si aucune section n'a de contenu après filtrage */}
+          {padelCourts.length === 0 && gymEquipment.length === 0 && filteredCourts.length > 0 && (
+            <div className="text-center py-12 bg-white rounded-md shadow-sm">
+              <p className="text-gray-500">
+                Aucun résultat ne correspond aux critères de recherche
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

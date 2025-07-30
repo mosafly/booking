@@ -7,7 +7,8 @@ import {
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { SupabaseProvider } from "./lib/contexts/Supabase";
-import { AuthProvider, useAuth } from "./lib/contexts/Auth";
+import { AuthProvider, useAuth, UserRole } from "./lib/contexts/Auth";
+import { hasRoleAccess } from "./lib/utils/role-utils";
 import ErrorBoundary from "./components/booking/error-boundary";
 import { Spinner } from './components/dashboard/spinner';
 
@@ -27,10 +28,21 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import CourtsManagement from "./pages/admin/CourtsManagement";
 import ReservationsManagement from "./pages/admin/ReservationsManagement";
 import FinancialTracking from "./pages/admin/FinancialTracking";
+import ProductsManagement from "./pages/admin/ProductsManagement";
+import PosDashboard from "./pages/pos/PosDashboard";
+import PosSuccessPage from "./pages/pos/PosSuccessPage";
+import PosCancelPage from "./pages/pos/PosCancelPage";
+
+// Coach Pages
+import { CoachDashboard } from "./pages/coach/CoachDashboard";
+
+// Gym Booking Page
+import { GymBookingPage } from "./pages/gym/GymBookingPage";
 
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import LandingPage from "./pages/landing/LandingPage";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -38,7 +50,7 @@ const ProtectedRoute = ({
   requiredRole = null,
 }: {
   children: React.ReactNode;
-  requiredRole?: "admin" | "client" | null;
+  requiredRole?: UserRole;
 }) => {
   const { user, userRole, isLoading } = useAuth();
 
@@ -66,7 +78,8 @@ const ProtectedRoute = ({
     );
   }
 
-  if (requiredRole && userRole !== requiredRole) {
+  // Check if user has required role access
+  if (requiredRole && !hasRoleAccess(userRole, requiredRole)) {
     return <Navigate to="/" replace />;
   }
 
@@ -81,13 +94,16 @@ function App() {
           <Router>
             <Toaster position="top-center" />
             <Routes>
+              {/* Landing Page */}
+              <Route path="/" element={<LandingPage />} />
+              
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
 
               {/* Client Routes */}
               <Route
-                path="/"
+                path="/home"
                 element={
                   <ProtectedRoute>
                     <ClientLayout />
@@ -115,21 +131,53 @@ function App() {
 
               {/* Admin Routes */}
               <Route
-                path="/admin"
+                path="/admin/*"
                 element={
                   <ProtectedRoute requiredRole="admin">
                     <AdminLayout />
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<AdminDashboard />} />
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="courts" element={<CourtsManagement />} />
-                <Route
-                  path="reservations"
-                  element={<ReservationsManagement />}
-                />
+                <Route path="reservations" element={<ReservationsManagement />} />
                 <Route path="financial" element={<FinancialTracking />} />
+                <Route path="products" element={<ProductsManagement />} />
+                <Route path="pos" element={<PosDashboard />} />
+                <Route path="pos/success" element={<PosSuccessPage />} />
+                <Route path="pos/cancel" element={<PosCancelPage />} />
               </Route>
+
+              {/* Coach Routes */}
+              <Route
+                path="/coach"
+                element={
+                  <ProtectedRoute requiredRole="coach">
+                    <CoachDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Gym Booking Route */}
+              <Route path="/gym" element={<GymBookingPage />} />
+
+              <Route
+                path="/pos/success"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <PosSuccessPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pos/cancel"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <PosCancelPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Fallback Route */}
               <Route path="*" element={<Navigate to="/" replace />} />

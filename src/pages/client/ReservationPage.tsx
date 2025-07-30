@@ -5,19 +5,21 @@ import { useSupabase } from "@/lib/contexts/Supabase";
 import { useAuth } from "@/lib/contexts/Auth";
 import { Court } from "@/components/booking/court-card";
 import TimeSlotPicker from "@/components/booking/time-slot-picker";
+import { getEquipmentType, calculatePrice } from "@/lib/utils/reservation-rules";
 import { Calendar, Clock, DollarSign } from "lucide-react";
 import toast from "react-hot-toast";
 import PaymentMethodSelector from "@/components/booking/payment-method-selector";
 import { Spinner } from "@/components/dashboard/spinner";
 import { useTranslation } from "react-i18next";
-import { formatPrice } from "@/lib/actions/helpers";
+import { formatFCFA } from "@/lib/utils/currency";
+import { getCourtImage } from "@/lib/utils/court-images";
 
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams();
   const navigate = useNavigate();
   const { supabase } = useSupabase();
   const { user } = useAuth();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [court, setCourt] = useState<Court | null>(null);
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
@@ -69,16 +71,18 @@ const ReservationPage: React.FC = () => {
         // const startDate = selectedDate; // Removed
         // const endDate = addDays(selectedDate, 1); // Removed
 
-        // Generating all available 1-hour slots from 8am to 10pm
+        // Generate available slots based on equipment type
         const allSlots = [];
         for (let hour = 8; hour < 22; hour++) {
-          const startTime = new Date(selectedDate);
-          startTime.setHours(hour, 0, 0, 0);
-
-          const endTime = new Date(startTime);
-          endTime.setHours(hour + 1, 0, 0, 0);
-
-          allSlots.push({ startTime, endTime });
+          for (let minutes = 0; minutes < 60; minutes += 30) {
+            const startTime = new Date(selectedDate);
+            startTime.setHours(hour, minutes, 0, 0);
+            
+            const endTime = new Date(startTime);
+            endTime.setHours(hour, minutes + 30, 0, 0);
+            
+            allSlots.push({ startTime, endTime });
+          }
         }
 
         // In a real app, we'd filter out booked slots here
@@ -113,9 +117,9 @@ const ReservationPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Calculate the total price
-      const hours = 1; // 1-hour slot
-      const totalPrice = court.price_per_hour * hours;
+      // Calculate the total price based on actual duration
+      const durationMinutes = (selectedEndTime.getTime() - selectedStartTime.getTime()) / (1000 * 60);
+      const totalPrice = calculatePrice(court.price_per_hour, durationMinutes);
 
       // Create the reservation
       const { data: reservationData, error: reservationError } = await supabase
@@ -286,12 +290,13 @@ const ReservationPage: React.FC = () => {
     // No finally block setting isSubmitting false, because successful path redirects
   };
 
-  const hours =
-    selectedStartTime && selectedEndTime
-      ? (selectedEndTime.getTime() - selectedStartTime.getTime()) /
-      (1000 * 60 * 60)
-      : 0;
-  const totalPrice = court ? court.price_per_hour * hours : 0;
+  const calculateTotalPrice = () => {
+    if (!selectedStartTime || !selectedEndTime || !court) return 0;
+
+    const durationInHours =
+      (selectedEndTime.getTime() - selectedStartTime.getTime()) / (1000 * 60 * 60);
+    return durationInHours * court.price_per_hour;
+  };
 
   if (isLoading) {
     return (
@@ -305,8 +310,11 @@ const ReservationPage: React.FC = () => {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">{t("reservationPage.courtNotFound")}</p>
-        <button onClick={() => navigate("/")} className="mt-4 btn btn-primary">
-          {t("reservationPage.backToCourtsButton")}
+        <button
+          onClick={() => navigate("/home")}
+          className="btn btn-secondary"
+        >
+          {t("reservationPage.backButton")}
         </button>
       </div>
     );
@@ -316,7 +324,7 @@ const ReservationPage: React.FC = () => {
     <div>
       <div className="mb-6">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
           className="text-[var(--primary)] hover:text-[var(--primary-dark)] font-medium flex items-center"
         >
           ← {t("reservationPage.backToCourtsLink")}
@@ -327,12 +335,14 @@ const ReservationPage: React.FC = () => {
         <div className="md:flex">
           <div className="md:w-1/3">
             <img
-              src={
-                court.image_url ||
-                "https://images.pexels.com/photos/2277807/pexels-photo-2277807.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-              }
+              src={court.image_url || getCourtImage(court.id, court.name)}
               alt={court.name}
               className="w-full h-64 md:h-full object-cover"
+              onError={(e) => {
+                // Fallback to default image if local image fails to load
+                const target = e.target as HTMLImageElement;
+                target.src = "https://images.pexels.com/photos/2277807/pexels-photo-2277807.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
+              }}
             />
           </div>
           <div className="p-6 md:w-2/3">
@@ -342,7 +352,7 @@ const ReservationPage: React.FC = () => {
             <div className="mt-4 flex items-center text-gray-700">
               <DollarSign size={20} className="mr-1" />
               <span className="text-lg font-medium">
-                {formatPrice(court.price_per_hour, t("reservationPage.localeCode"), i18n.language === 'fr' ? 'XOF' : 'USD')}
+                {formatFCFA(court.price_per_hour)}
                 {' '}{t("courtCard.pricePerHourSuffix")}
               </span>
             </div>
@@ -375,8 +385,10 @@ const ReservationPage: React.FC = () => {
 
           <TimeSlotPicker
             date={selectedDate}
+            court={court}
             availableSlots={availableSlots}
             selectedStartTime={selectedStartTime}
+            selectedEndTime={selectedEndTime}
             onSelectTimeSlot={handleTimeSlotSelect}
           />
 
@@ -399,7 +411,7 @@ const ReservationPage: React.FC = () => {
                 </div>
                 <div className="flex items-center text-sm text-gray-700">
                   <DollarSign size={16} className="mr-2" />
-                  <span>{t("reservationPage.summaryTotalLabel")} {formatPrice(totalPrice, t("reservationPage.localeCode"), i18n.language === 'fr' ? 'XOF' : 'USD')}</span>
+                  <span>{t("reservationPage.summaryTotalLabel")} {formatFCFA(calculateTotalPrice())}</span>
                 </div>
               </div>
             </div>

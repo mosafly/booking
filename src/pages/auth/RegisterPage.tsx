@@ -31,7 +31,7 @@ const RegisterPage: React.FC = () => {
 
     try {
       await signUp(email, password);
-      navigate("/");
+      navigate("/home");
     } catch (error) {
       console.error("Registration error:", error);
       setError("Failed to create account. Please try again.");

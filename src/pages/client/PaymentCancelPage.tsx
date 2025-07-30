@@ -21,13 +21,13 @@ const PaymentCancelPage: React.FC = () => {
                 </p>
             )}
             <Link
-                to="/"
+                to="/home"
                 className="inline-block mr-2 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-md shadow-md transition duration-300"
             >
                 {t('paymentCancelPage.backButton', 'Back to Courts')}
             </Link>
             <Link
-                to={`/reservation/${reservationId}`}
+                to={`/home/reservation/${reservationId}`}
                 className="inline-block py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition duration-300"
             >
                 {t('paymentCancelPage.retryButton', 'Try Again')}
