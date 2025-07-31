@@ -3,7 +3,11 @@ import { useSupabase } from "./Supabase";
 import { Session, User } from "@supabase/supabase-js";
 
 // Types
+<<<<<<< HEAD
 export type UserRole = 'super_admin' | 'admin' | 'client' | 'coach' | null;
+=======
+export type UserRole = 'admin' | 'client' | 'coach' | null;
+>>>>>>> fork/main
 
 export type AuthContextType = {
   user: User | null;

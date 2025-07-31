@@ -2,9 +2,14 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Tag } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+<<<<<<< HEAD
 import { formatFCFA, formatFCFAWithoutSymbol } from "@/lib/utils/currency";
 import { getCourtImage } from "@/lib/utils/court-images";
 import { getEquipmentType } from "@/lib/utils/reservation-rules";
+=======
+import { formatFCFA } from "@/lib/utils/currency";
+import { getCourtImage } from "@/lib/utils/court-images";
+>>>>>>> fork/main
 
 export type Court = {
   id: string;
@@ -66,6 +71,7 @@ const CourtCard: React.FC<CourtCardProps> = ({ court }) => {
           <div className="flex items-center text-sm text-gray-700">
             <Tag size={16} className="mr-1" />
             <span>
+<<<<<<< HEAD
               {(() => {
                 const equipmentType = getEquipmentType(court);
                 if (equipmentType === 'gym_equipment') {
@@ -77,6 +83,9 @@ const CourtCard: React.FC<CourtCardProps> = ({ court }) => {
                   return `${formatFCFA(court.price_per_hour)} ${t('courtCard.pricePerHourSuffix')}`;
                 }
               })()} 
+=======
+              {formatFCFA(court.price_per_hour)} {t('courtCard.pricePerHourSuffix')}
+>>>>>>> fork/main
             </span>
           </div>
         </div>

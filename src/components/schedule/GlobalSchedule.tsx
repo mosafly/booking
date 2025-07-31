@@ -42,20 +42,31 @@ export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
     try {
       setLoading(true);
       
+<<<<<<< HEAD
       // Charger les réservations de terrains - using separate queries due to missing DB relations
       const reservationsQuery = supabase
+=======
+      // Charger les réservations de terrains
+      const courtQuery = supabase
+>>>>>>> fork/main
         .from('reservations')
         .select(`
           id,
           start_time,
           end_time,
           status,
+<<<<<<< HEAD
           court_id,
           user_id
+=======
+          courts:court_id(name),
+          profiles:user_id(first_name, last_name)
+>>>>>>> fork/main
         `)
         .gte('start_time', startOfWeek(selectedDate, { weekStartsOn: 1 }).toISOString())
         .lte('end_time', endOfWeek(selectedDate, { weekStartsOn: 1 }).toISOString());
 
+<<<<<<< HEAD
       // Charger les données des terrains séparément
       const courtsQuery = supabase
         .from('courts')
@@ -66,6 +77,8 @@ export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
         .from('profiles')
         .select('id, first_name, last_name');
 
+=======
+>>>>>>> fork/main
       // Charger les cours de gym
       const gymQuery = supabase
         .from('gym_bookings')
@@ -87,6 +100,7 @@ export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
         gymQuery.eq('coach_id', coachId);
       }
 
+<<<<<<< HEAD
       const [reservationsRes, courtsRes, profilesRes, gymRes] = await Promise.all([
         reservationsQuery,
         courtsQuery,
@@ -113,6 +127,23 @@ export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
           status: item.status,
         };
       });
+=======
+      const [courtRes, gymRes] = await Promise.all([
+        courtQuery,
+        gymQuery
+      ]);
+
+      const courtBookings: ScheduleItem[] = (courtRes.data || []).map(item => ({
+        id: item.id,
+        title: `Réservation ${(item.courts as any)?.[0]?.name || 'Terrain'}`,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        type: 'court',
+        court_name: (item.courts as any)?.[0]?.name,
+        coach_name: `${(item.profiles as any)?.[0]?.first_name || ''} ${(item.profiles as any)?.[0]?.last_name || ''}`.trim(),
+        status: item.status,
+      }));
+>>>>>>> fork/main
 
       const gymBookings: ScheduleItem[] = (gymRes.data || []).map(item => ({
         id: item.id,

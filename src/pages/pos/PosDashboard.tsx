@@ -45,7 +45,7 @@ export default function PosDashboard() {
       .eq('id', user.id)
       .single();
     
-    if (profile?.role !== 'admin' && profile?.role !== 'super_admin' && profile?.role !== 'staff') {
+    if (profile?.role !== 'admin' && profile?.role !== 'staff') {
       navigate('/');
       return;
     }

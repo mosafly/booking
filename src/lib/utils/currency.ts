@@ -13,6 +13,7 @@ export const formatFCFA = (amount: number): string => {
 };
 
 /**
+<<<<<<< HEAD
  * Format price in FCFA without currency symbol (for gym equipment)
  * @param amount - amount in FCFA
  * @returns formatted string with "F CFA" suffix
@@ -26,6 +27,8 @@ export const formatFCFAWithoutSymbol = (amount: number): string => {
 };
 
 /**
+=======
+>>>>>>> fork/main
  * Parse FCFA string to number
  * @param value - string with FCFA format
  * @returns number in FCFA
