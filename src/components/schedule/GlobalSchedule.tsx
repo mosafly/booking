@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSupabase } from '../../lib/contexts/Supabase';
 import { format, startOfWeek, endOfWeek, addDays, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Clock, Users } from 'lucide-react';
 
 interface ScheduleItem {
   id: string;
@@ -42,43 +41,21 @@ export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
     try {
       setLoading(true);
       
-<<<<<<< HEAD
-      // Charger les réservations de terrains - using separate queries due to missing DB relations
-      const reservationsQuery = supabase
-=======
-      // Charger les réservations de terrains
+// Charger les réservations de terrains
       const courtQuery = supabase
->>>>>>> fork/main
         .from('reservations')
         .select(`
           id,
           start_time,
           end_time,
           status,
-<<<<<<< HEAD
-          court_id,
-          user_id
-=======
-          courts:court_id(name),
+courts:court_id(name),
           profiles:user_id(first_name, last_name)
->>>>>>> fork/main
         `)
         .gte('start_time', startOfWeek(selectedDate, { weekStartsOn: 1 }).toISOString())
         .lte('end_time', endOfWeek(selectedDate, { weekStartsOn: 1 }).toISOString());
 
-<<<<<<< HEAD
-      // Charger les données des terrains séparément
-      const courtsQuery = supabase
-        .from('courts')
-        .select('id, name');
 
-      // Charger les données des utilisateurs séparément
-      const profilesQuery = supabase
-        .from('profiles')
-        .select('id, first_name, last_name');
-
-=======
->>>>>>> fork/main
       // Charger les cours de gym
       const gymQuery = supabase
         .from('gym_bookings')
@@ -100,38 +77,13 @@ export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
         gymQuery.eq('coach_id', coachId);
       }
 
-<<<<<<< HEAD
-      const [reservationsRes, courtsRes, profilesRes, gymRes] = await Promise.all([
-        reservationsQuery,
-        courtsQuery,
-        profilesQuery,
-        gymQuery
-      ]);
-
-      // Créer des maps pour faciliter la jointure
-      const courtsMap = new Map((courtsRes.data || []).map(court => [court.id, court]));
-      const profilesMap = new Map((profilesRes.data || []).map(profile => [profile.id, profile]));
-
-      const courtBookings: ScheduleItem[] = (reservationsRes.data || []).map(item => {
-        const court = courtsMap.get(item.court_id);
-        const profile = profilesMap.get(item.user_id);
-        
-        return {
-          id: item.id,
-          title: `Réservation ${court?.name || 'Terrain'}`,
-          start_time: item.start_time,
-          end_time: item.end_time,
-          type: 'court',
-          court_name: court?.name || `Terrain ${item.court_id}`,
-          coach_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : `Utilisateur ${item.user_id}`,
-          status: item.status,
-        };
-      });
-=======
       const [courtRes, gymRes] = await Promise.all([
         courtQuery,
         gymQuery
       ]);
+
+      if (courtRes.error) throw courtRes.error;
+      if (gymRes.error) throw gymRes.error;
 
       const courtBookings: ScheduleItem[] = (courtRes.data || []).map(item => ({
         id: item.id,
@@ -143,7 +95,6 @@ export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
         coach_name: `${(item.profiles as any)?.[0]?.first_name || ''} ${(item.profiles as any)?.[0]?.last_name || ''}`.trim(),
         status: item.status,
       }));
->>>>>>> fork/main
 
       const gymBookings: ScheduleItem[] = (gymRes.data || []).map(item => ({
         id: item.id,

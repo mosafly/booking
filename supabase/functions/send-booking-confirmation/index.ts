@@ -15,8 +15,8 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
 }
 
 // Environment variables
-const supabaseUrl = Deno.env.get("URL");
-const supabaseServiceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
+const supabaseUrl = Deno.env.get("SUPABASE_URL");
+const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const resendApiKey = Deno.env.get("RESEND_API_KEY");
 const fromEmail = Deno.env.get("FROM_EMAIL") || "noreply@updates.padelsociety.ci";
 const APP_BASE_URL = Deno.env.get("APP_BASE_URL") || "http://localhost:5173";

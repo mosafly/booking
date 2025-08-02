@@ -3,8 +3,8 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Environment variables
-const supabaseUrl = Deno.env.get("URL");
-const supabaseServiceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
+const supabaseUrl = Deno.env.get("SUPABASE_URL");
+const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {

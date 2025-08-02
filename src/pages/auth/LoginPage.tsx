@@ -21,8 +21,7 @@ const LoginPage: React.FC = () => {
 
     try {
       await signIn(email, password);
-<<<<<<< HEAD
-      
+
       // Get user session and role after successful login
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -50,10 +49,6 @@ const LoginPage: React.FC = () => {
         navigate("/home");
       }
     } catch (error: any) {
-=======
-      navigate("/home");
-    } catch (error) {
->>>>>>> fork/main
       console.error("Login error:", error);
       
       // Better error handling

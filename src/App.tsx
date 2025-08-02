@@ -8,10 +8,7 @@ import {
 import { Toaster } from "react-hot-toast";
 import { SupabaseProvider } from "./lib/contexts/Supabase";
 import { AuthProvider, useAuth, UserRole } from "./lib/contexts/Auth";
-<<<<<<< HEAD
 import { hasRoleAccess } from "./lib/utils/role-utils";
-=======
->>>>>>> fork/main
 import ErrorBoundary from "./components/booking/error-boundary";
 import { Spinner } from './components/dashboard/spinner';
 
