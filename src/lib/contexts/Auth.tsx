@@ -3,10 +3,12 @@ import { useSupabase } from "./Supabase";
 import { Session, User } from "@supabase/supabase-js";
 
 // Types
+export type UserRole = 'super_admin' | 'admin' | 'client' | 'coach' | null;
+
 export type AuthContextType = {
   user: User | null;
   session: Session | null;
-  userRole: string | null;
+  userRole: UserRole;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -21,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const { supabase } = useSupabase();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<UserRole>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Met à jour le rôle utilisateur à chaque changement d'utilisateur

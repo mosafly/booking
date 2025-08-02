@@ -1,7 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 const { Buffer } = require('node:buffer');
-const { Resend } = require('resend');
 
 // --- Supabase Setup for Padel App ---
 // These will be set in Netlify environment variables
@@ -23,16 +22,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 // This will be set in Netlify environment variables
 const LOMI_WEBHOOK_SECRET = process.env.LOMI_WEBHOOK_SECRET;
 
-// --- Resend Setup ---
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL_ADDRESS = process.env.RESEND_FROM_EMAIL_ADDRESS || "noreply@padelsociety.ci";
 
-let resend;
-if (RESEND_API_KEY) {
-    resend = new Resend(RESEND_API_KEY);
-} else {
-    console.warn("Padel App: RESEND_API_KEY is not set. Email notifications will be disabled.");
-}
 
 // --- Helper: Verify Lomi Webhook Signature ---
 async function verifyLomiWebhook(rawBody, signatureHeader) {
@@ -69,50 +59,6 @@ async function verifyLomiWebhook(rawBody, signatureHeader) {
     }
 }
 
-// --- Helper: Craft Booking Confirmation Email HTML ---
-function craftBookingConfirmationEmailHTML(emailData) {
-    const userName = emailData.userName || "Valued Customer";
-    // Basic date/time formatting, consider a library for more complex needs if running in Node.js
-    const formattedDate = new Date(emailData.startTime).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const formattedTime = new Date(emailData.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-
-    return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Booking Confirmation</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
-        .container { background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #0056b3; }
-        p { line-height: 1.6; }
-        .footer { margin-top: 20px; text-align: center; font-size: 0.9em; color: #777; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>Your Padel Court Booking is Confirmed!</h1>
-        <p>Hello ${userName},</p>
-        <p>Thank you for your booking. Here are your reservation details:</p>
-        <ul>
-          <li><strong>Reservation ID:</strong> ${emailData.reservationId}</li>
-          <li><strong>Court:</strong> ${emailData.courtName}</li>
-          <li><strong>Date:</strong> ${formattedDate}</li>
-          <li><strong>Time:</strong> ${formattedTime}</li>
-          <li><strong>Total Price:</strong> ${emailData.totalPrice} ${emailData.currency || 'XOF'}</li>
-        </ul>
-        <p>We look forward to seeing you!</p>
-        <div class="footer">
-          <p>Padel Society CI</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-}
-
 
 // --- Netlify Function Handler ---
 exports.handler = async (event, context) => {
@@ -147,27 +93,24 @@ exports.handler = async (event, context) => {
 
         console.log('Padel App: Received Lomi event type:', lomiEventType);
 
-        if ((lomiEventType === 'PAYMENT_SUCCEEDED' || lomiEventType === 'checkout.completed') && eventData) {
-            // 'checkout.completed' is the DB enum, 'CHECKOUT_COMPLETED' is the API type.
-            // Lomi webhook sender uses API type, so check for 'CHECKOUT_COMPLETED' if that's what Lomi API sends.
-            // For safety, let's assume Lomi sends the documented API event names from webhooks-api-docs.md
+        if ((lomiEventType === 'PAYMENT_SUCCEEDED' || lomiEventType === 'CHECKOUT_COMPLETED' || lomiEventType === 'checkout.completed') && eventData) {
+            // Handle both possible event type formats that Lomi might send
 
             let reservationId, lomiPaymentId, lomiCheckoutSessionId, amount, currency;
 
-            if (lomiEventType === 'CHECKOUT_COMPLETED') { // Lomi API sends this for checkout completion
+            if (lomiEventType === 'CHECKOUT_COMPLETED' || lomiEventType === 'checkout.completed') {
                 lomiCheckoutSessionId = eventData.id; // The ID of the CheckoutSession object
                 // Extract reservation_id from metadata. It was set in create-lomi-checkout-session
                 reservationId = eventData.metadata?.reservation_id;
                 amount = eventData.amount; // This should be the amount from the checkout session object
                 currency = eventData.currency_code;
                 // If the transaction_id is available directly on the completed checkout session data from Lomi, use it.
-                // Otherwise, lomiCheckoutSessionId might serve as provider_payment_id.
-                lomiPaymentId = eventData.transaction_id || null; // Check actual Lomi payload for this
+                lomiPaymentId = eventData.transaction_id || null;
                 console.log(`Padel App: Parsed CHECKOUT_COMPLETED: lomiCheckoutSessionId=${lomiCheckoutSessionId}, reservationId=${reservationId}`);
-            } else if (lomiEventType === 'PAYMENT_SUCCEEDED') { // Lomi API sends this
+            } else if (lomiEventType === 'PAYMENT_SUCCEEDED') {
                 lomiPaymentId = eventData.transaction_id; // The ID of the Transaction object
                 reservationId = eventData.metadata?.reservation_id;
-                amount = eventData.gross_amount; // From Transaction object
+                amount = eventData.gross_amount || eventData.amount; // Try both field names
                 currency = eventData.currency_code;
                 console.log(`Padel App: Parsed PAYMENT_SUCCEEDED: lomiPaymentId=${lomiPaymentId}, reservationId=${reservationId}`);
             }
@@ -191,11 +134,12 @@ exports.handler = async (event, context) => {
             }
 
             // Call RPC to record payment and update reservation
+            // For XOF, Lomi sends amount in base units (not cents), so we don't divide by 100
             const { error: rpcError } = await supabase.rpc('record_padel_lomi_payment', {
                 p_reservation_id: reservationId,
                 p_lomi_payment_id: lomiPaymentId, // Can be null if only checkout_session_id is primary
                 p_lomi_checkout_session_id: lomiCheckoutSessionId, // Can be null if payment_succeeded doesn't have it
-                p_amount_paid: amount / 100, // Assuming Lomi sends amount in smallest unit (e.g. cents)
+                p_amount_paid: amount, // XOF amounts are sent in base units, no conversion needed
                 p_currency_paid: currency,
                 p_lomi_event_payload: eventPayload // Store the whole Lomi event
             });
@@ -210,61 +154,42 @@ exports.handler = async (event, context) => {
             }
             console.log(`Padel App: Payment for reservation ${reservationId} processed successfully via Lomi webhook.`);
 
-            // ---- Send Booking Confirmation Email Directly ----
-            if (resend && RESEND_API_KEY && FROM_EMAIL_ADDRESS) {
-                try {
-                    // Fetch necessary data for the email using RPC
-                    const { data: emailRpcData, error: rpcFetchError } = await supabase
-                        .rpc('get_booking_confirmation_email_data', { p_reservation_id: reservationId });
+            // ---- Send Booking Confirmation Email via Supabase Function ----
+            try {
+                console.log(`Padel App: Triggering send-booking-confirmation for reservation ${reservationId} via HTTP call`);
+                const functionUrl = `${supabaseUrl}/functions/v1/send-booking-confirmation`;
 
-                    if (rpcFetchError) {
-                        console.error(`Padel App Webhook Warning: Failed to fetch reservation details via RPC for email (Res ID: ${reservationId}):`, rpcFetchError);
-                        // Do not fail the webhook for this, log and continue.
-                    } else if (emailRpcData && emailRpcData.length > 0) { // RPC returns an array of rows
-                        const emailDetails = emailRpcData[0]; // Get the first (and should be only) row
+                const emailResponse = await fetch(functionUrl, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${supabaseServiceKey}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ reservation_id: reservationId }),
+                });
 
-                        const userEmail = emailDetails.user_email;
-                        const courtName = emailDetails.court_name;
-                        const startTime = emailDetails.start_time;
-                        const totalPrice = emailDetails.total_price;
-                        // const userName = emailDetails.user_name; // Available if you populate it in RPC
-                        // const dbCurrency = emailDetails.currency; // Available from RPC
+                const emailResult = await emailResponse.text();
 
-                        if (userEmail && courtName && startTime && totalPrice !== null) {
-                            const emailSubject = `Your Padel Court Booking Confirmed: ${courtName}`;
-                            const emailPayload = {
-                                userName: emailDetails.user_name || null,
-                                reservationId: reservationId,
-                                courtName: courtName,
-                                startTime: startTime,
-                                totalPrice: totalPrice,
-                                currency: currency, // Using currency from Lomi event data, as it's most directly tied to the transaction
-                            };
-                            const htmlContent = craftBookingConfirmationEmailHTML(emailPayload);
-
-                            const { data: sendData, error: sendError } = await resend.emails.send({
-                                from: FROM_EMAIL_ADDRESS,
-                                to: userEmail,
-                                subject: emailSubject,
-                                html: htmlContent,
-                            });
-
-                            if (sendError) {
-                                console.error(`Padel App Webhook Warning: Failed to send confirmation email to ${userEmail} (Res ID: ${reservationId}):`, sendError);
-                            } else {
-                                console.log(`Padel App: Successfully sent confirmation email to ${userEmail} for reservation ${reservationId}. Resend ID: ${sendData?.id}`);
-                            }
-                        } else {
-                            console.warn(`Padel App Webhook Warning: Missing data from RPC for sending email (Res ID: ${reservationId}). UserEmail: ${userEmail}, CourtName: ${courtName}`);
+                if (!emailResponse.ok) {
+                    console.error(
+                        `Padel App Webhook Warning: Error triggering send-booking-confirmation for ${reservationId}:`,
+                        {
+                            status: emailResponse.status,
+                            statusText: emailResponse.statusText,
+                            response: emailResult,
                         }
-                    } else {
-                        console.warn(`Padel App Webhook Warning: No reservation details found via RPC for email (Res ID: ${reservationId}) after successful payment. RPC Data:`, emailRpcData);
-                    }
-                } catch (emailError) {
-                    console.error(`Padel App Webhook Warning: Exception while trying to send confirmation email for reservation ${reservationId}:`, emailError);
+                    );
+                } else {
+                    console.log(
+                        `Padel App: Successfully triggered send-booking-confirmation for ${reservationId}:`,
+                        emailResult
+                    );
                 }
-            } else {
-                console.warn(`Padel App Webhook: Resend API key or From Email Address not configured. Skipping email notification for reservation ${reservationId}.`);
+            } catch (emailError) {
+                console.error(
+                    `Padel App Webhook Warning: Exception calling send-booking-confirmation for ${reservationId}:`,
+                    emailError
+                );
             }
             // ---- End: Send Booking Confirmation Email ----
 

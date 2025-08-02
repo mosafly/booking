@@ -1,98 +1,133 @@
-import React from "react";
+import React, { useState } from "react";
 import { format, isBefore, isSameDay } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslation } from 'react-i18next';
+import { Court } from "@/components/booking/court-card";
+import { getEquipmentType, generateTimeSlots, formatDuration } from "@/lib/utils/reservation-rules";
 
 interface TimeSlotPickerProps {
   date: Date;
+  court: Court;
   availableSlots: {
     startTime: Date;
     endTime: Date;
   }[];
   selectedStartTime: Date | null;
+  selectedEndTime: Date | null;
   onSelectTimeSlot: (startTime: Date, endTime: Date) => void;
 }
 
 const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   date,
+  court,
   availableSlots,
   selectedStartTime,
+  selectedEndTime,
   onSelectTimeSlot,
 }) => {
   const { t, i18n } = useTranslation();
   const currentLocale = i18n.language === 'fr' ? fr : enUS;
-
-  // Generate time slots for the day (1-hour slots from 8am to 10pm)
-  const generateTimeSlots = () => {
-    const slots = [];
-    const startHour = 8; // 8am
-    const endHour = 22; // 10pm
-
-    for (let hour = startHour; hour < endHour; hour++) {
-      const startTime = new Date(date);
-      startTime.setHours(hour, 0, 0, 0);
-
-      const endTime = new Date(startTime);
-      endTime.setHours(hour + 1, 0, 0, 0);
-
-      // Check if slot is in the past (for today)
-      const isPast =
-        isSameDay(date, new Date()) && isBefore(startTime, new Date());
-
-      // Check if slot is available (not conflicting with any reservation)
-      const isAvailable =
-        !isPast &&
-        availableSlots.some(
-          (slot) =>
-            isSameDay(slot.startTime, startTime) &&
-            slot.startTime.getHours() === startTime.getHours(),
-        );
-
-      slots.push({
-        startTime,
-        endTime,
-        isAvailable,
-      });
+  const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
+  
+  const equipmentType = getEquipmentType(court);
+  const availableTimeSlots = generateTimeSlots(date, equipmentType);
+  
+  // Filter out past slots and unavailable slots
+  const validSlots = availableTimeSlots.filter(slot => {
+    const isPast = isSameDay(date, new Date()) && isBefore(slot.startTime, new Date());
+    
+    // Check if slot conflicts with existing reservations
+    const hasConflict = !availableSlots.some(
+      (availableSlot) =>
+        isSameDay(availableSlot.startTime, slot.startTime) &&
+        availableSlot.startTime.getTime() === slot.startTime.getTime()
+    );
+    
+    return !isPast && !hasConflict;
+  });
+  
+  // Group slots by start time and duration
+  const slotsByStartTime = validSlots.reduce((acc, slot) => {
+    const startTimeKey = slot.startTime.getTime();
+    if (!acc[startTimeKey]) {
+      acc[startTimeKey] = [];
     }
+    acc[startTimeKey].push(slot);
+    return acc;
+  }, {} as Record<number, typeof validSlots>);
+  
+  const uniqueStartTimes = Object.keys(slotsByStartTime)
+    .map(key => parseInt(key))
+    .sort((a, b) => a - b)
+    .map(timestamp => new Date(timestamp));
 
-    return slots;
+  const handleSlotSelection = (startTime: Date, endTime: Date, duration: number) => {
+    setSelectedDuration(duration);
+    onSelectTimeSlot(startTime, endTime);
   };
-
-  const timeSlots = generateTimeSlots();
 
   return (
     <div className="mt-4">
       <h3 className="text-lg font-semibold mb-3">{t('timeSlotPicker.title')}</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-        {timeSlots.map((slot, index) => {
-          const isSelected = selectedStartTime
-            ? format(selectedStartTime, "HH:mm") ===
-            format(slot.startTime, "HH:mm")
-            : false;
+      
+      {/* Equipment type info */}
+      <div className="mb-4 p-3 bg-blue-50 rounded-md">
+        <p className="text-sm text-blue-800">
+          {equipmentType === 'padel_court' 
+            ? 'Terrain de padel - Durée minimum: 1h, par tranches de 30min'
+            : 'Équipement de sport - Durée minimum: 30min, par tranches de 30min'
+          }
+        </p>
+      </div>
 
+      {/* Time slots organized by start time */}
+      <div className="space-y-4">
+        {uniqueStartTimes.map((startTime) => {
+          const slotsForTime = slotsByStartTime[startTime.getTime()];
+          
           return (
-            <button
-              key={index}
-              onClick={() =>
-                slot.isAvailable &&
-                onSelectTimeSlot(slot.startTime, slot.endTime)
-              }
-              disabled={!slot.isAvailable}
-              className={`
-                px-3 py-2 rounded-md text-center text-sm transition-colors
-                ${isSelected
-                  ? "bg-[var(--primary)] text-white"
-                  : slot.isAvailable
-                    ? "bg-white border border-gray-300 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                    : "bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed"
-                }
-              `}
-            >
-              {format(slot.startTime, "p", { locale: currentLocale })}
-            </button>
+            <div key={startTime.getTime()} className="border rounded-lg p-4">
+              <h4 className="font-medium mb-3">
+                {format(startTime, "p", { locale: currentLocale })}
+              </h4>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {slotsForTime.map((slot, index) => {
+                  const isSelected = selectedStartTime && selectedEndTime
+                    ? selectedStartTime.getTime() === slot.startTime.getTime() &&
+                      selectedEndTime.getTime() === slot.endTime.getTime()
+                    : false;
+
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleSlotSelection(slot.startTime, slot.endTime, slot.durationMinutes)}
+                      className={`
+                        px-3 py-2 rounded-md text-center text-sm transition-colors
+                        ${isSelected
+                          ? "bg-[var(--primary)] text-white"
+                          : "bg-white border border-gray-300 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                        }
+                      `}
+                    >
+                      <div>{formatDuration(slot.durationMinutes)}</div>
+                      <div className="text-xs opacity-75">
+                        {format(slot.endTime, "p", { locale: currentLocale })}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </div>
+      
+      {uniqueStartTimes.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <p>Aucun créneau disponible pour cette date</p>
+        </div>
+      )}
     </div>
   );
 };

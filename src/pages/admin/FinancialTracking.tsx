@@ -17,6 +17,7 @@ import {
 import { Download, Calendar, DollarSign } from "lucide-react";
 import toast from "react-hot-toast";
 import { Spinner } from "@/components/dashboard/spinner";
+import { formatFCFA } from "@/lib/utils/currency";
 
 const FinancialTracking: React.FC = () => {
   const { supabase } = useSupabase();
@@ -35,6 +36,17 @@ const FinancialTracking: React.FC = () => {
     pending: 0,
     cancelled: 0,
   });
+  const [recentTransactions, setRecentTransactions] = useState<
+    {
+      id: string;
+      date: string;
+      court: string;
+      customer: string;
+      amount: number;
+      status: string;
+      type: 'reservation' | 'pos';
+    }[]
+  >([]);
 
   // Colors for pie chart
   const COLORS = ["#3366CC", "#FF9F1C", "#28A745", "#DC3545"];
@@ -61,15 +73,18 @@ const FinancialTracking: React.FC = () => {
           monthsToFetch = 12;
         }
 
-        // Fetch monthly revenue data
+        // Fetch monthly revenue data from reservations and POS sales
         const monthlyData = [];
         let runningTotal = 0;
+        let totalPosRevenue = 0;
+        let totalReservationRevenue = 0;
 
         for (let i = 0; i < monthsToFetch; i++) {
           const currentMonth = subMonths(today, i);
           const firstDay = startOfMonth(currentMonth);
           const lastDay = endOfMonth(currentMonth);
 
+          // Fetch reservation revenue
           const { data: revenueData, error: revenueError } = await supabase
             .from("reservations")
             .select("total_price, status")
@@ -78,20 +93,42 @@ const FinancialTracking: React.FC = () => {
 
           if (revenueError) throw revenueError;
 
-          const monthRevenue =
+          // Fetch POS sales revenue
+          const { data: salesData, error: salesError } = await supabase
+            .from("sales")
+            .select("total_cents, status")
+            .gte("created_at", firstDay.toISOString())
+            .lte("created_at", lastDay.toISOString());
+
+          if (salesError) throw salesError;
+
+          const reservationRevenue =
             revenueData?.reduce((acc, curr) => {
               return acc + (curr.total_price || 0);
             }, 0) || 0;
 
+          const posRevenue =
+            salesData?.reduce((acc, curr) => {
+              return acc + ((curr.total_cents || 0) / 100); // Convert cents to main currency
+            }, 0) || 0;
+
+          const monthRevenue = reservationRevenue + posRevenue;
+
           const confirmedRevenue =
-            revenueData
+            (revenueData
               ?.filter((r) => r.status === "confirmed")
-              .reduce((acc, curr) => acc + (curr.total_price || 0), 0) || 0;
+              .reduce((acc, curr) => acc + (curr.total_price || 0), 0) || 0) +
+            (salesData
+              ?.filter((s) => s.status === "paid")
+              .reduce((acc, curr) => acc + ((curr.total_cents || 0) / 100), 0) || 0);
 
           const pendingRevenue =
-            revenueData
+            (revenueData
               ?.filter((r) => r.status === "pending")
-              .reduce((acc, curr) => acc + (curr.total_price || 0), 0) || 0;
+              .reduce((acc, curr) => acc + (curr.total_price || 0), 0) || 0) +
+            (salesData
+              ?.filter((s) => s.status === "pending")
+              .reduce((acc, curr) => acc + ((curr.total_cents || 0) / 100), 0) || 0);
 
           const cancelledRevenue =
             revenueData
@@ -106,6 +143,8 @@ const FinancialTracking: React.FC = () => {
           // Only count the first month in total (current month)
           if (i === 0) {
             runningTotal = monthRevenue;
+            totalPosRevenue = posRevenue;
+            totalReservationRevenue = reservationRevenue;
             setRevenueByStatus({
               confirmed: confirmedRevenue,
               pending: pendingRevenue,
@@ -123,7 +162,7 @@ const FinancialTracking: React.FC = () => {
           .select(
             `
             total_price,
-            courts:court_id (id, name)
+            courts(id, name)
           `,
           )
           .gte("start_time", startDate.toISOString())
@@ -135,17 +174,119 @@ const FinancialTracking: React.FC = () => {
         const courtTotals: Record<string, { name: string; value: number }> = {};
 
         courtData?.forEach((item) => {
-          const courtId = item.courts[0].id;
-          const courtName = item.courts[0].name;
+          // Check if courts data exists and is not null
+          const court = item.courts as unknown as { id: string; name: string } | null;
+          
+          if (court && court.id && court.name) {
+            const courtId = court.id;
+            const courtName = court.name;
 
-          if (!courtTotals[courtId]) {
-            courtTotals[courtId] = { name: courtName, value: 0 };
+            if (!courtTotals[courtId]) {
+              courtTotals[courtId] = { name: courtName, value: 0 };
+            }
+
+            courtTotals[courtId].value += item.total_price || 0;
           }
-
-          courtTotals[courtId].value += item.total_price || 0;
         });
 
         setCourtRevenue(Object.values(courtTotals));
+
+        // Fetch recent transactions (last 10 reservations and sales)
+        const { data: recentReservations, error: reservationsError } = await supabase
+          .from('reservations')
+          .select(`
+            id,
+            start_time,
+            total_price,
+            status,
+            court_id,
+            user_id
+          `)
+          .order('start_time', { ascending: false })
+          .limit(5);
+
+        if (reservationsError) {
+          console.error('Reservations error:', reservationsError);
+          throw reservationsError;
+        }
+
+        const { data: recentSales, error: salesError } = await supabase
+          .from('sales')
+          .select(`
+            id,
+            created_at,
+            total_cents,
+            status
+          `)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (salesError) {
+          console.error('Sales error:', salesError);
+          throw salesError;
+        }
+
+        // Fetch court and user data separately to avoid relation issues
+        const courtIds = recentReservations?.map(r => r.court_id).filter(Boolean) || [];
+        const userIds = [
+          ...(recentReservations?.map(r => r.user_id).filter(Boolean) || [])
+        ];
+
+        const { data: courts } = await supabase
+          .from('courts')
+          .select('id, name')
+          .in('id', courtIds);
+
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .in('id', userIds);
+
+        // Create lookup maps
+        const courtMap = new Map(courts?.map(c => [c.id, c.name]) || []);
+        const profileMap = new Map(profiles?.map(p => [p.id, p.email]) || []);
+
+        // Combine and format transactions
+        const transactions: {
+          id: string;
+          date: string;
+          court: string;
+          customer: string;
+          amount: number;
+          status: string;
+          type: 'reservation' | 'pos';
+        }[] = [];
+
+        // Add reservations
+        recentReservations?.forEach((reservation) => {
+          transactions.push({
+            id: reservation.id,
+            date: reservation.start_time,
+            court: courtMap.get(reservation.court_id) || 'Unknown Court',
+            customer: profileMap.get(reservation.user_id) || 'Unknown Customer',
+            amount: reservation.total_price || 0,
+            status: reservation.status,
+            type: 'reservation' as const,
+          });
+        });
+
+        // Add POS sales
+        recentSales?.forEach((sale) => {
+          transactions.push({
+            id: sale.id,
+            date: sale.created_at,
+            court: 'POS',
+            customer: 'POS Customer', // Sales may not have user_id
+            amount: (sale.total_cents || 0) / 100, // Convert cents to main currency
+            status: sale.status === 'paid' ? 'confirmed' : sale.status,
+            type: 'pos' as const,
+          });
+        });
+
+        // Sort by date (most recent first) and take top 10
+        transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setRecentTransactions(transactions.slice(0, 10));
+
       } catch (error) {
         console.error("Error fetching financial data:", error);
         toast.error("Failed to load financial data");
@@ -207,7 +348,7 @@ const FinancialTracking: React.FC = () => {
             </h3>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            ${totalRevenue.toFixed(2)}
+            {formatFCFA(totalRevenue)}
           </p>
           <p className="text-sm text-gray-600 mt-1">
             {period === "week"
@@ -226,7 +367,7 @@ const FinancialTracking: React.FC = () => {
             </h3>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            ${revenueByStatus.confirmed.toFixed(2)}
+            {formatFCFA(revenueByStatus.confirmed)}
           </p>
           <p className="text-sm text-gray-600 mt-1">
             {getPercentage(revenueByStatus.confirmed)}% of total
@@ -241,7 +382,7 @@ const FinancialTracking: React.FC = () => {
             </h3>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            ${revenueByStatus.pending.toFixed(2)}
+            {formatFCFA(revenueByStatus.pending)}
           </p>
           <p className="text-sm text-gray-600 mt-1">
             {getPercentage(revenueByStatus.pending)}% of total
@@ -402,34 +543,44 @@ const FinancialTracking: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {/* Sample transaction data - in a real app, this would be fetched from the database */}
-              {[1, 2, 3, 4, 5].map((_, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {format(new Date(2023, 0, index + 1), "MMM dd, yyyy")}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    Court {index + 1}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    user{index + 1}@example.com
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${(Math.random() * 100).toFixed(2)}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    {index % 3 === 0 && (
-                      <span className="badge badge-success">Confirmed</span>
-                    )}
-                    {index % 3 === 1 && (
-                      <span className="badge badge-warning">Pending</span>
-                    )}
-                    {index % 3 === 2 && (
-                      <span className="badge badge-danger">Cancelled</span>
-                    )}
+              {recentTransactions.length > 0 ? (
+                recentTransactions.map((transaction) => (
+                  <tr key={transaction.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {format(new Date(transaction.date), "MMM dd, yyyy")}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.court}
+                      {transaction.type === 'pos' && (
+                        <span className="ml-1 text-xs text-gray-500">(POS)</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.customer}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatFCFA(transaction.amount)}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {transaction.status === 'confirmed' && (
+                        <span className="badge badge-success">Confirmed</span>
+                      )}
+                      {transaction.status === 'pending' && (
+                        <span className="badge badge-warning">Pending</span>
+                      )}
+                      {transaction.status === 'cancelled' && (
+                        <span className="badge badge-danger">Cancelled</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                    No recent transactions found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

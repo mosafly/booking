@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Brackets as Racket, Mail, Lock } from "lucide-react";
 import { useAuth } from "@/lib/contexts/Auth";
+import { useSupabase } from "@/lib/contexts/Supabase";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { signIn } = useAuth();
+  const { supabase } = useSupabase();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,10 +21,46 @@ const LoginPage: React.FC = () => {
 
     try {
       await signIn(email, password);
-      navigate("/");
-    } catch (error) {
+
+      // Get user session and role after successful login
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // Fetch user role from profiles table
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        
+        // Redirect based on role
+        const userRole = profile?.role;
+        if (userRole === "super_admin") {
+          navigate("/admin"); // Super Admin gets full admin access
+        } else if (userRole === "admin") {
+          navigate("/admin");
+        } else if (userRole === "coach") {
+          navigate("/coach");
+        } else {
+          // Default to client view for users without role or with client role
+          navigate("/home");
+        }
+      } else {
+        navigate("/home");
+      }
+    } catch (error: any) {
       console.error("Login error:", error);
-      setError("Invalid email or password. Please try again.");
+      
+      // Better error handling
+      if (error?.message?.includes("Invalid login credentials")) {
+        setError("Email ou mot de passe incorrect. Veuillez réessayer.");
+      } else if (error?.message?.includes("Email not confirmed")) {
+        setError("Veuillez confirmer votre email avant de vous connecter.");
+      } else if (error?.message?.includes("Too many requests")) {
+        setError("Trop de tentatives. Veuillez attendre avant de réessayer.");
+      } else {
+        setError("Erreur de connexion. Veuillez réessayer.");
+      }
     } finally {
       setIsLoading(false);
     }

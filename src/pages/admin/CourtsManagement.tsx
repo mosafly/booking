@@ -201,92 +201,96 @@ const CourtsManagement: React.FC = () => {
         </div>
       ) : (
         <div className="bg-white rounded-md shadow-sm overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Court Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {courts.map((court) => (
-                <tr key={court.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">
-                      {court.name}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {court.description.substring(0, 60)}...
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    ${court.price_per_hour.toFixed(2)}/hour
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`badge ${court.status === "available"
-                        ? "badge-success"
-                        : court.status === "maintenance"
-                          ? "badge-danger"
-                          : "badge-accent"
-                        }`}
-                    >
-                      {court.status.charAt(0).toUpperCase() +
-                        court.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() =>
-                          handleStatusToggle(court.id, court.status)
-                        }
-                        className={`p-1 rounded-md ${court.status === "available"
-                          ? "text-red-600 hover:bg-red-100"
-                          : "text-green-600 hover:bg-green-100"
-                          }`}
-                        title={
-                          court.status === "available"
-                            ? "Set to maintenance"
-                            : "Set to available"
-                        }
-                      >
-                        {court.status === "available" ? (
-                          <X size={18} />
-                        ) : (
-                          <Check size={18} />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleEditCourt(court)}
-                        className="p-1 rounded-md text-blue-600 hover:bg-blue-100"
-                        title="Edit court"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCourt(court.id)}
-                        className="p-1 rounded-md text-red-600 hover:bg-red-100"
-                        title="Delete court"
-                      >
-                        <Trash size={18} />
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full divide-y divide-gray-200" style={{ minWidth: '800px' }}>
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '300px' }}>
+                    Court Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '150px' }}>
+                    Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '120px' }}>
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '150px' }}>
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {courts.map((court) => (
+                  <tr key={court.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4" style={{ minWidth: '300px' }}>
+                      <div className="font-medium text-gray-900">
+                        {court.name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {court.description.length > 60 ? court.description.substring(0, 60) + '...' : court.description}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap" style={{ minWidth: '150px' }}>
+                      ${court.price_per_hour.toFixed(2)}/hour
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap" style={{ minWidth: '120px' }}>
+                      <span
+                        className={`badge ${
+                          court.status === "available"
+                            ? "badge-success"
+                            : court.status === "maintenance"
+                              ? "badge-danger"
+                              : "badge-accent"
+                        }`}
+                      >
+                        {court.status.charAt(0).toUpperCase() +
+                          court.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap" style={{ minWidth: '150px' }}>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() =>
+                            handleStatusToggle(court.id, court.status)
+                          }
+                          className={`p-1 rounded-md ${
+                            court.status === "available"
+                              ? "text-red-600 hover:bg-red-100"
+                              : "text-green-600 hover:bg-green-100"
+                          }`}
+                          title={
+                            court.status === "available"
+                              ? "Set to maintenance"
+                              : "Set to available"
+                          }
+                        >
+                          {court.status === "available" ? (
+                            <X size={18} />
+                          ) : (
+                            <Check size={18} />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleEditCourt(court)}
+                          className="p-1 rounded-md text-blue-600 hover:bg-blue-100"
+                          title="Edit court"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCourt(court.id)}
+                          className="p-1 rounded-md text-red-600 hover:bg-red-100"
+                          title="Delete court"
+                        >
+                          <Trash size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

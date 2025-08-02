@@ -47,7 +47,11 @@ const ClientLayout: React.FC = () => {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <Racket className="h-8 w-8 text-[var(--primary)]" />
+            <img 
+              src="/images/logo/Logo-padel-palmeraie.png.png" 
+              alt="Padel Palmeraie Logo" 
+              className="h-8 w-auto"
+            />
             <h1 className="ml-2 text-xl font-bold text-[var(--primary)]">
               {t('brand')}
             </h1>
@@ -72,7 +76,7 @@ const ClientLayout: React.FC = () => {
           <div className="flex justify-between h-12">
             <div className="flex space-x-8">
               <NavLink
-                to="/"
+                to="/home"
                 className={({ isActive }) =>
                   `flex items-center px-2 py-1 border-b-2 text-sm font-medium ${isActive
                     ? "border-[var(--primary)] text-[var(--primary)]"
@@ -85,7 +89,7 @@ const ClientLayout: React.FC = () => {
               </NavLink>
 
               <NavLink
-                to="/my-reservations"
+                to="/home/my-reservations"
                 className={({ isActive }) =>
                   `flex items-center px-2 py-1 border-b-2 text-sm font-medium ${isActive
                     ? "border-[var(--primary)] text-[var(--primary)]"

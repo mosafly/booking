@@ -5,18 +5,29 @@ import {
   Brackets as Racket,
   Calendar,
   DollarSign,
+  Package,
   Menu,
   X,
   LogOut,
+  Shield,
+  ChevronDown,
+  User,
+  Users,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/lib/contexts/Auth";
+import { hasAdminAccess } from "@/lib/utils/role-utils";
 import toast from "react-hot-toast";
 import { Spinner } from '@/components/dashboard/spinner';
+
+type ViewMode = 'admin' | 'coach' | 'client';
 
 const AdminLayout: React.FC = () => {
   const { signOut, user, userRole, isLoading } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<ViewMode>('admin');
+  const [viewDropdownOpen, setViewDropdownOpen] = useState(false);
 
   useEffect(() => {
     // Handle any auth-related errors that might occur
@@ -24,13 +35,42 @@ const AdminLayout: React.FC = () => {
       if (!user) {
         console.log("No user in AdminLayout, redirecting to login");
         navigate("/login");
-      } else if (userRole !== "admin") {
-        console.log("User is not admin, redirecting to client area");
+      } else if (!hasAdminAccess(userRole)) {
+        console.log("User is not admin or super admin, redirecting to client area");
         toast.error("You do not have admin privileges");
         navigate("/");
       }
     }
   }, [isLoading, user, userRole, navigate]);
+
+  // Detect current view from URL
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/admin')) {
+      setCurrentView('admin');
+    } else if (path.startsWith('/coach')) {
+      setCurrentView('coach');
+    } else if (path.startsWith('/home')) {
+      setCurrentView('client');
+    }
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (viewDropdownOpen) {
+        setViewDropdownOpen(false);
+      }
+    };
+
+    if (viewDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [viewDropdownOpen]);
 
   const handleSignOut = async () => {
     try {
@@ -43,6 +83,46 @@ const AdminLayout: React.FC = () => {
   };
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  const handleViewChange = (view: ViewMode) => {
+    setCurrentView(view);
+    setViewDropdownOpen(false);
+    
+    // Navigate to the appropriate route based on view
+    switch (view) {
+      case 'admin':
+        navigate('/admin/dashboard');
+        break;
+      case 'coach':
+        navigate('/coach');
+        break;
+      case 'client':
+        navigate('/home');
+        break;
+    }
+  };
+
+  const getViewIcon = (view: ViewMode) => {
+    switch (view) {
+      case 'admin':
+        return <Settings size={16} />;
+      case 'coach':
+        return <Users size={16} />;
+      case 'client':
+        return <User size={16} />;
+    }
+  };
+
+  const getViewLabel = (view: ViewMode) => {
+    switch (view) {
+      case 'admin':
+        return 'Administration';
+      case 'coach':
+        return 'Coach';
+      case 'client':
+        return 'Client';
+    }
+  };
 
   if (isLoading) {
     return (
@@ -92,7 +172,11 @@ const AdminLayout: React.FC = () => {
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
             <div className="flex items-center">
-              <Racket className="h-8 w-8 text-[var(--primary)]" />
+              <img 
+                src="/images/logo/Logo-padel-palmeraie.png.png" 
+                alt="Padel Palmeraie Logo" 
+                className="h-8 w-auto"
+              />
               <h1 className="ml-2 text-xl font-bold text-[var(--primary)]">
                 Admin
               </h1>
@@ -127,6 +211,11 @@ const AdminLayout: React.FC = () => {
               icon={<DollarSign size={20} />}
               label="Financial"
             />
+            <NavItem
+              to="/admin/products"
+              icon={<Package size={20} />}
+              label="Produits"
+            />
           </div>
 
           <div className="p-4 border-t border-gray-200">
@@ -135,7 +224,18 @@ const AdminLayout: React.FC = () => {
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {user?.email}
                 </p>
-                <p className="text-xs text-gray-500">Administrator</p>
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  {userRole === 'super_admin' ? (
+                    <>
+                      <Shield size={12} className="text-purple-500" />
+                      Super Administrateur
+                    </>
+                  ) : userRole === 'admin' ? (
+                    'Administrateur'
+                  ) : (
+                    'Utilisateur'
+                  )}
+                </p>
               </div>
               <button
                 onClick={handleSignOut}
@@ -160,9 +260,57 @@ const AdminLayout: React.FC = () => {
             >
               <Menu size={24} />
             </button>
-            <div className="flex-1 flex justify-end">
+            <div className="flex-1 flex items-center justify-between">
+              {/* View Selector for Admin/Super Admin */}
+              {(userRole === 'admin' || userRole === 'super_admin') && (
+                <div className="relative">
+                  <button
+                    onClick={() => setViewDropdownOpen(!viewDropdownOpen)}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {getViewIcon(currentView)}
+                    <span>Vue: {getViewLabel(currentView)}</span>
+                    <ChevronDown size={16} className={`transform transition-transform ${viewDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {viewDropdownOpen && (
+                    <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="py-1">
+                        <button
+                          onClick={() => handleViewChange('admin')}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
+                            currentView === 'admin' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                          }`}
+                        >
+                          <Settings size={16} />
+                          <span>Administration</span>
+                        </button>
+                        <button
+                          onClick={() => handleViewChange('coach')}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
+                            currentView === 'coach' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                          }`}
+                        >
+                          <Users size={16} />
+                          <span>Coach</span>
+                        </button>
+                        <button
+                          onClick={() => handleViewChange('client')}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
+                            currentView === 'client' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                          }`}
+                        >
+                          <User size={16} />
+                          <span>Client</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <span className="hidden sm:inline-block text-sm font-medium text-gray-700">
-                Welcome, Admin
+                Welcome, {userRole === 'super_admin' ? 'Super Admin' : userRole === 'admin' ? 'Admin' : 'User'}
               </span>
             </div>
           </div>

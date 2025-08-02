@@ -26,7 +26,7 @@ const MyReservationsPage: React.FC = () => {
           .select(
             `
             *,
-            courts:court_id (name)
+            courts(name)
           `,
           )
           .eq("user_id", user.id)
