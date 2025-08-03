@@ -20,11 +20,8 @@ const HomePage: React.FC = () => {
       setIsLoading(true)
       setError(null)
 
-      // Try to fetch courts with better error handling
-      const { data, error } = await supabase
-        .from('courts')
-        .select('*')
-        .order('name')
+      // Fetch courts using the new RPC function for reliable access
+      const { data, error } = await supabase.rpc('get_all_courts');
 
       if (error) {
         console.error('Supabase error fetching courts:', error)

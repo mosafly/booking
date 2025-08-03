@@ -69,8 +69,9 @@ BEGIN
   INSERT INTO public.profiles (id, role)
   VALUES (NEW.id, 
     CASE 
-      WHEN NOT EXISTS (SELECT 1 FROM public.profiles) THEN 'client'
-      ELSE 'admin'
+      -- First user becomes super_admin, all others become clients
+      WHEN NOT EXISTS (SELECT 1 FROM public.profiles) THEN 'super_admin'
+      ELSE 'client'
     END
   )
   ON CONFLICT (id) DO NOTHING;
