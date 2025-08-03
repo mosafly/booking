@@ -48,6 +48,7 @@ const HomePage: React.FC = () => {
         }
       } else {
         console.log('RPC successful, courts received:', data?.length || 0)
+        console.log('Courts data:', data)
         setCourts(data || [])
 
         // If no courts found, show helpful message
@@ -94,9 +95,11 @@ const HomePage: React.FC = () => {
   // Categorize courts
   const padelCourts = filteredCourts.filter(
     (court) =>
+      court.name.toLowerCase().includes('padel') ||
       court.name.toLowerCase().includes('terrain') ||
       court.description?.toLowerCase().includes('padel') ||
-      court.description?.toLowerCase().includes('terrain'),
+      court.description?.toLowerCase().includes('terrain') ||
+      court.description?.toLowerCase().includes('court'),
   )
 
   const gymEquipment = filteredCourts.filter(
@@ -110,6 +113,16 @@ const HomePage: React.FC = () => {
       court.description?.toLowerCase().includes('tapis') ||
       court.description?.toLowerCase().includes('elliptique'),
   )
+
+  // Debug logging for court categorization
+  console.log('Debug courts categorization:')
+  console.log('Total courts:', courts.length)
+  console.log('Filtered courts:', filteredCourts.length)
+  console.log('Padel courts:', padelCourts.length)
+  console.log('Gym equipment:', gymEquipment.length)
+  if (courts.length > 0) {
+    console.log('Sample court:', courts[0])
+  }
 
   return (
     <div>
