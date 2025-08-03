@@ -141,8 +141,6 @@ const HomePage: React.FC = () => {
         } catch (rpcException) {
           console.error('❌ RPC function exception:', rpcException)
         }
-
-
       } catch (exception) {
         console.error('💥 Database connectivity test exception:', exception)
       }
