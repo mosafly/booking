@@ -299,7 +299,7 @@ const ReservationPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-sm shadow-sm overflow-hidden mb-4 md:mb-6">
+      <div className="bg-white rounded-md shadow-sm overflow-hidden mb-4 md:mb-6">
         <div className="md:flex">
           <div className="md:w-1/3">
             <img
@@ -335,7 +335,7 @@ const ReservationPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-sm shadow-sm p-4 md:p-6">
+      <div className="bg-white rounded-md shadow-sm p-4 md:p-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
           {t('reservationPage.titleMakeReservation')}
         </h2>
@@ -371,7 +371,7 @@ const ReservationPage: React.FC = () => {
           />
 
           {selectedStartTime && selectedEndTime && (
-            <div className="mt-4 md:mt-6 p-3 md:p-4 bg-gray-50 rounded-sm">
+            <div className="mt-4 md:mt-6 p-3 md:p-4 bg-gray-50 rounded-md">
               <h3 className="font-semibold text-gray-900 text-sm md:text-base">
                 {t('reservationPage.summaryTitle')}
               </h3>
@@ -401,7 +401,7 @@ const ReservationPage: React.FC = () => {
             <div className="mt-4 md:mt-6">
               <button
                 onClick={() => setShowPurchaseModal(true)}
-                className="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-medium py-3 md:py-4 px-6 rounded-sm transition-colors text-sm md:text-base"
+                className="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-medium py-3 md:py-4 px-6 rounded-md transition-colors text-sm md:text-base"
               >
                 {t(
                   'reservationPage.proceedToPayment',

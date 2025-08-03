@@ -348,7 +348,7 @@ const FinancialTracking: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-blue-50 p-6 rounded-sm shadow-sm">
+        <div className="bg-blue-50 p-6 rounded-md shadow-sm">
           <div className="flex items-center mb-2">
             <DollarSign size={24} className="text-[var(--primary)]" />
             <h3 className="text-sm font-medium text-gray-700 ml-1">
@@ -367,7 +367,7 @@ const FinancialTracking: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-green-50 p-6 rounded-sm shadow-sm">
+        <div className="bg-green-50 p-6 rounded-md shadow-sm">
           <div className="flex items-center mb-2">
             <DollarSign size={24} className="text-[var(--secondary)]" />
             <h3 className="text-sm font-medium text-gray-700 ml-1">
@@ -382,7 +382,7 @@ const FinancialTracking: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-yellow-50 p-6 rounded-sm shadow-sm">
+        <div className="bg-yellow-50 p-6 rounded-md shadow-sm">
           <div className="flex items-center mb-2">
             <DollarSign size={24} className="text-[var(--accent)]" />
             <h3 className="text-sm font-medium text-gray-700 ml-1">
@@ -398,7 +398,7 @@ const FinancialTracking: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-sm shadow-sm p-6">
+      <div className="bg-white rounded-md shadow-sm p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
           <h2 className="text-lg font-bold">Revenue Over Time</h2>
           <div className="mt-3 sm:mt-0">
@@ -445,7 +445,7 @@ const FinancialTracking: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-sm shadow-sm p-6">
+        <div className="bg-white rounded-md shadow-sm p-6">
           <h2 className="text-lg font-bold mb-6">Revenue by Court</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -485,7 +485,7 @@ const FinancialTracking: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-sm shadow-sm p-6">
+        <div className="bg-white rounded-md shadow-sm p-6">
           <h2 className="text-lg font-bold mb-6">Revenue by Status</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -527,7 +527,7 @@ const FinancialTracking: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-sm shadow-sm p-6">
+      <div className="bg-white rounded-md shadow-sm p-6">
         <h2 className="text-lg font-bold mb-4">Recent Transactions</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">

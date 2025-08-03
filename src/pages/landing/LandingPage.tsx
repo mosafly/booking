@@ -39,12 +39,12 @@ const LandingPage: React.FC = () => {
               <img
                 src="/icon.png"
                 alt="Padel Palmeraie Logo"
-                className="w-8 h-8 md:w-12 md:h-12 rounded-full object-cover"
+                className="w-8 h-8 md:w-12 md:h-12 rounded-md object-cover"
                 onError={(e) => {
                   // Fallback si le logo n'existe pas encore
                   e.currentTarget.style.display = 'none'
                   e.currentTarget.parentElement!.innerHTML =
-                    '<div class="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-lime-400 to-green-600 rounded-full flex items-center justify-center"><span class="text-white font-bold text-sm md:text-lg">P</span></div>'
+                    '<div class="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-lime-400 to-green-600 rounded-md flex items-center justify-center"><span class="text-white font-bold text-sm md:text-lg">P</span></div>'
                 }}
               />
               <div>
@@ -90,7 +90,7 @@ const LandingPage: React.FC = () => {
             </div>
             <button
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-lime-500 to-green-600 text-white px-4 py-2 md:px-8 md:py-3 rounded-full hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 font-semibold shadow-lg text-sm md:text-base"
+              className="bg-gradient-to-r from-lime-500 to-green-600 text-white px-4 py-2 md:px-8 md:py-3 rounded-md hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 font-semibold shadow-lg text-sm md:text-base"
             >
               {t('landingPage.nav.reserve')}
             </button>
@@ -130,13 +130,13 @@ const LandingPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center px-4">
             <button
               onClick={handleGetStarted}
-              className="w-full sm:w-auto bg-gradient-to-r from-lime-500 to-green-600 text-white px-6 py-3 md:px-10 md:py-4 rounded-full text-base md:text-lg font-semibold hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-xl"
+              className="w-full sm:w-auto bg-gradient-to-r from-lime-500 to-green-600 text-white px-6 py-3 md:px-10 md:py-4 rounded-md text-base md:text-lg font-semibold hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-xl"
             >
               {t('landingPage.hero.bookCourt')}
             </button>
             <button
               onClick={() => scrollToSection('about')}
-              className="w-full sm:w-auto border-2 border-white text-white px-6 py-3 md:px-10 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-white hover:text-gray-800 transition-all backdrop-blur-sm"
+              className="w-full sm:w-auto border-2 border-white text-white px-6 py-3 md:px-10 md:py-4 rounded-md text-base md:text-lg font-semibold hover:bg-white hover:text-gray-800 transition-all backdrop-blur-sm"
             >
               {t('landingPage.hero.discoverClub')}
             </button>
@@ -165,8 +165,8 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <div className="text-center p-8 bg-gradient-to-br from-lime-50 to-green-50 rounded-sm shadow-lg hover:shadow-xl transition-all">
-              <div className="w-20 h-20 bg-gradient-to-br from-lime-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="text-center p-8 bg-gradient-to-br from-lime-50 to-green-50 rounded-md shadow-lg hover:shadow-xl transition-all">
+              <div className="w-20 h-20 bg-gradient-to-br from-lime-500 to-green-600 rounded-md flex items-center justify-center mx-auto mb-6">
                 <Award className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-gray-800">
@@ -177,8 +177,8 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="text-center p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-sm shadow-lg hover:shadow-xl transition-all">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="text-center p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-md shadow-lg hover:shadow-xl transition-all">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-md flex items-center justify-center mx-auto mb-6">
                 <Clock className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-gray-800">
@@ -189,8 +189,8 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="text-center p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-sm shadow-lg hover:shadow-xl transition-all">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="text-center p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-md shadow-lg hover:shadow-xl transition-all">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-md flex items-center justify-center mx-auto mb-6">
                 <Users className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-gray-800">
@@ -251,7 +251,7 @@ const LandingPage: React.FC = () => {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="bg-white rounded-sm shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
+                className="bg-white rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
               >
                 <img
                   src={`/images/courts/court-${i}.jpg`}
@@ -305,8 +305,8 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="p-8 bg-gradient-to-br from-lime-50 to-green-50 rounded-sm shadow-lg">
-              <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
+            <div className="p-8 bg-gradient-to-br from-lime-50 to-green-50 rounded-md shadow-lg">
+              <div className="w-16 h-16 bg-lime-600 rounded-md flex items-center justify-center mb-6">
                 <Users className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-4">
@@ -317,8 +317,8 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-sm shadow-lg">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-6">
+            <div className="p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-md shadow-lg">
+              <div className="w-16 h-16 bg-blue-600 rounded-md flex items-center justify-center mb-6">
                 <Award className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-4">
@@ -329,8 +329,8 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-sm shadow-lg">
-              <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mb-6">
+            <div className="p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-md shadow-lg">
+              <div className="w-16 h-16 bg-purple-600 rounded-md flex items-center justify-center mb-6">
                 <Clock className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-4">
@@ -366,7 +366,7 @@ const LandingPage: React.FC = () => {
               </h3>
               <div className="space-y-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-md flex items-center justify-center mr-4">
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
@@ -379,7 +379,7 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-md flex items-center justify-center mr-4">
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
@@ -392,7 +392,7 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-md flex items-center justify-center mr-4">
                     <Mail className="w-6 h-6" />
                   </div>
                   <div>
@@ -413,13 +413,13 @@ const LandingPage: React.FC = () => {
                 <div className="flex space-x-4">
                   <a
                     href="#"
-                    className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                    className="w-12 h-12 bg-white/20 rounded-md flex items-center justify-center hover:bg-white/30 transition-colors"
                   >
                     <Instagram className="w-6 h-6" />
                   </a>
                   <a
                     href="#"
-                    className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                    className="w-12 h-12 bg-white/20 rounded-md flex items-center justify-center hover:bg-white/30 transition-colors"
                   >
                     <Facebook className="w-6 h-6" />
                   </a>
@@ -454,7 +454,7 @@ const LandingPage: React.FC = () => {
 
               <button
                 onClick={handleGetStarted}
-                className="w-full bg-white text-lime-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors text-lg shadow-lg"
+                className="w-full bg-white text-lime-600 px-8 py-4 rounded-md font-semibold hover:bg-gray-100 transition-colors text-lg shadow-lg"
               >
                 {t('landingPage.contact.bookFirst')}
               </button>
@@ -471,12 +471,12 @@ const LandingPage: React.FC = () => {
               <img
                 src="/icon.png"
                 alt="Padel Palmeraie Logo"
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-10 h-10 rounded-md object-cover"
                 onError={(e) => {
                   // Fallback si le logo n'existe pas encore
                   e.currentTarget.style.display = 'none'
                   e.currentTarget.parentElement!.innerHTML =
-                    '<div class="w-10 h-10 bg-gradient-to-br from-lime-400 to-green-600 rounded-full flex items-center justify-center"><span class="text-white font-bold">P</span></div><div class="text-xl font-bold">Padel Palmeraie</div>'
+                    '<div class="w-10 h-10 bg-gradient-to-br from-lime-400 to-green-600 rounded-md flex items-center justify-center"><span class="text-white font-bold">P</span></div><div class="text-xl font-bold">Padel Palmeraie</div>'
                 }}
               />
               <div className="text-xl font-bold">
@@ -494,7 +494,7 @@ const LandingPage: React.FC = () => {
                   i18n.changeLanguage(newLang)
                   localStorage.setItem('language', newLang)
                 }}
-                className="text-white hover:text-lime-300 transition-colors text-sm font-medium px-4 py-2 border border-white/20 rounded-full hover:border-lime-300"
+                className="text-white hover:text-lime-300 transition-colors text-sm font-medium px-4 py-2 border border-white/20 rounded-md hover:border-lime-300"
               >
                 {i18n.language === 'en' ? 'English' : 'Français'}
               </button>

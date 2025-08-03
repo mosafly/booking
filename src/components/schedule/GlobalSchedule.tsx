@@ -222,7 +222,7 @@ courts:court_id(name),
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-md h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     )
   }
@@ -236,7 +236,7 @@ courts:court_id(name),
         <div className="flex gap-2">
           <button
             onClick={() => setViewType(viewType === 'day' ? 'week' : 'day')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             {viewType === 'day' ? 'Vue Semaine' : 'Vue Jour'}
           </button>

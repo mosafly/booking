@@ -52,7 +52,10 @@
     "cancelButton": "Cancel"
   },
   "timeSlotPicker": {
-    "title": "Available time slots"
+    "title": "Available time slots",
+    "padelCourtInfo": "Padel court - Minimum duration: 1h, extendable by 30-minute slots.",
+    "gymEquipmentInfo": "Sports equipment - Minimum duration: 30 minutes, extendable by 30 minutes.",
+    "noSlotsAvailable": "No time slots available for this date"
   },
   "myReservationsPage": {
     "title": "My reservations",
@@ -154,7 +157,7 @@
     },
     "paymentMethod": "Payment Method",
     "payOnline": "Pay Online",
-    "payOnlineDesc": "Secure payment via Lomi",
+    "payOnlineDesc": "Secure payment via lomi.",
     "payOnSpot": "Pay at Venue",
     "payOnSpotDesc": "Pay when you arrive",
     "errors": {
@@ -184,7 +187,7 @@
     "hero": {
       "welcome": "Welcome to",
       "title": "Padel Palmeraie",
-      "subtitle": "The premier padel club in Riviera Faya. Discover the most exciting sport in an exceptional setting in Abidjan.",
+      "subtitle": "The first padel club in Riviera Faya. Discover the most exciting sport in an exceptional setting in Abidjan.",
       "bookCourt": "Book your court",
       "discoverClub": "Discover the club"
     },
@@ -255,7 +258,7 @@
       "bookFirst": "Book your first court"
     },
     "footer": {
-      "description": "The premier padel club in Riviera Faya, Abidjan",
+      "description": "The first padel club in Riviera Faya, Abidjan",
       "copyright": "© 2025 Padel Palmeraie. All rights reserved."
     }
   }

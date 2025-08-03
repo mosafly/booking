@@ -83,14 +83,14 @@ const ReservationList: React.FC<ReservationListProps> = ({
   return (
     <div className="space-y-4">
       {reservations.length === 0 ? (
-        <div className="text-center py-6 bg-white rounded-sm shadow-sm">
+        <div className="text-center py-6 bg-white rounded-md shadow-sm">
           <p className="text-gray-500">{t('reservationList.noReservations')}</p>
         </div>
       ) : (
         reservations.map((reservation) => (
           <div
             key={reservation.id}
-            className="bg-white rounded-sm shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
+            className="bg-white rounded-md shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
           >
             <div className="p-3 sm:p-4 md:p-6">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-3 sm:space-y-0">

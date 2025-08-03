@@ -80,11 +80,11 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       </h3>
 
       {/* Equipment type info */}
-      <div className="mb-3 md:mb-4 p-2 md:p-3 bg-blue-50 rounded-sm">
+      <div className="mb-3 md:mb-4 p-2 md:p-3 bg-blue-50 rounded-md">
         <p className="text-xs md:text-sm text-blue-800">
           {equipmentType === EquipmentType.PADEL
-            ? 'Terrain de padel - Durée minimum: 1h, par tranches de 30min'
-            : 'Équipement de sport - Durée minimum: 30min, par tranches de 30min'}
+            ? t('timeSlotPicker.padelCourtInfo')
+            : t('timeSlotPicker.gymEquipmentInfo')}
         </p>
       </div>
 
@@ -118,7 +118,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                         handleSlotSelection(slot.startTime, slot.endTime)
                       }
                       className={`
-                        px-2 py-2 md:px-3 md:py-2 rounded-sm text-center text-xs md:text-sm transition-colors min-h-[3rem]
+                        px-2 py-2 md:px-3 md:py-2 rounded-md text-center text-xs md:text-sm transition-colors min-h-[3rem]
                         ${isSelected
                           ? 'bg-[var(--primary)] text-white'
                           : 'bg-white border border-gray-300 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)] active:bg-gray-50'
@@ -143,7 +143,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       {uniqueStartTimes.length === 0 && (
         <div className="text-center py-6 md:py-8 text-gray-500">
           <p className="text-sm md:text-base">
-            Aucun créneau disponible pour cette date
+            {t('timeSlotPicker.noSlotsAvailable')}
           </p>
         </div>
       )}

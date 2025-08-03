@@ -162,7 +162,7 @@ const CourtsManagement: React.FC = () => {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-sm shadow-sm p-6 animate-fade-in">
+        <div className="bg-white rounded-md shadow-sm p-6 animate-fade-in">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold">
               {editingCourt ? 'Edit Court' : 'Add New Court'}
@@ -194,13 +194,13 @@ const CourtsManagement: React.FC = () => {
           <Spinner />
         </div>
       ) : courts.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-sm shadow-sm">
+        <div className="text-center py-12 bg-white rounded-md shadow-sm">
           <p className="text-gray-500">
             No courts found. Add your first court to get started.
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-sm shadow-sm overflow-hidden">
+        <div className="bg-white rounded-md shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table
               className="w-full divide-y divide-gray-200"
@@ -278,7 +278,7 @@ const CourtsManagement: React.FC = () => {
                           onClick={() =>
                             handleStatusToggle(court.id, court.status)
                           }
-                          className={`p-1 rounded-sm ${court.status === 'available'
+                          className={`p-1 rounded-md ${court.status === 'available'
                               ? 'text-red-600 hover:bg-red-100'
                               : 'text-green-600 hover:bg-green-100'
                             }`}
@@ -296,14 +296,14 @@ const CourtsManagement: React.FC = () => {
                         </button>
                         <button
                           onClick={() => handleEditCourt(court)}
-                          className="p-1 rounded-sm text-blue-600 hover:bg-blue-100"
+                          className="p-1 rounded-md text-blue-600 hover:bg-blue-100"
                           title="Edit court"
                         >
                           <Edit size={18} />
                         </button>
                         <button
                           onClick={() => handleDeleteCourt(court.id)}
-                          className="p-1 rounded-sm text-red-600 hover:bg-red-100"
+                          className="p-1 rounded-md text-red-600 hover:bg-red-100"
                           title="Delete court"
                         >
                           <Trash size={18} />

@@ -52,7 +52,10 @@
     "cancelButton": "Annuler"
   },
   "timeSlotPicker": {
-    "title": "Créneaux horaires disponibles"
+    "title": "Créneaux horaires disponibles",
+    "padelCourtInfo": "Terrain de padel - Durée minimum : 1h, prolongeable par tranches de 30 minutes.",
+    "gymEquipmentInfo": "Équipement de sport - Durée minimum : 30 minutes, prolongeable de 30 minutes.",
+    "noSlotsAvailable": "Aucun créneau disponible pour cette date"
   },
   "myReservationsPage": {
     "title": "Mes réservations",
@@ -154,7 +157,7 @@
     },
     "paymentMethod": "Mode de paiement",
     "payOnline": "Payer en ligne",
-    "payOnlineDesc": "Paiement sécurisé via Lomi",
+    "payOnlineDesc": "Paiement sécurisé via lomi.",
     "payOnSpot": "Payer sur place",
     "payOnSpotDesc": "Payer à votre arrivée",
     "errors": {

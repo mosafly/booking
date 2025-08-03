@@ -186,7 +186,7 @@ export const GymBookingPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-md h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
   }
@@ -211,7 +211,7 @@ export const GymBookingPage: React.FC = () => {
             type="date"
             value={format(selectedDate, 'yyyy-MM-dd')}
             onChange={(e) => setSelectedDate(new Date(e.target.value))}
-            className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -247,13 +247,13 @@ export const GymBookingPage: React.FC = () => {
                             {booking.title}
                           </h3>
                           <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${booking.class_type === 'fitness'
-                                ? 'bg-green-100 text-green-800'
-                                : booking.class_type === 'yoga'
-                                  ? 'bg-purple-100 text-purple-800'
-                                  : booking.class_type === 'danse'
-                                    ? 'bg-pink-100 text-pink-800'
-                                    : 'bg-blue-100 text-blue-800'
+                            className={`px-2 py-1 text-xs font-medium rounded-md ${booking.class_type === 'fitness'
+                              ? 'bg-green-100 text-green-800'
+                              : booking.class_type === 'yoga'
+                                ? 'bg-purple-100 text-purple-800'
+                                : booking.class_type === 'danse'
+                                  ? 'bg-pink-100 text-pink-800'
+                                  : 'bg-blue-100 text-blue-800'
                               }`}
                           >
                             {booking.class_type}
@@ -300,7 +300,7 @@ export const GymBookingPage: React.FC = () => {
                         {isBooked ? (
                           <button
                             onClick={() => handleLeaveClass(booking.id)}
-                            className="px-4 py-2 bg-red-600 text-white text-sm rounded-sm hover:bg-red-700 transition-colors"
+                            className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
                           >
                             Annuler
                           </button>
@@ -308,9 +308,9 @@ export const GymBookingPage: React.FC = () => {
                           <button
                             onClick={() => handleJoinClass(booking.id)}
                             disabled={isFull}
-                            className={`px-4 py-2 text-sm rounded-sm transition-colors ${isFull
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            className={`px-4 py-2 text-sm rounded-md transition-colors ${isFull
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
                               }`}
                           >
                             {isFull ? 'Complet' : 'Réserver'}
