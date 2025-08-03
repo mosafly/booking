@@ -6,6 +6,7 @@ import {
   Navigate,
 } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { Analytics } from '@vercel/analytics/react'
 import { SupabaseProvider } from './lib/contexts/Supabase'
 import { AuthProvider, useAuth, UserRole } from './lib/contexts/Auth'
 import { hasRoleAccess } from './lib/utils/role-utils'
@@ -94,6 +95,7 @@ function App() {
         <AuthProvider>
           <Router>
             <Toaster position="top-center" />
+            <Analytics />
             <Routes>
               {/* Landing Page */}
               <Route path="/" element={<LandingPage />} />
