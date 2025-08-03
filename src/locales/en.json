@@ -99,7 +99,8 @@
     "titleMakeReservation": "Make a reservation",
     "selectDateLabel": "Select date",
     "summaryTitle": "Summary",
-    "summaryTotalLabel": "Total:"
+    "summaryTotalLabel": "Total:",
+    "proceedToPayment": "Continue with Reservation"
   },
   "homePage": {
     "errorLoadingGeneric": "Failed to load courts. Please check connection or try again later.",

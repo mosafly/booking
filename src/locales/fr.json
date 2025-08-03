@@ -99,7 +99,8 @@
     "titleMakeReservation": "Faire une réservation",
     "selectDateLabel": "Sélectionner la date",
     "summaryTitle": "Résumé de la réservation",
-    "summaryTotalLabel": "Total :"
+    "summaryTotalLabel": "Total :",
+    "proceedToPayment": "Finaliser la réservation"
   },
   "homePage": {
     "errorLoadingGeneric": "Échec du chargement des terrains. Veuillez vérifier la connexion ou réessayer plus tard.",

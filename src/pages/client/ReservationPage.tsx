@@ -403,10 +403,7 @@ const ReservationPage: React.FC = () => {
                 onClick={() => setShowPurchaseModal(true)}
                 className="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-medium py-3 md:py-4 px-6 rounded-md transition-colors text-sm md:text-base"
               >
-                {t(
-                  'reservationPage.proceedToPayment',
-                  'Continue with Reservation',
-                )}
+                {t('reservationPage.proceedToPayment')}
               </button>
             </div>
           )}
