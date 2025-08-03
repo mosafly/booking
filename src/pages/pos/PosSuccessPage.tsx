@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, ShoppingCart } from 'lucide-react';
-import { supabase } from '@/utils/supabase/client';
+import { supabase } from '@/lib/utils/supabase/client';
 
 
 type SaleItem = {

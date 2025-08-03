@@ -96,7 +96,7 @@ function App() {
             <Routes>
               {/* Landing Page */}
               <Route path="/" element={<LandingPage />} />
-              
+
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />

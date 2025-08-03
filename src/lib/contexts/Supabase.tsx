@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from "react";
-import { supabase } from "@/utils/supabase/client";
+import { supabase } from "@/lib/utils/supabase/client";
 
 const SupabaseContext = createContext({ supabase });
 

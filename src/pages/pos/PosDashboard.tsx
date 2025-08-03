@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/utils/supabase/client';
+import { supabase } from '@/lib/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Package, DollarSign, CreditCard, Settings } from 'lucide-react';
@@ -37,19 +37,19 @@ export default function PosDashboard() {
       navigate('/login');
       return;
     }
-    
+
     // Vérifier si c'est un admin/personnel
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
-    
+
     if (profile?.role !== 'admin' && profile?.role !== 'staff') {
       navigate('/');
       return;
     }
-    
+
     loadProducts();
   };
 
@@ -60,7 +60,7 @@ export default function PosDashboard() {
         .select('*')
         .eq('is_active', true)
         .order('name');
-      
+
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
@@ -105,7 +105,7 @@ export default function PosDashboard() {
 
     try {
       const total = getTotalPrice();
-      
+
       if (paymentMethod === 'online') {
         // 1. Create sale record with pending status (similar to reservation)
         const { data: sale, error: saleError } = await supabase
@@ -323,25 +323,25 @@ export default function PosDashboard() {
                         </div>
                       </div>
                     ))}
-                    
+
                     <div className="border-t pt-4">
                       <div className="flex justify-between items-center text-lg font-bold mb-4">
                         <span>Total:</span>
                         <span>{formatFCFA(getTotalPrice())}</span>
                       </div>
-                      
+
                       <div className="space-y-3">
-                        <Button 
-                          className="w-full" 
+                        <Button
+                          className="w-full"
                           onClick={() => completeSale('cash')}
                           disabled={cart.length === 0}
                         >
                           <DollarSign className="h-4 w-4 mr-2" />
                           Payer en espèces
                         </Button>
-                        
-                        <Button 
-                          className="w-full" 
+
+                        <Button
+                          className="w-full"
                           onClick={() => completeSale('online')}
                           disabled={cart.length === 0}
                           variant="outline"
@@ -358,7 +358,7 @@ export default function PosDashboard() {
           </div>
         </div>
       </div>
-      
+
       <ProductManagementModal
         isOpen={showProductManagement}
         onClose={() => setShowProductManagement(false)}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { XCircle, ShoppingCart } from 'lucide-react';
-import { supabase } from '@/utils/supabase/client';
+import { supabase } from '@/lib/utils/supabase/client';
 
 export default function PosCancelPage() {
   const navigate = useNavigate();

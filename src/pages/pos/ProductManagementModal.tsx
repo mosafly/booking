@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabase/client';
+import { supabase } from '@/lib/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,7 +51,7 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
   const loadProducts = async () => {
     try {
       setLoading(true);
-      
+
       // Charger les produits avec leur stock
       const { data: productsData, error: productsError } = await supabase
         .from('products')
@@ -89,7 +89,7 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       // Ajouter le produit
       const { data: productData, error: productError } = await supabase
@@ -177,7 +177,7 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
   const handleStockUpdate = async (productId: string, quantity: number) => {
     try {
       setUpdatingStock(productId);
-      
+
       const { error } = await supabase
         .from('inventory')
         .update({ quantity })
@@ -186,12 +186,12 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
       if (error) throw error;
 
       // Mettre à jour l'état local immédiatement pour une réponse rapide
-      setProducts(prevProducts => 
-        prevProducts.map(p => 
+      setProducts(prevProducts =>
+        prevProducts.map(p =>
           p.id === productId ? { ...p, stock_quantity: quantity } : p
         )
       );
-      
+
       toast.success(`Stock mis à jour: ${quantity} unités`);
       onProductUpdated();
     } catch (error) {
@@ -268,7 +268,7 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
                     <Label>Nom du produit</Label>
                     <Input
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       required
                     />
                   </div>
@@ -277,7 +277,7 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
                     <Input
                       type="number"
                       value={formData.price_cents}
-                      onChange={(e) => setFormData({...formData, price_cents: parseInt(e.target.value) || 0})}
+                      onChange={(e) => setFormData({ ...formData, price_cents: parseInt(e.target.value) || 0 })}
                       required
                     />
                   </div>
@@ -287,7 +287,7 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
                     <Label>Catégorie</Label>
                     <select
                       value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full border rounded-md p-2"
                     >
                       <option value="boissons">Boissons</option>
@@ -301,7 +301,7 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
                     <Input
                       type="number"
                       value={formData.stock_quantity}
-                      onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
+                      onChange={(e) => setFormData({ ...formData, stock_quantity: parseInt(e.target.value) || 0 })}
                       required
                     />
                   </div>
@@ -310,7 +310,7 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
                   <Label>Description</Label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full border rounded-md p-2"
                     rows={3}
                   />
@@ -338,16 +338,16 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
                       <div className="grid grid-cols-3 gap-3">
                         <Input
                           value={editingProduct.name}
-                          onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
                         />
                         <Input
                           type="number"
                           value={editingProduct.price_cents}
-                          onChange={(e) => setEditingProduct({...editingProduct, price_cents: parseInt(e.target.value) || 0})}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, price_cents: parseInt(e.target.value) || 0 })}
                         />
                         <select
                           value={editingProduct.category}
-                          onChange={(e) => setEditingProduct({...editingProduct, category: e.target.value})}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
                           className="border rounded-md p-2"
                         >
                           <option value="boissons">Boissons</option>
@@ -383,10 +383,9 @@ export default function ProductManagementModal({ isOpen, onClose, onProductUpdat
                           >
                             <TrendingDown className="h-3 w-3" />
                           </Button>
-                          <span className={`w-12 text-center text-sm font-medium ${
-                            product.stock_quantity <= product.min_stock ? 'text-red-600' : 
+                          <span className={`w-12 text-center text-sm font-medium ${product.stock_quantity <= product.min_stock ? 'text-red-600' :
                             product.stock_quantity >= product.max_stock ? 'text-green-600' : ''
-                          }`}>
+                            }`}>
                             {updatingStock === product.id ? '...' : product.stock_quantity}
                           </span>
                           <Button
