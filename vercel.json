@@ -12,13 +12,13 @@
   ],
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "nodejs20.x"
     },
     "api/lomi/webhook.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "nodejs20.x"
     }
   },
   "env": {
-    "NODE_VERSION": "18"
+    "NODE_VERSION": "20"
   }
 }
