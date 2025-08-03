@@ -132,6 +132,15 @@ const HomePage: React.FC = () => {
 
   return (
     <div>
+      <div className="mb-6">
+        <button
+          onClick={() => (window.location.href = '/')}
+          className="text-[var(--primary)] hover:text-[var(--primary-dark)] font-medium flex items-center mb-4"
+        >
+          ← {t('homePage.backToHome', 'Back to Home')}
+        </button>
+      </div>
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           {t('homePage.title')}
@@ -177,30 +186,9 @@ const HomePage: React.FC = () => {
           data-component-name="HomePage"
         >
           <p className="text-red-500 mb-4">{error}</p>
-          {error &&
-          (error.includes('auth') ||
-            error.includes('credentials') ||
-            error.includes('session') ||
-            error.includes(t('homePage.errorLoadingGeneric'))) ? (
-            <div>
-              <p className="text-gray-600 mb-4">
-                {t('homePage.errorAuthMessage')}
-              </p>
-              <button
-                onClick={() => (window.location.href = '/login')}
-                className="btn btn-primary mr-3"
-              >
-                {t('homePage.loginButton')}
-              </button>
-              <button onClick={handleRefresh} className="btn btn-outline mt-2">
-                {t('homePage.retryButton')}
-              </button>
-            </div>
-          ) : (
-            <button onClick={handleRefresh} className="btn btn-primary">
-              {t('homePage.refreshPageButton')}
-            </button>
-          )}
+          <button onClick={handleRefresh} className="btn btn-primary">
+            {t('homePage.refreshPageButton')}
+          </button>
         </div>
       ) : filteredCourts.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-md shadow-sm">
@@ -222,10 +210,13 @@ const HomePage: React.FC = () => {
             <div>
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Terrain réservation
+                  {t('homePage.courtReservationTitle', 'Court Reservations')}
                 </h2>
                 <p className="text-gray-600">
-                  Réservez nos terrains de padel pour vos matchs
+                  {t(
+                    'homePage.courtReservationDescription',
+                    'Book our padel courts for your matches',
+                  )}
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -241,10 +232,13 @@ const HomePage: React.FC = () => {
             <div>
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Salle de sport
+                  {t('homePage.gymEquipmentTitle', 'Gym Equipment')}
                 </h2>
                 <p className="text-gray-600">
-                  Équipements de fitness disponibles à la réservation
+                  {t(
+                    'homePage.gymEquipmentDescription',
+                    'Fitness equipment available for reservation',
+                  )}
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -261,7 +255,10 @@ const HomePage: React.FC = () => {
             filteredCourts.length > 0 && (
               <div className="text-center py-12 bg-white rounded-md shadow-sm">
                 <p className="text-gray-500">
-                  Aucun résultat ne correspond aux critères de recherche
+                  {t(
+                    'homePage.noMatchingResults',
+                    'No results match your search criteria',
+                  )}
                 </p>
               </div>
             )}

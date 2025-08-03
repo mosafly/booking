@@ -16,6 +16,7 @@ import { Spinner } from './components/dashboard/spinner'
 // Layouts
 import ClientLayout from './lib/layouts/ClientLayout'
 import AdminLayout from './lib/layouts/AdminLayout'
+import PublicLayout from './lib/layouts/PublicLayout'
 
 // Client Pages
 import HomePage from './pages/client/HomePage'
@@ -102,30 +103,53 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
 
-              {/* Client Routes */}
+              {/* Public Client Routes */}
               <Route
                 path="/home"
+                element={
+                  <PublicLayout>
+                    <HomePage />
+                  </PublicLayout>
+                }
+              />
+              <Route
+                path="/home/reservation/:courtId?"
+                element={
+                  <PublicLayout>
+                    <ReservationPage />
+                  </PublicLayout>
+                }
+              />
+
+              {/* Protected Client Routes */}
+              <Route
+                path="/home/my-reservations"
                 element={
                   <ProtectedRoute>
                     <ClientLayout />
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<HomePage />} />
-                <Route
-                  path="reservation/:courtId?"
-                  element={<ReservationPage />}
-                />
-                <Route
-                  path="my-reservations"
-                  element={<MyReservationsPage />}
-                />
-                <Route
-                  path="payment/success"
-                  element={<PaymentSuccessPage />}
-                />
-                <Route path="payment/cancel" element={<PaymentCancelPage />} />
+                <Route index element={<MyReservationsPage />} />
               </Route>
+
+              {/* Public Payment Routes */}
+              <Route
+                path="/home/payment/success"
+                element={
+                  <PublicLayout>
+                    <PaymentSuccessPage />
+                  </PublicLayout>
+                }
+              />
+              <Route
+                path="/home/payment/cancel"
+                element={
+                  <PublicLayout>
+                    <PaymentCancelPage />
+                  </PublicLayout>
+                }
+              />
 
               {/* Admin Routes */}
               <Route

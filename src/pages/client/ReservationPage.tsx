@@ -54,7 +54,7 @@ const ReservationPage: React.FC = () => {
       } catch (error) {
         console.error('Error fetching court:', error)
         toast.error(t('reservationPage.errorLoadingCourt'))
-        navigate('/')
+        navigate('/home')
       } finally {
         setIsLoading(false)
       }
@@ -245,7 +245,7 @@ const ReservationPage: React.FC = () => {
         addStoredReservation(reservationInfo)
 
         // Navigate to a success page or home
-        navigate('/')
+        navigate('/home')
       }
     } catch (error) {
       console.error('Error creating reservation:', error)

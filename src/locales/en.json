@@ -4,6 +4,7 @@
   "courts": "Courts",
   "myReservations": "My reservations",
   "signOut": "Sign out",
+  "adminLogin": "Admin Login",
   "footer": {
     "copyright": "Padel Palmeraie S.A.R.L. — All rights reserved.",
     "english": "English",
@@ -112,7 +113,13 @@
     "refreshPageButton": "Refresh",
     "noCourtsFoundSearch": "No courts found with your search criteria.",
     "noCourtsAvailable": "No courts available at the moment.",
-    "refreshCourtsButton": "Refresh courts"
+    "refreshCourtsButton": "Refresh courts",
+    "backToHome": "Back to Home",
+    "courtReservationTitle": "Court Reservations",
+    "courtReservationDescription": "Book our padel courts for your matches",
+    "gymEquipmentTitle": "Gym Equipment",
+    "gymEquipmentDescription": "Fitness equipment available for reservation",
+    "noMatchingResults": "No results match your search criteria"
   },
   "paymentSuccessPage": {
     "title": "Payment successful!",
@@ -126,5 +133,92 @@
     "reservationIdLabel": "Reservation ID:",
     "backButton": "Back to courts",
     "retryButton": "Try again"
+  },
+  "landingPage": {
+    "nav": {
+      "home": "Home",
+      "about": "About",
+      "courts": "Our Courts",
+      "services": "Services",
+      "contact": "Contact",
+      "reserve": "Book Now"
+    },
+    "hero": {
+      "welcome": "Welcome to",
+      "title": "Padel Palmeraie",
+      "subtitle": "The premier padel club in Riviera Faya. Discover the most exciting sport in an exceptional setting in Abidjan.",
+      "bookCourt": "Book your court",
+      "discoverClub": "Discover the club"
+    },
+    "about": {
+      "title": "Why choose",
+      "titleBrand": "Padel Palmeraie",
+      "subtitle": "Located in the prestigious Riviera Faya district in Abidjan, our club offers you an incomparable padel experience in a modern and friendly environment.",
+      "features": {
+        "premium": {
+          "title": "Premium Courts",
+          "description": "High-quality padel courts, compliant with international standards with professional LED lighting."
+        },
+        "flexible": {
+          "title": "Flexible Hours",
+          "description": "Open 7 days a week from 6am to 11pm to perfectly adapt to your busy schedule."
+        },
+        "community": {
+          "title": "Dynamic Community",
+          "description": "Join a passionate padel community and participate in our regular tournaments."
+        }
+      },
+      "stats": {
+        "courts": "Premium Courts",
+        "members": "Active Members",
+        "booking": "Online Booking",
+        "rating": "Average Rating"
+      }
+    },
+    "courts": {
+      "title": "Our Padel Courts",
+      "subtitle": "Discover our 4 modern padel courts, perfectly maintained and equipped with the latest technologies.",
+      "courtTitle": "Court",
+      "courtDescription": "Professional court with LED lighting, synthetic surface and tempered glass walls.",
+      "premium": "Premium",
+      "available": "Available"
+    },
+    "services": {
+      "title": "Our Services",
+      "subtitle": "Much more than just a padel club, we offer you a complete experience.",
+      "coaching": {
+        "title": "Lessons & Coaching",
+        "description": "Individual and group lessons with our certified professional coaches."
+      },
+      "tournaments": {
+        "title": "Tournaments",
+        "description": "Participate in our monthly tournaments and inter-club championships."
+      },
+      "equipment": {
+        "title": "Equipment Rental",
+        "description": "Professional quality rackets and balls available for rental."
+      }
+    },
+    "contact": {
+      "title": "Contact Us",
+      "subtitle": "Ready to discover padel? Contact us now to book your first court!",
+      "info": "Contact Information",
+      "location": "Riviera Faya",
+      "locationSub": "Abidjan, Côte d'Ivoire",
+      "phone": "+225 07 00 00 00",
+      "phoneSub": "Reservations & Information",
+      "email": "contact@padelpalmeraie.ci",
+      "emailSub": "Main Email",
+      "followUs": "Follow Us",
+      "hours": "Opening Hours",
+      "weekdays": "Monday - Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "bookFirst": "Book your first court"
+    },
+    "footer": {
+      "description": "The premier padel club in Riviera Faya, Abidjan",
+      "copyright": "© 2025 Padel Palmeraie. All rights reserved."
+    }
   }
 }

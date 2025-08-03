@@ -13,9 +13,12 @@ import {
   Calendar,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { LanguageSwitcher } from '@/components/dashboard/language-switcher'
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const handleGetStarted = () => {
     navigate('/home/reservation')
@@ -59,38 +62,38 @@ const LandingPage: React.FC = () => {
                 onClick={() => scrollToSection('hero')}
                 className="text-gray-700 hover:text-lime-600 transition-colors font-medium"
               >
-                Accueil
+                {t('landingPage.nav.home')}
               </button>
               <button
                 onClick={() => scrollToSection('about')}
                 className="text-gray-700 hover:text-lime-600 transition-colors font-medium"
               >
-                À propos
+                {t('landingPage.nav.about')}
               </button>
               <button
                 onClick={() => scrollToSection('courts')}
                 className="text-gray-700 hover:text-lime-600 transition-colors font-medium"
               >
-                Nos Terrains
+                {t('landingPage.nav.courts')}
               </button>
               <button
                 onClick={() => scrollToSection('services')}
                 className="text-gray-700 hover:text-lime-600 transition-colors font-medium"
               >
-                Services
+                {t('landingPage.nav.services')}
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
                 className="text-gray-700 hover:text-lime-600 transition-colors font-medium"
               >
-                Contact
+                {t('landingPage.nav.contact')}
               </button>
             </div>
             <button
               onClick={handleGetStarted}
               className="bg-gradient-to-r from-lime-500 to-green-600 text-white px-4 py-2 md:px-8 md:py-3 rounded-full hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 font-semibold shadow-lg text-sm md:text-base"
             >
-              Réserver
+              {t('landingPage.nav.reserve')}
             </button>
           </div>
         </div>
@@ -117,27 +120,26 @@ const LandingPage: React.FC = () => {
 
         <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
-            Bienvenue au <br />
+            {t('landingPage.hero.welcome')} <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-green-400">
-              Padel Palmeraie
+              {t('landingPage.hero.title')}
             </span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 max-w-3xl mx-auto opacity-90 leading-relaxed px-2">
-            Le club de padel premium de Riviera Faya. Découvrez le sport le plus
-            passionnant dans un cadre exceptionnel à Abidjan.
+            {t('landingPage.hero.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center px-4">
             <button
               onClick={handleGetStarted}
               className="w-full sm:w-auto bg-gradient-to-r from-lime-500 to-green-600 text-white px-6 py-3 md:px-10 md:py-4 rounded-full text-base md:text-lg font-semibold hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-xl"
             >
-              Réservez votre terrain
+              {t('landingPage.hero.bookCourt')}
             </button>
             <button
               onClick={() => scrollToSection('about')}
               className="w-full sm:w-auto border-2 border-white text-white px-6 py-3 md:px-10 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-white hover:text-gray-800 transition-all backdrop-blur-sm"
             >
-              Découvrir le club
+              {t('landingPage.hero.discoverClub')}
             </button>
           </div>
         </div>
@@ -152,13 +154,14 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Pourquoi choisir{' '}
-              <span className="text-lime-600">Padel Palmeraie</span> ?
+              {t('landingPage.about.title')}{' '}
+              <span className="text-lime-600">
+                {t('landingPage.about.titleBrand')}
+              </span>{' '}
+              ?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Situé dans le prestigieux quartier de Riviera Faya à Abidjan,
-              notre club vous offre une expérience de padel incomparable dans un
-              environnement moderne et convivial.
+              {t('landingPage.about.subtitle')}
             </p>
           </div>
 
@@ -168,11 +171,10 @@ const LandingPage: React.FC = () => {
                 <Award className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-gray-800">
-                Terrains Premium
+                {t('landingPage.about.features.premium.title')}
               </h3>
               <p className="text-gray-600 leading-relaxed">
-                Des terrains de padel de haute qualité, conformes aux standards
-                internationaux avec éclairage LED professionnel.
+                {t('landingPage.about.features.premium.description')}
               </p>
             </div>
 
@@ -181,11 +183,10 @@ const LandingPage: React.FC = () => {
                 <Clock className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-gray-800">
-                Horaires Flexibles
+                {t('landingPage.about.features.flexible.title')}
               </h3>
               <p className="text-gray-600 leading-relaxed">
-                Ouvert 7j/7 de 6h à 23h pour s'adapter parfaitement à votre
-                emploi du temps chargé.
+                {t('landingPage.about.features.flexible.description')}
               </p>
             </div>
 
@@ -194,11 +195,10 @@ const LandingPage: React.FC = () => {
                 <Users className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-gray-800">
-                Communauté Dynamique
+                {t('landingPage.about.features.community.title')}
               </h3>
               <p className="text-gray-600 leading-relaxed">
-                Rejoignez une communauté passionnée de padel et participez à nos
-                tournois réguliers.
+                {t('landingPage.about.features.community.description')}
               </p>
             </div>
           </div>
@@ -207,21 +207,27 @@ const LandingPage: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="p-6">
               <div className="text-4xl font-bold text-lime-600 mb-2">4</div>
-              <div className="text-gray-600 font-medium">Terrains Premium</div>
+              <div className="text-gray-600 font-medium">
+                {t('landingPage.about.stats.courts')}
+              </div>
             </div>
             <div className="p-6">
               <div className="text-4xl font-bold text-lime-600 mb-2">500+</div>
-              <div className="text-gray-600 font-medium">Membres Actifs</div>
+              <div className="text-gray-600 font-medium">
+                {t('landingPage.about.stats.members')}
+              </div>
             </div>
             <div className="p-6">
               <div className="text-4xl font-bold text-lime-600 mb-2">24/7</div>
               <div className="text-gray-600 font-medium">
-                Réservation en ligne
+                {t('landingPage.about.stats.booking')}
               </div>
             </div>
             <div className="p-6">
               <div className="text-4xl font-bold text-lime-600 mb-2">5★</div>
-              <div className="text-gray-600 font-medium">Note moyenne</div>
+              <div className="text-gray-600 font-medium">
+                {t('landingPage.about.stats.rating')}
+              </div>
             </div>
           </div>
         </div>
@@ -235,11 +241,10 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Nos Terrains de Padel
+              {t('landingPage.courts.title')}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Découvrez nos 4 terrains de padel modernes, parfaitement
-              entretenus et équipés des dernières technologies.
+              {t('landingPage.courts.subtitle')}
             </p>
           </div>
 
@@ -261,21 +266,24 @@ const LandingPage: React.FC = () => {
                 />
                 <div className="p-4 md:p-6">
                   <h3 className="text-lg md:text-xl font-semibold mb-2 md:mb-3 text-gray-800">
-                    Terrain {i}
+                    {t('landingPage.courts.courtTitle')} {i}
                   </h3>
                   <p className="text-gray-600 mb-3 md:mb-4 text-sm leading-relaxed">
-                    Terrain professionnel avec éclairage LED, revêtement
-                    synthétique et murs en verre trempé.
+                    {t('landingPage.courts.courtDescription')}
                   </p>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center text-lime-600 font-semibold">
                       <Star size={14} className="mr-1 fill-current" />
-                      <span>Premium</span>
+                      <span>{t('landingPage.courts.premium')}</span>
                     </div>
                     <div className="flex items-center text-green-600 font-medium">
                       <Calendar size={14} className="mr-1" />
-                      <span className="hidden sm:inline">Disponible</span>
-                      <span className="sm:hidden">Libre</span>
+                      <span className="hidden sm:inline">
+                        {t('landingPage.courts.available')}
+                      </span>
+                      <span className="sm:hidden">
+                        {t('landingPage.courts.available')}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -290,11 +298,10 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Nos Services
+              {t('landingPage.services.title')}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Bien plus qu'un simple club de padel, nous vous offrons une
-              expérience complète.
+              {t('landingPage.services.subtitle')}
             </p>
           </div>
 
@@ -303,10 +310,11 @@ const LandingPage: React.FC = () => {
               <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
                 <Users className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-4">Cours & Coaching</h3>
+              <h3 className="text-xl font-semibold mb-4">
+                {t('landingPage.services.coaching.title')}
+              </h3>
               <p className="text-gray-600">
-                Cours individuels et collectifs avec nos coachs professionnels
-                certifiés.
+                {t('landingPage.services.coaching.description')}
               </p>
             </div>
 
@@ -314,9 +322,11 @@ const LandingPage: React.FC = () => {
               <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-6">
                 <Award className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-4">Tournois</h3>
+              <h3 className="text-xl font-semibold mb-4">
+                {t('landingPage.services.tournaments.title')}
+              </h3>
               <p className="text-gray-600">
-                Participez à nos tournois mensuels et championnats inter-clubs.
+                {t('landingPage.services.tournaments.description')}
               </p>
             </div>
 
@@ -324,10 +334,11 @@ const LandingPage: React.FC = () => {
               <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mb-6">
                 <Clock className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-4">Location Matériel</h3>
+              <h3 className="text-xl font-semibold mb-4">
+                {t('landingPage.services.equipment.title')}
+              </h3>
               <p className="text-gray-600">
-                Raquettes et balles de qualité professionnelle disponibles à la
-                location.
+                {t('landingPage.services.equipment.description')}
               </p>
             </div>
           </div>
@@ -342,25 +353,30 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Contactez-nous
+              {t('landingPage.contact.title')}
             </h2>
             <p className="text-xl opacity-90 max-w-2xl mx-auto">
-              Prêt à découvrir le padel ? Contactez-nous dès maintenant pour
-              réserver votre premier terrain !
+              {t('landingPage.contact.subtitle')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12">
             <div>
-              <h3 className="text-2xl font-semibold mb-8">Nos coordonnées</h3>
+              <h3 className="text-2xl font-semibold mb-8">
+                {t('landingPage.contact.info')}
+              </h3>
               <div className="space-y-6">
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="font-semibold">Riviera Faya</div>
-                    <div className="opacity-90">Abidjan, Côte d'Ivoire</div>
+                    <div className="font-semibold">
+                      {t('landingPage.contact.location')}
+                    </div>
+                    <div className="opacity-90">
+                      {t('landingPage.contact.locationSub')}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -368,9 +384,11 @@ const LandingPage: React.FC = () => {
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="font-semibold">+225 07 00 00 00</div>
+                    <div className="font-semibold">
+                      {t('landingPage.contact.phone')}
+                    </div>
                     <div className="opacity-90">
-                      Réservations & Informations
+                      {t('landingPage.contact.phoneSub')}
                     </div>
                   </div>
                 </div>
@@ -380,15 +398,19 @@ const LandingPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="font-semibold">
-                      contact@padelpalmeraie.ci
+                      {t('landingPage.contact.email')}
                     </div>
-                    <div className="opacity-90">Email principal</div>
+                    <div className="opacity-90">
+                      {t('landingPage.contact.emailSub')}
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="mt-8">
-                <h4 className="text-lg font-semibold mb-4">Suivez-nous</h4>
+                <h4 className="text-lg font-semibold mb-4">
+                  {t('landingPage.contact.followUs')}
+                </h4>
                 <div className="flex space-x-4">
                   <a
                     href="#"
@@ -408,19 +430,25 @@ const LandingPage: React.FC = () => {
 
             <div>
               <h3 className="text-2xl font-semibold mb-8">
-                Horaires d'ouverture
+                {t('landingPage.contact.hours')}
               </h3>
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between items-center py-3 border-b border-white/20">
-                  <span className="font-medium">Lundi - Vendredi</span>
+                  <span className="font-medium">
+                    {t('landingPage.contact.weekdays')}
+                  </span>
                   <span>6h00 - 23h00</span>
                 </div>
                 <div className="flex justify-between items-center py-3 border-b border-white/20">
-                  <span className="font-medium">Samedi</span>
+                  <span className="font-medium">
+                    {t('landingPage.contact.saturday')}
+                  </span>
                   <span>7h00 - 23h00</span>
                 </div>
                 <div className="flex justify-between items-center py-3">
-                  <span className="font-medium">Dimanche</span>
+                  <span className="font-medium">
+                    {t('landingPage.contact.sunday')}
+                  </span>
                   <span>8h00 - 22h00</span>
                 </div>
               </div>
@@ -429,7 +457,7 @@ const LandingPage: React.FC = () => {
                 onClick={handleGetStarted}
                 className="w-full bg-white text-lime-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors text-lg shadow-lg"
               >
-                Réservez votre premier terrain
+                {t('landingPage.contact.bookFirst')}
               </button>
             </div>
           </div>
@@ -452,14 +480,17 @@ const LandingPage: React.FC = () => {
                     '<div class="w-10 h-10 bg-gradient-to-br from-lime-400 to-green-600 rounded-full flex items-center justify-center"><span class="text-white font-bold">P</span></div><div class="text-xl font-bold">Padel Palmeraie</div>'
                 }}
               />
-              <div className="text-xl font-bold">Padel Palmeraie</div>
+              <div className="text-xl font-bold">
+                {t('landingPage.hero.title')}
+              </div>
             </div>
             <p className="text-gray-400 mb-4">
-              Le club de padel premium de Riviera Faya, Abidjan
+              {t('landingPage.footer.description')}
             </p>
-            <p className="text-gray-500">
-              &copy; 2025 Padel Palmeraie. Tous droits réservés.
-            </p>
+            <div className="flex justify-center mb-4">
+              <LanguageSwitcher />
+            </div>
+            <p className="text-gray-500">{t('landingPage.footer.copyright')}</p>
           </div>
         </div>
       </footer>

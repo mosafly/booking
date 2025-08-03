@@ -4,6 +4,7 @@
   "courts": "Terrains",
   "myReservations": "Mes réservations",
   "signOut": "Se déconnecter",
+  "adminLogin": "Connexion Admin",
   "footer": {
     "copyright": "Padel Palmeraie S.A.R.L. — Tous droits réservés.",
     "english": "English",
@@ -112,7 +113,13 @@
     "refreshPageButton": "Rafraîchir la page",
     "noCourtsFoundSearch": "Aucun terrain trouvé avec vos critères de recherche.",
     "noCourtsAvailable": "Aucun terrain disponible pour le moment.",
-    "refreshCourtsButton": "Rafraîchir les terrains"
+    "refreshCourtsButton": "Rafraîchir les terrains",
+    "backToHome": "Retour à l'accueil",
+    "courtReservationTitle": "Réservation de Terrains",
+    "courtReservationDescription": "Réservez nos terrains de padel pour vos matchs",
+    "gymEquipmentTitle": "Équipements de Sport",
+    "gymEquipmentDescription": "Équipements de fitness disponibles à la réservation",
+    "noMatchingResults": "Aucun résultat ne correspond aux critères de recherche"
   },
   "paymentSuccessPage": {
     "title": "Paiement réussi !",
@@ -126,5 +133,92 @@
     "reservationIdLabel": "ID de réservation :",
     "backButton": "Retour aux terrains",
     "retryButton": "Réessayer"
+  },
+  "landingPage": {
+    "nav": {
+      "home": "Accueil",
+      "about": "À propos",
+      "courts": "Nos Terrains",
+      "services": "Services",
+      "contact": "Contact",
+      "reserve": "Réserver"
+    },
+    "hero": {
+      "welcome": "Bienvenue au",
+      "title": "Padel Palmeraie",
+      "subtitle": "Le club de padel premium de Riviera Faya. Découvrez le sport le plus passionnant dans un cadre exceptionnel à Abidjan.",
+      "bookCourt": "Réservez votre terrain",
+      "discoverClub": "Découvrir le club"
+    },
+    "about": {
+      "title": "Pourquoi choisir",
+      "titleBrand": "Padel Palmeraie",
+      "subtitle": "Situé dans le prestigieux quartier de Riviera Faya à Abidjan, notre club vous offre une expérience de padel incomparable dans un environnement moderne et convivial.",
+      "features": {
+        "premium": {
+          "title": "Terrains Premium",
+          "description": "Des terrains de padel de haute qualité, conformes aux standards internationaux avec éclairage LED professionnel."
+        },
+        "flexible": {
+          "title": "Horaires Flexibles",
+          "description": "Ouvert 7j/7 de 6h à 23h pour s'adapter parfaitement à votre emploi du temps chargé."
+        },
+        "community": {
+          "title": "Communauté Dynamique",
+          "description": "Rejoignez une communauté passionnée de padel et participez à nos tournois réguliers."
+        }
+      },
+      "stats": {
+        "courts": "Terrains Premium",
+        "members": "Membres Actifs",
+        "booking": "Réservation en ligne",
+        "rating": "Note moyenne"
+      }
+    },
+    "courts": {
+      "title": "Nos Terrains de Padel",
+      "subtitle": "Découvrez nos 4 terrains de padel modernes, parfaitement entretenus et équipés des dernières technologies.",
+      "courtTitle": "Terrain",
+      "courtDescription": "Terrain professionnel avec éclairage LED, revêtement synthétique et murs en verre trempé.",
+      "premium": "Premium",
+      "available": "Disponible"
+    },
+    "services": {
+      "title": "Nos Services",
+      "subtitle": "Bien plus qu'un simple club de padel, nous vous offrons une expérience complète.",
+      "coaching": {
+        "title": "Cours & Coaching",
+        "description": "Cours individuels et collectifs avec nos coachs professionnels certifiés."
+      },
+      "tournaments": {
+        "title": "Tournois",
+        "description": "Participez à nos tournois mensuels et championnats inter-clubs."
+      },
+      "equipment": {
+        "title": "Location Matériel",
+        "description": "Raquettes et balles de qualité professionnelle disponibles à la location."
+      }
+    },
+    "contact": {
+      "title": "Contactez-nous",
+      "subtitle": "Prêt à découvrir le padel ? Contactez-nous dès maintenant pour réserver votre premier terrain !",
+      "info": "Nos coordonnées",
+      "location": "Riviera Faya",
+      "locationSub": "Abidjan, Côte d'Ivoire",
+      "phone": "+225 07 00 00 00",
+      "phoneSub": "Réservations & Informations",
+      "email": "contact@padelpalmeraie.ci",
+      "emailSub": "Email principal",
+      "followUs": "Suivez-nous",
+      "hours": "Horaires d'ouverture",
+      "weekdays": "Lundi - Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche",
+      "bookFirst": "Réservez votre premier terrain"
+    },
+    "footer": {
+      "description": "Le club de padel premium de Riviera Faya, Abidjan",
+      "copyright": "© 2025 Padel Palmeraie. Tous droits réservés."
+    }
   }
 }
