@@ -1,9 +1,9 @@
-const { createClient } = require('@supabase/supabase-js');
-const crypto = require('crypto');
-const { Buffer } = require('node:buffer');
+import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+import { Buffer } from 'node:buffer';
 
 // --- Supabase Setup for Padel App ---
-// These will be set in Netlify environment variables
+// These will be set in Vercel environment variables
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -19,7 +19,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 // --- Lomi Webhook Secret ---
-// This will be set in Netlify environment variables
+// This will be set in Vercel environment variables
 const LOMI_WEBHOOK_SECRET = process.env.LOMI_WEBHOOK_SECRET;
 
 
@@ -60,18 +60,33 @@ async function verifyLomiWebhook(rawBody, signatureHeader) {
 }
 
 
-// --- Netlify Function Handler ---
-exports.handler = async (event, context) => {
-    if (event.httpMethod !== 'POST') {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ error: 'Method Not Allowed' }),
-            headers: { 'Allow': 'POST', 'Content-Type': 'application/json' },
-        };
+// Configure Vercel to handle raw body for signature verification
+export const config = {
+    api: {
+        bodyParser: false,
+    },
+};
+
+// Helper to get raw body from Vercel request
+async function getRawBody(req) {
+    const chunks = [];
+    for await (const chunk of req) {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    }
+    return Buffer.concat(chunks);
+}
+
+// --- Vercel Function Handler ---
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        res.setHeader('Allow', 'POST');
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const rawBody = event.body; // Netlify provides the raw string body here
-    const signature = event.headers['x-lomi-signature']; // Lomi sends this header
+    // Get raw body for signature verification
+    const rawBody = await getRawBody(req);
+    const signature = req.headers['x-lomi-signature']; // Lomi sends this header
 
     let eventPayload;
     try {
@@ -79,11 +94,8 @@ exports.handler = async (event, context) => {
         console.log('Padel App: Lomi webhook event verified:', eventPayload?.event || 'Event type missing');
     } catch (err) {
         console.error('Padel App: Lomi signature verification failed:', err.message);
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: `Webhook verification failed: ${err.message}` }),
-            headers: { 'Content-Type': 'application/json' },
-        };
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(400).json({ error: `Webhook verification failed: ${err.message}` });
     }
 
     // --- Event Processing ---
@@ -118,19 +130,13 @@ exports.handler = async (event, context) => {
 
             if (!reservationId) {
                 console.error('Padel App Webhook Error: Missing reservation_id in Lomi webhook metadata.', { lomiEventData: eventData });
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify({ error: 'Missing reservation_id in Lomi webhook metadata for processing.' }),
-                    headers: { 'Content-Type': 'application/json' },
-                };
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(400).json({ error: 'Missing reservation_id in Lomi webhook metadata for processing.' });
             }
             if (amount === undefined || !currency) {
                 console.error('Padel App Webhook Error: Missing amount or currency from Lomi event data.', { amount, currency, lomiEventData: eventData });
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify({ error: 'Missing amount or currency in Lomi webhook payload.' }),
-                    headers: { 'Content-Type': 'application/json' },
-                };
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(400).json({ error: 'Missing amount or currency in Lomi webhook payload.' });
             }
 
             // Call RPC to record payment and update reservation
@@ -146,11 +152,8 @@ exports.handler = async (event, context) => {
 
             if (rpcError) {
                 console.error('Padel App Webhook Error: Failed to call record_padel_lomi_payment RPC:', rpcError);
-                return {
-                    statusCode: 500,
-                    body: JSON.stringify({ error: 'Failed to process payment update in Padel DB.' }),
-                    headers: { 'Content-Type': 'application/json' },
-                };
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({ error: 'Failed to process payment update in Padel DB.' });
             }
             console.log(`Padel App: Payment for reservation ${reservationId} processed successfully via Lomi webhook.`);
 
@@ -197,18 +200,12 @@ exports.handler = async (event, context) => {
             console.log('Padel App: Lomi event type not handled or missing data:', lomiEventType);
         }
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ received: true, message: "Webhook processed by Padel App" }),
-            headers: { 'Content-Type': 'application/json' },
-        };
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(200).json({ received: true, message: "Webhook processed by Padel App" });
 
     } catch (error) {
         console.error('Padel App Webhook - Uncaught error during event processing:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Internal server error processing webhook event.' }),
-            headers: { 'Content-Type': 'application/json' },
-        };
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(500).json({ error: 'Internal server error processing webhook event.' });
     }
-};
+}
