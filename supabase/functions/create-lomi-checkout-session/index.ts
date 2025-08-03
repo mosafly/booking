@@ -2,6 +2,18 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabaseUrl = Deno.env.get("SUPABASE_URL");
+const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  console.error(
+    "Supabase URL or Service Role Key is not set. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are defined in Edge Function environment variables.",
+  );
+}
+const supabase = createClient(supabaseUrl || "", supabaseServiceRoleKey || "");
+
 
 // Environment variables (should be set in Supabase Function settings)
 const LOMI_API_KEY = Deno.env.get('LOMI_API_KEY')
@@ -83,47 +95,37 @@ serve(async (req: Request) => {
     const finalAmount = amount
     let useDynamic = useDynamicPricing
 
-    // If courtId provided, check pricing settings and get product_id
     if (courtId && !useDynamicPricing) {
-      try {
-        // Simple fetch to get court product_id and pricing settings
-        const courtResponse = await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/rest/v1/courts?id=eq.${courtId}&select=lomi_product_id`,
-          {
-            headers: {
-              apikey: Deno.env.get('SUPABASE_ANON_KEY') || '',
-              Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
-            },
-          },
-        )
+        try {
+            const { data: courtData, error: courtError } = await supabase
+                .from('courts')
+                .select('lomi_product_id')
+                .eq('id', courtId)
+                .single();
 
-        const settingsResponse = await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/rest/v1/pricing_settings?select=use_dynamic_pricing`,
-          {
-            headers: {
-              apikey: Deno.env.get('SUPABASE_ANON_KEY') || '',
-              Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
-            },
-          },
-        )
+            if (courtError) throw courtError;
 
-        const courtData = await courtResponse.json()
-        const settingsData = await settingsResponse.json()
+            const { data: settingsData, error: settingsError } = await supabase
+                .from('pricing_settings')
+                .select('use_dynamic_pricing')
+                .single();
 
-        // Check global dynamic pricing setting
-        if (settingsData && settingsData[0]?.use_dynamic_pricing) {
-          useDynamic = true
-        } else if (courtData && courtData[0]?.lomi_product_id) {
-          finalProductId = courtData[0].lomi_product_id
+            if (settingsError) throw settingsError;
+            
+            if (settingsData?.use_dynamic_pricing) {
+                useDynamic = true;
+            } else if (courtData?.lomi_product_id) {
+                finalProductId = courtData.lomi_product_id;
+            }
+        } catch (error) {
+            console.warn(
+              'Failed to fetch pricing settings, falling back to amount-based:',
+              error,
+            )
+            useDynamic = true
         }
-      } catch (error) {
-        console.warn(
-          'Failed to fetch pricing settings, falling back to amount-based:',
-          error,
-        )
-        useDynamic = true
-      }
     }
+
 
     // Final validation - ensure we have either amount or product_id
     if (!finalAmount && !finalProductId) {

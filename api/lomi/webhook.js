@@ -110,79 +110,79 @@ export default async function handler(req, res) {
     const lomiEventType = eventPayload?.event
     const eventData = eventPayload?.data
 
+    if (!lomiEventType || !eventData) {
+      console.warn(
+        'Padel App: Event type or data missing in Lomi payload.',
+        eventPayload,
+      );
+      return res.status(400).json({ error: 'Event type or data missing.' });
+    }
+
     console.log('Padel App: Received Lomi event type:', lomiEventType)
+    console.log('Padel App: Full event payload:', JSON.stringify(eventPayload, null, 2));
 
+
+    const reservationId = eventData.metadata?.reservation_id;
+    const lomiPaymentId = eventData.transaction_id || eventData.id;
+    let lomiCheckoutSessionId;
     if (
-      (lomiEventType === 'PAYMENT_SUCCEEDED' ||
-        lomiEventType === 'CHECKOUT_COMPLETED' ||
-        lomiEventType === 'checkout.completed') &&
-      eventData
+      lomiEventType === "checkout.completed" ||
+      lomiEventType === "CHECKOUT_COMPLETED"
     ) {
-      // Handle both possible event type formats that Lomi might send
+      lomiCheckoutSessionId = eventData.id;
+    } else {
+      lomiCheckoutSessionId = eventData.metadata?.linkId || eventData.id;
+    }
+    const amount = eventData.amount || eventData.gross_amount;
+    const currency = eventData.currency_code;
 
-      let reservationId, lomiPaymentId, lomiCheckoutSessionId, amount, currency
+    if (!reservationId) {
+      console.error(
+        'Padel App Webhook Error: Missing reservation_id in Lomi webhook metadata.',
+        { lomiEventData: eventData },
+      )
+      return res
+        .status(400)
+        .json({
+          error:
+            'Missing reservation_id in Lomi webhook metadata for processing.',
+        })
+    }
+    if (amount === undefined || !currency) {
+      console.error(
+        'Padel App Webhook Error: Missing amount or currency from Lomi event data.',
+        { amount, currency, lomiEventData: eventData },
+      )
+      return res
+        .status(400)
+        .json({
+          error: 'Missing amount or currency in Lomi webhook payload.',
+        })
+    }
 
-      if (
-        lomiEventType === 'CHECKOUT_COMPLETED' ||
-        lomiEventType === 'checkout.completed'
-      ) {
-        lomiCheckoutSessionId = eventData.id // The ID of the CheckoutSession object
-        // Extract reservation_id from metadata. It was set in create-lomi-checkout-session
-        reservationId = eventData.metadata?.reservation_id
-        amount = eventData.amount // This should be the amount from the checkout session object
-        currency = eventData.currency_code
-        // If the transaction_id is available directly on the completed checkout session data from Lomi, use it.
-        lomiPaymentId = eventData.transaction_id || null
-        console.log(
-          `Padel App: Parsed CHECKOUT_COMPLETED: lomiCheckoutSessionId=${lomiCheckoutSessionId}, reservationId=${reservationId}`,
-        )
-      } else if (lomiEventType === 'PAYMENT_SUCCEEDED') {
-        lomiPaymentId = eventData.transaction_id // The ID of the Transaction object
-        reservationId = eventData.metadata?.reservation_id
-        amount = eventData.gross_amount || eventData.amount // Try both field names
-        currency = eventData.currency_code
-        console.log(
-          `Padel App: Parsed PAYMENT_SUCCEEDED: lomiPaymentId=${lomiPaymentId}, reservationId=${reservationId}`,
-        )
-      }
+    let isSuccessEvent = false;
+    if (
+      lomiEventType === 'checkout.completed' ||
+      lomiEventType === 'CHECKOUT_COMPLETED' ||
+      lomiEventType === 'payment.succeeded' ||
+      lomiEventType === 'PAYMENT_SUCCEEDED'
+    ) {
+      isSuccessEvent = true;
+    }
 
-      if (!reservationId) {
-        console.error(
-          'Padel App Webhook Error: Missing reservation_id in Lomi webhook metadata.',
-          { lomiEventData: eventData },
-        )
-        res.setHeader('Content-Type', 'application/json')
-        return res
-          .status(400)
-          .json({
-            error:
-              'Missing reservation_id in Lomi webhook metadata for processing.',
-          })
-      }
-      if (amount === undefined || !currency) {
-        console.error(
-          'Padel App Webhook Error: Missing amount or currency from Lomi event data.',
-          { amount, currency, lomiEventData: eventData },
-        )
-        res.setHeader('Content-Type', 'application/json')
-        return res
-          .status(400)
-          .json({
-            error: 'Missing amount or currency in Lomi webhook payload.',
-          })
-      }
 
+    if (isSuccessEvent) {
+      console.log(`Padel App: Processing successful payment for reservation ${reservationId}`);
       // Call RPC to record payment and update reservation
-      // For XOF, Lomi sends amount in base units (not cents), so we don't divide by 100
       const { error: rpcError } = await supabase.rpc(
         'record_padel_lomi_payment',
         {
           p_reservation_id: reservationId,
-          p_lomi_payment_id: lomiPaymentId, // Can be null if only checkout_session_id is primary
-          p_lomi_checkout_session_id: lomiCheckoutSessionId, // Can be null if payment_succeeded doesn't have it
-          p_amount_paid: amount, // XOF amounts are sent in base units, no conversion needed
+          p_lomi_payment_id: lomiPaymentId,
+          p_lomi_checkout_session_id: lomiCheckoutSessionId,
+          p_amount_paid: amount,
           p_currency_paid: currency,
-          p_lomi_event_payload: eventPayload, // Store the whole Lomi event
+          p_lomi_event_payload: eventPayload,
         },
       )
 
@@ -191,13 +191,12 @@ export default async function handler(req, res) {
           'Padel App Webhook Error: Failed to call record_padel_lomi_payment RPC:',
           rpcError,
         )
-        res.setHeader('Content-Type', 'application/json')
         return res
           .status(500)
           .json({ error: 'Failed to process payment update in Padel DB.' })
       }
       console.log(
-        `Padel App: Payment for reservation ${reservationId} processed successfully via Lomi webhook.`,
+        `Padel App: Payment for reservation ${reservationId} recorded successfully.`,
       )
 
       // ---- Send Booking Confirmation Email via Supabase Function ----
@@ -239,15 +238,13 @@ export default async function handler(req, res) {
           emailError,
         )
       }
-      // ---- End: Send Booking Confirmation Email ----
     } else {
       console.log(
-        'Padel App: Lomi event type not handled or missing data:',
+        'Padel App: Lomi event type not a success event or not handled:',
         lomiEventType,
       )
     }
 
-    res.setHeader('Content-Type', 'application/json')
     return res
       .status(200)
       .json({ received: true, message: 'Webhook processed by Padel App' })
@@ -256,7 +253,6 @@ export default async function handler(req, res) {
       'Padel App Webhook - Uncaught error during event processing:',
       error,
     )
-    res.setHeader('Content-Type', 'application/json')
     return res
       .status(500)
       .json({ error: 'Internal server error processing webhook event.' })

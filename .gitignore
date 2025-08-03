@@ -6,15 +6,10 @@ pnpm-debug.log*
 
 # Temp files/directories
 .temp/
-supabase/.temp/
-.cursor
 node_modules
 dist
-dist-ssr
 *.local
-
-# Problematic directories
-api/lomi./
+/tohelp
 
 # Environment variables
 .env

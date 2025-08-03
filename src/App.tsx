@@ -34,6 +34,7 @@ import { PricingManagement } from './components/admin/PricingManagement'
 import PosDashboard from './pages/pos/PosDashboard'
 import PosSuccessPage from './pages/pos/PosSuccessPage'
 import PosCancelPage from './pages/pos/PosCancelPage'
+import { VerificationPage } from './pages/admin/VerificationPage'
 
 // Coach Pages
 import { CoachDashboard } from './pages/coach/CoachDashboard'
@@ -154,6 +155,7 @@ function App() {
                 <Route path="pos" element={<PosDashboard />} />
                 <Route path="pos/success" element={<PosSuccessPage />} />
                 <Route path="pos/cancel" element={<PosCancelPage />} />
+                <Route path="verify/:verificationId" element={<VerificationPage />} />
               </Route>
 
               {/* Coach Routes */}

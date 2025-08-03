@@ -19,7 +19,7 @@ BEGIN
     RETURN QUERY
     SELECT
         u.email AS user_email,
-        NULL AS user_name, -- Placeholder: Adjust if user name is available e.g., in profiles.full_name
+        p.full_name AS user_name, -- Now using full_name from profiles table
         c.name AS court_name,
         r.start_time,
         r.total_price,
@@ -28,7 +28,9 @@ BEGIN
     FROM 
         public.reservations r
     JOIN 
-        auth.users u ON r.user_id = u.id -- Assumes r.user_id maps to auth.users via profiles
+        public.profiles p ON r.user_id = p.id
+    JOIN 
+        auth.users u ON p.id = u.id
     JOIN 
         public.courts c ON r.court_id = c.id
     LEFT JOIN LATERAL (

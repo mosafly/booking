@@ -49,9 +49,8 @@ BEGIN
         payment_provider,
         provider_payment_id,
         status,
-        payment_date
-        -- Add a metadata column to public.payments if you want to store p_lomi_event_payload
-        -- metadata
+        payment_date,
+        lomi_event_payload
     )
     VALUES (
         p_reservation_id,
@@ -62,9 +61,17 @@ BEGIN
         'lomi',   -- Payment provider
         COALESCE(p_lomi_payment_id, p_lomi_checkout_session_id, 'N/A'), -- Lomi's unique ID for the payment
         'completed', -- Set status to completed
-        NOW()      -- Payment date
-        -- p_lomi_event_payload -- Store Lomi payload if you have a metadata column
+        NOW(),      -- Payment date
+        p_lomi_event_payload -- Store Lomi payload if you have a metadata column
     )
+    ON CONFLICT (reservation_id) DO UPDATE SET
+        amount = p_amount_paid,
+        currency = p_currency_paid,
+        provider_payment_id = COALESCE(p_lomi_payment_id, p_lomi_checkout_session_id, 'N/A'),
+        status = 'completed',
+        payment_date = NOW(),
+        lomi_event_payload = p_lomi_event_payload,
+        updated_at = NOW()
     RETURNING id INTO v_payment_id;
 
     RAISE LOG 'Recorded Lomi payment. Padel Payment ID: %, Lomi Payment/Checkout ID: % for Reservation ID: %', 
@@ -86,3 +93,38 @@ $$;
 GRANT EXECUTE ON FUNCTION public.record_padel_lomi_payment(UUID, TEXT, TEXT, NUMERIC, TEXT, JSONB) TO service_role;
 
 COMMENT ON FUNCTION public.record_padel_lomi_payment IS 'Records a successful payment processed via Lomi for a Padel court reservation and updates related tables.';
+
+-- Function to update email dispatch status
+CREATE OR REPLACE FUNCTION public.update_booking_email_dispatch_status(
+    p_reservation_id UUID,
+    p_email_dispatch_status TEXT,
+    p_email_dispatch_error TEXT DEFAULT NULL
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    UPDATE public.reservations
+    SET 
+        email_dispatch_status = p_email_dispatch_status,
+        email_last_dispatch_attempt_at = NOW(),
+        email_dispatch_error = p_email_dispatch_error,
+        email_dispatch_attempts = CASE 
+                                    WHEN p_email_dispatch_status = 'PENDING_DISPATCH' THEN COALESCE(email_dispatch_attempts, 0) + 1
+                                    ELSE email_dispatch_attempts 
+                                  END,
+        updated_at = NOW()
+    WHERE id = p_reservation_id;
+
+    IF NOT FOUND THEN
+        RAISE WARNING 'Reservation ID % not found during update_booking_email_dispatch_status', p_reservation_id;
+    END IF;
+END;
+$$;
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.update_booking_email_dispatch_status(UUID, TEXT, TEXT) TO service_role;
+
+COMMENT ON FUNCTION public.update_booking_email_dispatch_status(UUID, TEXT, TEXT)
+IS 'Updates the email dispatch status and related fields for a reservation record';

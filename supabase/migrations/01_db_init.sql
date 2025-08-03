@@ -6,6 +6,7 @@ CREATE TYPE public.reservation_status AS ENUM ('pending', 'confirmed', 'cancelle
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
   role TEXT NOT NULL DEFAULT 'client' CHECK (role IN ('client', 'admin', 'super_admin')),
+  full_name TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -30,6 +31,14 @@ CREATE TABLE IF NOT EXISTS public.reservations (
   end_time TIMESTAMPTZ NOT NULL,
   total_price NUMERIC NOT NULL CHECK (total_price >= 0),
   status public.reservation_status DEFAULT 'pending',
+  email_dispatch_status TEXT DEFAULT 'NOT_INITIATED' NOT NULL,
+  email_dispatch_attempts INTEGER DEFAULT 0 NOT NULL,
+  email_last_dispatch_attempt_at TIMESTAMPTZ,
+  email_dispatch_error TEXT,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  verification_id UUID UNIQUE,
+  verification_used_at TIMESTAMPTZ,
+  verified_by TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   CONSTRAINT reservations_timeframe_check CHECK (end_time > start_time)
 );
@@ -48,6 +57,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
   payment_url TEXT,
   payment_date TIMESTAMP WITH TIME ZONE,
+  lomi_event_payload JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
@@ -61,6 +71,8 @@ CREATE INDEX IF NOT EXISTS payments_status_idx ON public.payments(status);
 -- INDEXES for RESERVATIONS table (for foreign keys)
 CREATE INDEX IF NOT EXISTS reservations_user_id_idx ON public.reservations(user_id);
 CREATE INDEX IF NOT EXISTS reservations_court_id_idx ON public.reservations(court_id);
+CREATE INDEX IF NOT EXISTS idx_reservations_email_dispatch_status ON public.reservations(email_dispatch_status);
+CREATE INDEX IF NOT EXISTS reservations_verification_id_idx ON public.reservations(verification_id);
 
 -- Function and Trigger to HANDLE NEW USER (create profile)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -248,6 +260,39 @@ CREATE POLICY "Admins can update all payments"
 GRANT SELECT ON public.courts TO authenticated;
 GRANT SELECT ON public.courts TO anon; -- Courts should be publicly readable
 GRANT USAGE ON SCHEMA public TO anon;
+
+-- Create verification config table for storing secure settings
+CREATE TABLE IF NOT EXISTS public.verification_config (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    config_key TEXT UNIQUE NOT NULL,
+    config_value TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security (RLS) on the verification_config table
+ALTER TABLE public.verification_config ENABLE ROW LEVEL SECURITY;
+
+-- Policy for admins to access config
+CREATE POLICY "Allow admin access on verification_config"
+ON public.verification_config
+FOR ALL
+TO authenticated
+USING (public.is_admin_simple(auth.uid()))
+WITH CHECK (public.is_admin_simple(auth.uid()));
+
+-- Insert the verification PIN (can be updated later)
+INSERT INTO public.verification_config (config_key, config_value) 
+VALUES ('staff_verification_pin', '1704') -- Default PIN, should be changed in Supabase dashboard
+ON CONFLICT (config_key) DO UPDATE SET 
+    config_value = EXCLUDED.config_value,
+    updated_at = NOW();
+
+-- Comments for new columns
+COMMENT ON COLUMN public.reservations.email_dispatch_status IS 'Tracks the status of the booking confirmation email dispatch process.';
+COMMENT ON COLUMN public.reservations.email_dispatch_attempts IS 'Number of times an attempt was made to dispatch the email.';
+COMMENT ON COLUMN public.reservations.email_last_dispatch_attempt_at IS 'Timestamp of the last email dispatch attempt.';
+COMMENT ON COLUMN public.reservations.email_dispatch_error IS 'Stores any error message from the last failed dispatch attempt.';
 
 DO $$
 BEGIN

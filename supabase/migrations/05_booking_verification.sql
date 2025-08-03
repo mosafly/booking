@@ -118,3 +118,140 @@ GRANT EXECUTE ON FUNCTION public.store_verification_id(UUID, UUID) TO service_ro
 
 COMMENT ON FUNCTION public.verify_booking_qr IS 'Verifies a booking QR code and marks it as used';
 COMMENT ON FUNCTION public.store_verification_id IS 'Stores verification ID for a reservation when sending confirmation email';
+
+-- RPC Function to verify staff PIN
+CREATE OR REPLACE FUNCTION public.verify_staff_pin(p_pin TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    stored_pin TEXT;
+BEGIN
+    -- This function should only be callable by admins/staff
+    IF NOT public.is_admin_simple(auth.uid()) THEN
+        RAISE EXCEPTION 'Permission denied. Only staff can verify PINs.';
+    END IF;
+
+    -- Get the stored PIN from config
+    SELECT config_value INTO stored_pin
+    FROM public.verification_config
+    WHERE config_key = 'staff_verification_pin';
+    
+    -- Return true if PIN matches
+    RETURN (stored_pin = p_pin);
+END;
+$$;
+
+-- Function to get reservation details for verification without marking it as used
+CREATE OR REPLACE FUNCTION public.get_reservation_for_verification(p_verification_id UUID)
+RETURNS TABLE (
+    reservation_id UUID,
+    court_name TEXT,
+    start_time TIMESTAMPTZ,
+    end_time TIMESTAMPTZ,
+    total_price NUMERIC,
+    user_email TEXT,
+    user_name TEXT,
+    verification_used_at TIMESTAMPTZ,
+    verified_by TEXT,
+    status public.reservation_status
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NOT public.is_admin_simple(auth.uid()) THEN
+        RAISE EXCEPTION 'Permission denied. Only staff can view verification details.';
+    END IF;
+
+    RETURN QUERY
+    SELECT 
+        r.id as reservation_id,
+        c.name as court_name,
+        r.start_time,
+        r.end_time,
+        r.total_price,
+        u.email as user_email,
+        p.full_name as user_name,
+        r.verification_used_at,
+        r.verified_by,
+        r.status
+    FROM public.reservations r
+    JOIN public.courts c ON r.court_id = c.id
+    JOIN public.profiles p ON r.user_id = p.id
+    JOIN auth.users u ON p.id = u.id
+    WHERE r.verification_id = p_verification_id;
+END;
+$$;
+
+-- New function to mark a booking as used
+CREATE OR REPLACE FUNCTION public.mark_booking_as_used(
+    p_verification_id UUID
+)
+RETURNS TABLE (
+    success BOOLEAN,
+    message TEXT,
+    already_used BOOLEAN
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_reservation RECORD;
+    v_verifier_email TEXT;
+BEGIN
+    -- Check permissions
+    IF NOT public.is_admin_simple(auth.uid()) THEN
+        RAISE EXCEPTION 'Permission denied. Only staff can mark bookings as used.';
+    END IF;
+
+    -- Get reservation details
+    SELECT * INTO v_reservation
+    FROM public.reservations
+    WHERE verification_id = p_verification_id;
+
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT FALSE, 'Invalid verification ID.', FALSE;
+        RETURN;
+    END IF;
+    
+    IF v_reservation.status <> 'confirmed' THEN
+        RETURN QUERY SELECT FALSE, 'Booking is not confirmed and cannot be verified.', FALSE;
+        RETURN;
+    END IF;
+
+    IF v_reservation.verification_used_at IS NOT NULL THEN
+        RETURN QUERY SELECT TRUE, 'This booking has already been used.', TRUE;
+        RETURN;
+    END IF;
+    
+    -- Get verifier's email for logging
+    SELECT email INTO v_verifier_email FROM auth.users WHERE id = auth.uid();
+
+    -- Mark as used
+    UPDATE public.reservations
+    SET 
+        verification_used_at = NOW(),
+        verified_by = v_verifier_email
+    WHERE id = v_reservation.id;
+
+    RETURN QUERY SELECT TRUE, 'Booking successfully marked as used.', FALSE;
+EXCEPTION
+    WHEN others THEN
+        RAISE LOG 'Error in mark_booking_as_used: % - %', SQLSTATE, SQLERRM;
+        RETURN QUERY SELECT FALSE, 'An internal error occurred.', FALSE;
+END;
+$$;
+
+-- Grant permissions for new functions
+GRANT EXECUTE ON FUNCTION public.verify_staff_pin(TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_reservation_for_verification(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.mark_booking_as_used(UUID) TO authenticated;
+
+COMMENT ON FUNCTION public.verify_staff_pin IS 'Verifies a staff members PIN for secure actions.';
+COMMENT ON FUNCTION public.get_reservation_for_verification IS 'Gets booking details for a staff member to review before marking as used.';
+COMMENT ON FUNCTION public.mark_booking_as_used IS 'Marks a booking as used after successful verification.';
