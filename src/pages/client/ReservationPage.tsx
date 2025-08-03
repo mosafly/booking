@@ -49,15 +49,19 @@ const ReservationPage: React.FC = () => {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('courts')
-          .select('*')
-          .eq('id', courtId)
-          .single()
+        // Use the RPC function to bypass RLS issues
+        const { data: allCourts, error } = await supabase.rpc('get_all_courts')
 
         if (error) throw error
 
-        setCourt(data)
+        // Find the specific court by ID
+        const courtData = allCourts?.find((court: Court) => court.id === courtId)
+
+        if (!courtData) {
+          throw new Error('Court not found')
+        }
+
+        setCourt(courtData)
       } catch (error) {
         console.error('Error fetching court:', error)
         toast.error(t('reservationPage.errorLoadingCourt'))

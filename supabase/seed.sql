@@ -15,8 +15,8 @@
 -- Using static UUIDs to ensure consistency between dev and production
 INSERT INTO public.courts (id, name, description, price_per_hour, image_url, status, lomi_product_id)
 VALUES
-  ('c7b136a1-4366-49cc-a2e9-766aeabad01e', 'Terrain Padel A', 'Terrain extérieur avec éclairage nocturne', 8000, 'https://images.pexels.com/photos/1432038/pexels-photo-1432038.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', ''),
-  ('f2e7b7e8-3e4a-4a8a-92e1-7e8c9d0b2a7b', 'Terrain Padel B', 'Terrain d''entraînement pour débutants', 6000, 'https://images.pexels.com/photos/209977/pexels-photo-209977.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', '');
+  ('c7b136a1-4366-49cc-a2e9-766aeabad01e', 'Terrain Padel A', 'Terrain extérieur avec éclairage nocturne', 20000, 'https://images.pexels.com/photos/1432038/pexels-photo-1432038.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', ''),
+  ('f2e7b7e8-3e4a-4a8a-92e1-7e8c9d0b2a7b', 'Terrain Padel B', 'Terrain d''entraînement pour débutants', 20000, 'https://images.pexels.com/photos/209977/pexels-photo-209977.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', '');
 
 -- ==================================================================
 -- SAMPLE COACH PROFILES SEED DATA
