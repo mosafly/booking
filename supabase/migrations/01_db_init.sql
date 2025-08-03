@@ -173,12 +173,8 @@ CREATE POLICY "profiles_select_policy" ON public.profiles
     -- Users can read their own profile
     id = (select auth.uid())
     OR
-    -- Admins can read all profiles (check directly to avoid recursion)
-    EXISTS (
-      SELECT 1 FROM public.profiles p 
-      WHERE p.id = (select auth.uid()) 
-      AND p.role IN ('admin', 'super_admin')
-    )
+    -- Admins can read all profiles (use security definer function to avoid recursion)
+    public.is_admin_simple((select auth.uid()))
   );
 
 CREATE POLICY "profiles_insert_policy" ON public.profiles
@@ -194,12 +190,8 @@ CREATE POLICY "profiles_update_policy" ON public.profiles
     -- Users can update their own profile
     id = (select auth.uid())
     OR
-    -- Admins can update any profile
-    EXISTS (
-      SELECT 1 FROM public.profiles p 
-      WHERE p.id = (select auth.uid()) 
-      AND p.role IN ('admin', 'super_admin')
-    )
+    -- Admins can update any profile (use security definer function to avoid recursion)
+    public.is_admin_simple((select auth.uid()))
   );
 
 -- POLICIES for COURTS table
