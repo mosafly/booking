@@ -65,17 +65,30 @@ CREATE INDEX IF NOT EXISTS reservations_court_id_idx ON public.reservations(cour
 -- Function and Trigger to HANDLE NEW USER (create profile)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  is_first_user BOOLEAN;
+  assigned_role TEXT;
 BEGIN
+  -- Check if this is the first user
+  SELECT NOT EXISTS(SELECT 1 FROM public.profiles) INTO is_first_user;
+  
+  -- Assign role based on whether this is first user
+  assigned_role := CASE WHEN is_first_user THEN 'super_admin' ELSE 'client' END;
+  
+  -- Insert the profile
   INSERT INTO public.profiles (id, role)
-  VALUES (NEW.id, 
-    CASE 
-      -- First user becomes super_admin, all others become clients
-      WHEN NOT EXISTS (SELECT 1 FROM public.profiles) THEN 'super_admin'
-      ELSE 'client'
-    END
-  )
+  VALUES (NEW.id, assigned_role)
   ON CONFLICT (id) DO NOTHING;
+  
+  -- Log the action for debugging
+  RAISE LOG 'Created profile for user % with role %', NEW.id, assigned_role;
+  
   RETURN NEW;
+EXCEPTION
+  WHEN others THEN
+    -- Log any errors but don't fail the user creation
+    RAISE LOG 'Error creating profile for user %: % - %', NEW.id, SQLSTATE, SQLERRM;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public;

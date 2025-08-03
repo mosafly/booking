@@ -16,24 +16,38 @@ const HomePage: React.FC = () => {
 
   const fetchCourts = useCallback(async () => {
     try {
-      console.log('Fetching courts...')
+      console.log('Fetching courts using RPC...')
       setIsLoading(true)
       setError(null)
 
       // Fetch courts using the new RPC function for reliable access
-      const { data, error } = await supabase.rpc('get_all_courts');
+      const { data, error } = await supabase.rpc('get_all_courts')
 
       if (error) {
-        console.error('Supabase error fetching courts:', error)
-        // More specific error handling
-        if (error.code === 'PGRST301') {
-          setError(t('homePage.errorPermission'))
-        } else {
+        console.error('Supabase RPC error fetching courts:', error)
+
+        // If RPC fails, try direct table access as fallback
+        console.log('RPC failed, trying direct table access...')
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('courts')
+          .select('*')
+          .order('name')
+
+        if (fallbackError) {
+          console.error('Fallback query also failed:', fallbackError)
           setError(t('homePage.errorLoadingGeneric'))
+          toast.error(t('homePage.errorLoadingToast'))
+        } else {
+          console.log('Fallback successful, courts received:', fallbackData?.length || 0)
+          setCourts(fallbackData || [])
+
+          if (!fallbackData || fallbackData.length === 0) {
+            console.warn('No courts found in database')
+            toast.error(t('homePage.noCourtsAvailable'))
+          }
         }
-        toast.error(t('homePage.errorLoadingToast'))
       } else {
-        console.log('Courts data received:', data?.length || 0, 'courts')
+        console.log('RPC successful, courts received:', data?.length || 0)
         setCourts(data || [])
 
         // If no courts found, show helpful message

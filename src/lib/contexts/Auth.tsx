@@ -34,30 +34,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     const fetchRole = async () => {
       try {
+        console.log('Fetching role for user:', user.id)
+
+        // Debug: Check user authentication status
+        const { data: debugData, error: debugError } = await supabase
+          .rpc('debug_user_auth')
+
+        if (!debugError && debugData && debugData.length > 0) {
+          const debug = debugData[0]
+          console.log('Debug auth status:', debug)
+
+          if (!debug.user_exists_in_auth) {
+            console.error('User does not exist in auth.users table! This is the root problem.')
+            setUserRole('client')
+            return
+          }
+        }
+
+        // First try to get existing profile
         const { data, error } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single()
 
-        if (error) {
-          console.warn('Error fetching user role:', error)
-          // If profile doesn't exist or can't be fetched, try to create it
-          if (error.code === 'PGRST116' || error.code === 'PGRST301') {
-            console.log('Attempting to create user profile...')
-            const { error: insertError } = await supabase
-              .from('profiles')
-              .insert([{ id: user.id, role: 'client' }])
+        if (error && error.code === 'PGRST116') {
+          // Profile doesn't exist, use our ensure_user_profile function
+          console.log('Profile not found, creating it...')
+          try {
+            const { data: roleData, error: roleError } = await supabase
+              .rpc('ensure_user_profile', { user_id: user.id })
 
-            if (!insertError) {
+            if (roleError) {
+              console.error('Error creating profile:', roleError)
               setUserRole('client')
             } else {
-              console.error('Failed to create profile:', insertError)
-              setUserRole('client') // Default to client role
+              console.log('Profile created with role:', roleData)
+              setUserRole(roleData as UserRole)
             }
-          } else {
-            setUserRole('client') // Default to client role on other errors
+          } catch (rpcError) {
+            console.error('RPC call failed:', rpcError)
+            setUserRole('client')
           }
+        } else if (error) {
+          console.warn('Error fetching user role:', error)
+          setUserRole('client') // Default to client role on other errors
         } else {
           setUserRole(data?.role ?? 'client')
         }
