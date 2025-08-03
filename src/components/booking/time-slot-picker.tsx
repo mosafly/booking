@@ -74,14 +74,14 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   }
 
   return (
-    <div className="mt-4">
-      <h3 className="text-lg font-semibold mb-3">
+    <div className="mt-3 md:mt-4">
+      <h3 className="text-base md:text-lg font-semibold mb-2 md:mb-3">
         {t('timeSlotPicker.title')}
       </h3>
 
       {/* Equipment type info */}
-      <div className="mb-4 p-3 bg-blue-50 rounded-md">
-        <p className="text-sm text-blue-800">
+      <div className="mb-3 md:mb-4 p-2 md:p-3 bg-blue-50 rounded-md">
+        <p className="text-xs md:text-sm text-blue-800">
           {equipmentType === EquipmentType.PADEL
             ? 'Terrain de padel - Durée minimum: 1h, par tranches de 30min'
             : 'Équipement de sport - Durée minimum: 30min, par tranches de 30min'}
@@ -89,17 +89,20 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       </div>
 
       {/* Time slots organized by start time */}
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {uniqueStartTimes.map((startTime) => {
           const slotsForTime = slotsByStartTime[startTime.getTime()]
 
           return (
-            <div key={startTime.getTime()} className="border rounded-lg p-4">
-              <h4 className="font-medium mb-3">
+            <div
+              key={startTime.getTime()}
+              className="border rounded-lg p-3 md:p-4"
+            >
+              <h4 className="font-medium mb-2 md:mb-3 text-sm md:text-base">
                 {format(startTime, 'p', { locale: currentLocale })}
               </h4>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {slotsForTime.map((slot: TimeSlot, index: number) => {
                   const isSelected =
                     selectedStartTime && selectedEndTime
@@ -115,16 +118,18 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                         handleSlotSelection(slot.startTime, slot.endTime)
                       }
                       className={`
-                        px-3 py-2 rounded-md text-center text-sm transition-colors
+                        px-2 py-2 md:px-3 md:py-2 rounded-md text-center text-xs md:text-sm transition-colors min-h-[3rem]
                         ${
                           isSelected
                             ? 'bg-[var(--primary)] text-white'
-                            : 'bg-white border border-gray-300 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)]'
+                            : 'bg-white border border-gray-300 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)] active:bg-gray-50'
                         }
                       `}
                     >
-                      <div>{formatDuration(slot.durationMinutes)}</div>
-                      <div className="text-xs opacity-75">
+                      <div className="font-medium">
+                        {formatDuration(slot.durationMinutes)}
+                      </div>
+                      <div className="text-xs opacity-75 mt-1">
                         {format(slot.endTime, 'p', { locale: currentLocale })}
                       </div>
                     </button>
@@ -137,8 +142,10 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       </div>
 
       {uniqueStartTimes.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <p>Aucun créneau disponible pour cette date</p>
+        <div className="text-center py-6 md:py-8 text-gray-500">
+          <p className="text-sm md:text-base">
+            Aucun créneau disponible pour cette date
+          </p>
         </div>
       )}
     </div>

@@ -2,20 +2,28 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Brackets as Racket, Mail, Lock } from 'lucide-react'
 import { useAuth } from '@/lib/contexts/Auth'
+import { useSupabase } from '@/lib/contexts/Supabase'
 
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [adminPin, setAdminPin] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const { signUp } = useAuth()
+  const { supabase } = useSupabase()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (!adminPin.trim()) {
+      setError('Admin PIN is required for registration')
+      return
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords don't match")
@@ -30,8 +38,28 @@ const RegisterPage: React.FC = () => {
     setIsLoading(true)
 
     try {
+      // First verify the admin PIN
+      const { data: pinValid, error: pinError } = await supabase.rpc(
+        'verify_registration_pin',
+        {
+          p_pin: adminPin,
+        },
+      )
+
+      if (pinError) {
+        console.error('PIN verification error:', pinError)
+        setError('Error verifying PIN. Please try again.')
+        return
+      }
+
+      if (!pinValid) {
+        setError('Invalid admin PIN. Contact your administrator.')
+        return
+      }
+
+      // PIN is valid, proceed with registration
       await signUp(email, password)
-      navigate('/home')
+      navigate('/admin') // Redirect to admin area since they're an admin
     } catch (error) {
       console.error('Registration error:', error)
       setError('Failed to create account. Please try again.')
@@ -48,10 +76,10 @@ const RegisterPage: React.FC = () => {
             <Racket className="h-12 w-12 text-[var(--primary)]" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Create a new account
+            Create Admin Account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
+            Admin PIN required. Or{' '}
             <Link
               to="/login"
               className="font-medium text-[var(--primary)] hover:text-[var(--primary-dark)]"
@@ -70,6 +98,25 @@ const RegisterPage: React.FC = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div className="relative">
+              <label htmlFor="admin-pin" className="sr-only">
+                Admin PIN
+              </label>
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="admin-pin"
+                name="admin-pin"
+                type="password"
+                autoComplete="off"
+                required
+                value={adminPin}
+                onChange={(e) => setAdminPin(e.target.value)}
+                className="appearance-none rounded-t-md relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] focus:z-10 sm:text-sm"
+                placeholder="Admin PIN"
+              />
+            </div>
+            <div className="relative">
               <label htmlFor="email-address" className="sr-only">
                 Email address
               </label>
@@ -84,7 +131,7 @@ const RegisterPage: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-t-md relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] focus:z-10 sm:text-sm"
                 placeholder="Email address"
               />
             </div>
@@ -134,7 +181,7 @@ const RegisterPage: React.FC = () => {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] disabled:opacity-70 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isLoading ? 'Creating admin account...' : 'Create admin account'}
             </button>
           </div>
         </form>

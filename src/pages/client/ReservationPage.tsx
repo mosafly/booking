@@ -5,20 +5,25 @@ import { useSupabase } from '@/lib/contexts/Supabase'
 import { useAuth } from '@/lib/contexts/Auth'
 import { Court } from '@/components/booking/court-card'
 import TimeSlotPicker from '@/components/booking/time-slot-picker'
+import PurchaseFormModal, {
+  UserDetails,
+} from '@/components/booking/PurchaseFormModal'
 import { calculatePrice } from '@/lib/utils/reservation-rules'
 import { Calendar, Clock, DollarSign } from 'lucide-react'
 import toast from 'react-hot-toast'
-import PaymentMethodSelector from '@/components/booking/payment-method-selector'
 import { Spinner } from '@/components/dashboard/spinner'
 import { useTranslation } from 'react-i18next'
 import { formatFCFA } from '@/lib/utils/currency'
-// Updated imports for dual pricing system
+import {
+  addStoredReservation,
+  setPendingReservation,
+} from '@/lib/utils/reservation-storage'
 
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams()
   const navigate = useNavigate()
   const { supabase } = useSupabase()
-  const { user } = useAuth()
+  const { user } = useAuth() // Still needed for admin functions, but not required for reservations
   const { t } = useTranslation()
 
   const [court, setCourt] = useState<Court | null>(null)
@@ -29,7 +34,7 @@ const ReservationPage: React.FC = () => {
     { startTime: Date; endTime: Date }[]
   >([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false)
 
   // Fetch court details
   useEffect(() => {
@@ -108,13 +113,13 @@ const ReservationPage: React.FC = () => {
     setSelectedEndTime(endTime)
   }
 
-  const handleCashReservation = async () => {
-    if (!court || !selectedStartTime || !selectedEndTime || !user) {
-      toast.error(t('reservationPage.errorInvalidSlot'))
-      return
+  const handlePurchaseConfirm = async (
+    userDetails: UserDetails,
+    paymentMethod: 'online' | 'on_spot',
+  ) => {
+    if (!court || !selectedStartTime || !selectedEndTime) {
+      throw new Error(t('reservationPage.errorInvalidSlot'))
     }
-
-    setIsSubmitting(true)
 
     try {
       // Calculate the total price based on actual duration
@@ -122,177 +127,130 @@ const ReservationPage: React.FC = () => {
         (selectedEndTime.getTime() - selectedStartTime.getTime()) / (1000 * 60)
       const totalPrice = calculatePrice(court.price_per_hour, durationMinutes)
 
-      // Create the reservation
-      const { data: reservationData, error: reservationError } = await supabase
+      // Create the reservation with user data
+      const reservationData = {
+        court_id: court.id,
+        start_time: selectedStartTime.toISOString(),
+        end_time: selectedEndTime.toISOString(),
+        total_price: totalPrice,
+        status: 'pending',
+        user_name: userDetails.name,
+        user_email: userDetails.email,
+        user_phone: userDetails.phone,
+        // Include user_id if user is logged in (for admin users)
+        ...(user ? { user_id: user.id } : {}),
+      }
+
+      const { data: reservation, error: reservationError } = await supabase
         .from('reservations')
-        .insert([
-          {
-            court_id: court.id,
-            user_id: user.id,
-            start_time: selectedStartTime.toISOString(),
-            end_time: selectedEndTime.toISOString(),
-            total_price: totalPrice,
-            status: 'pending',
-          },
-        ])
+        .insert([reservationData])
         .select()
         .single()
 
       if (reservationError) throw reservationError
 
       // Create payment record
-      const { data: paymentData, error: paymentError } = await supabase
+      const basePaymentData = {
+        reservation_id: reservation.id,
+        amount: totalPrice,
+        currency: 'XOF',
+        payment_method: paymentMethod,
+        status: 'pending',
+        payment_date: new Date().toISOString(),
+        // Include user_id if user is logged in (for admin users)
+        ...(user ? { user_id: user.id } : {}),
+      }
+
+      const paymentData =
+        paymentMethod === 'online'
+          ? { ...basePaymentData, payment_provider: 'lomi' }
+          : basePaymentData
+
+      const { error: paymentError } = await supabase
         .from('payments')
-        .insert([
-          {
-            reservation_id: reservationData.id,
-            user_id: user.id,
-            amount: totalPrice,
-            currency: 'XOF',
-            payment_method: 'on_spot',
-            status: 'pending',
-            payment_date: new Date().toISOString(),
-          },
-        ])
+        .insert([paymentData])
         .select()
         .single()
 
       if (paymentError) {
         console.error('Error creating payment record:', paymentError)
-        toast.error(t('reservationPage.errorSavingPayment'))
-      } else {
-        console.log('Payment record created:', paymentData)
+        // Continue with reservation even if payment record fails
       }
 
-      toast.success(t('reservationPage.reservationSuccess'))
-      navigate('/my-reservations')
-    } catch (error) {
-      console.error('Error creating reservation:', error)
-      toast.error(t('reservationPage.reservationError'))
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+      if (paymentMethod === 'online') {
+        // Handle online payment
+        console.log(
+          "Calling Supabase function 'create-lomi-checkout-session'...",
+        )
+        const { data: functionData, error: functionError } =
+          await supabase.functions.invoke('create-lomi-checkout-session', {
+            body: {
+              amount: totalPrice,
+              currencyCode: 'XOF',
+              reservationId: reservation.id,
+              courtId: court.id,
+              userEmail: userDetails.email,
+              userName: userDetails.name,
+              userPhone: userDetails.phone,
+            },
+          })
 
-  const handleOnlinePayment = async () => {
-    if (!court || !selectedStartTime || !selectedEndTime || !user) {
-      toast.error(t('reservationPage.errorInvalidSlotOnline'))
-      return
-    }
-    setIsSubmitting(true)
+        if (functionError) {
+          console.error('Supabase function error:', functionError)
+          throw new Error(
+            `Failed to create payment session: ${functionError.message}`,
+          )
+        }
 
-    try {
-      const hours =
-        (selectedEndTime.getTime() - selectedStartTime.getTime()) /
-        (1000 * 60 * 60)
-      const totalPrice = court.price_per_hour * hours
+        if (!functionData?.checkout_url) {
+          console.error(
+            'Supabase function did not return checkout_url:',
+            functionData,
+          )
+          throw new Error('Payment session creation failed (no URL returned).')
+        }
 
-      console.log(
-        'Starting online payment process with total price:',
-        totalPrice,
-      )
+        console.log('Lomi checkout URL received:', functionData.checkout_url)
 
-      // 1. Create the reservation first (as before)
-      const { data: reservationData, error: reservationError } = await supabase
-        .from('reservations')
-        .insert([
-          {
-            court_id: court.id,
-            user_id: user.id,
-            start_time: selectedStartTime.toISOString(),
-            end_time: selectedEndTime.toISOString(),
-            total_price: totalPrice,
-            status: 'pending', // Status remains pending until payment confirmed
-          },
-        ])
-        .select()
-        .single()
-
-      if (reservationError) {
-        console.error('Error creating reservation:', reservationError)
-        throw reservationError // Let the main catch block handle it
-      }
-
-      console.log('Reservation created successfully:', reservationData)
-      const reservationId = reservationData.id
-
-      // 2. Create the payment record (status pending)
-      const { data: paymentData, error: paymentError } = await supabase
-        .from('payments')
-        .insert([
-          {
-            reservation_id: reservationId,
-            user_id: user.id,
-            amount: totalPrice,
-            currency: 'XOF', // Assuming XOF
-            payment_method: 'online',
-            payment_provider: 'lomi', // Indicate Lomi is used
-            status: 'pending', // Initial status
-            // provider_payment_id and payment_url will be set by webhook potentially
-          },
-        ])
-        .select()
-        .single()
-
-      if (paymentError) {
-        // Log the error but attempt to proceed with payment creation
-        console.error('Error creating initial payment record:', paymentError)
-        toast.error(t('reservationPage.errorSavingPayment'))
-        // Depending on requirements, you might want to throw here or just warn
-      } else {
-        console.log('Initial payment record created (pending):', paymentData)
-      }
-
-      // 3. Call the Supabase Edge Function to get the Lomi checkout URL
-      console.log("Calling Supabase function 'create-lomi-checkout-session'...")
-      const { data: functionData, error: functionError } =
-        await supabase.functions.invoke('create-lomi-checkout-session', {
-          body: {
-            amount: totalPrice,
-            currencyCode: 'XOF', // Send currency code
-            reservationId: reservationId,
-            courtId: court.id, // NEW: Pass court ID for product ID lookup
-            userEmail: user.email,
-            userName: user.user_metadata?.full_name || user.email, // Pass user details
-            // Optionally pass specific success/cancel paths if needed
-            // successUrlPath: "/custom-success",
-            // cancelUrlPath: "/custom-cancel",
-          },
+        // Store reservation data in localStorage for post-payment tracking
+        setPendingReservation({
+          id: reservation.id,
+          court: court.name,
+          date: format(selectedDate, 'MMMM dd, yyyy'),
+          time: `${format(selectedStartTime, 'h:mm a')} - ${format(selectedEndTime, 'h:mm a')}`,
+          total: totalPrice,
+          email: userDetails.email,
+          createdAt: new Date().toISOString(),
         })
 
-      if (functionError) {
-        console.error('Supabase function error:', functionError)
-        throw new Error(
-          `Failed to create payment session: ${functionError.message}`,
-        )
+        // Redirect to Lomi checkout page
+        window.location.href = functionData.checkout_url
+      } else {
+        // Handle on-spot payment
+        toast.success(t('reservationPage.reservationSuccess'))
+
+        // Store reservation data in localStorage for tracking
+        const reservationInfo = {
+          id: reservation.id,
+          court: court.name,
+          date: format(selectedDate, 'MMMM dd, yyyy'),
+          time: `${format(selectedStartTime, 'h:mm a')} - ${format(selectedEndTime, 'h:mm a')}`,
+          total: totalPrice,
+          email: userDetails.email,
+          status: 'pending' as const,
+          createdAt: new Date().toISOString(),
+        }
+
+        // Store in localStorage using utility
+        addStoredReservation(reservationInfo)
+
+        // Navigate to a success page or home
+        navigate('/')
       }
-
-      if (!functionData?.checkout_url) {
-        console.error(
-          'Supabase function did not return checkout_url:',
-          functionData,
-        )
-        throw new Error('Payment session creation failed (no URL returned).')
-      }
-
-      console.log('Lomi checkout URL received:', functionData.checkout_url)
-
-      // 4. Redirect user to Lomi checkout page
-      window.location.href = functionData.checkout_url
-
-      // No need to set submitting false here, as the page redirects
-    } catch (err: unknown) {
-      let errMessage = 'An unknown error occurred during online payment.'
-      if (err instanceof Error) {
-        errMessage = err.message
-      }
-      console.error('Online payment process failed:', err)
-      toast.error(
-        t('reservationPage.onlinePaymentFailed', { message: errMessage }),
-      )
-      setIsSubmitting(false) // Set submitting false only on error before redirect
+    } catch (error) {
+      console.error('Error creating reservation:', error)
+      throw error // Re-throw to let modal handle it
     }
-    // No finally block setting isSubmitting false, because successful path redirects
   }
 
   const calculateTotalPrice = () => {
@@ -334,7 +292,7 @@ const ReservationPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-md shadow-sm overflow-hidden mb-6">
+      <div className="bg-white rounded-md shadow-sm overflow-hidden mb-4 md:mb-6">
         <div className="md:flex">
           <div className="md:w-1/3">
             <img
@@ -343,7 +301,7 @@ const ReservationPage: React.FC = () => {
                 'https://images.pexels.com/photos/2277807/pexels-photo-2277807.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
               }
               alt={court.name}
-              className="w-full h-64 md:h-full object-cover"
+              className="w-full h-48 md:h-64 lg:h-full object-cover"
               onError={(e) => {
                 // Fallback to default image if court image fails to load
                 const target = e.target as HTMLImageElement
@@ -352,13 +310,17 @@ const ReservationPage: React.FC = () => {
               }}
             />
           </div>
-          <div className="p-6 md:w-2/3">
-            <h2 className="text-2xl font-bold text-gray-900">{court.name}</h2>
-            <p className="mt-2 text-gray-600">{court.description}</p>
+          <div className="p-4 md:p-6 md:w-2/3">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+              {court.name}
+            </h2>
+            <p className="mt-2 text-gray-600 text-sm md:text-base">
+              {court.description}
+            </p>
 
-            <div className="mt-4 flex items-center text-gray-700">
-              <DollarSign size={20} className="mr-1" />
-              <span className="text-lg font-medium">
+            <div className="mt-3 md:mt-4 flex items-center text-gray-700">
+              <DollarSign size={18} className="mr-1" />
+              <span className="text-base md:text-lg font-medium">
                 {formatFCFA(court.price_per_hour)}{' '}
                 {t('courtCard.pricePerHourSuffix')}
               </span>
@@ -367,18 +329,17 @@ const ReservationPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-md shadow-sm p-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {isSubmitting ? (
-            <Spinner />
-          ) : (
-            t('reservationPage.titleMakeReservation')
-          )}
+      <div className="bg-white rounded-md shadow-sm p-4 md:p-6">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+          {t('reservationPage.titleMakeReservation')}
         </h2>
 
         <div>
           <div className="form-group">
-            <label htmlFor="date" className="form-label flex items-center">
+            <label
+              htmlFor="date"
+              className="form-label flex items-center text-sm md:text-base"
+            >
               <Calendar size={16} className="mr-1" />
               {t('reservationPage.selectDateLabel')}
             </label>
@@ -389,7 +350,7 @@ const ReservationPage: React.FC = () => {
               onChange={handleDateChange}
               min={format(new Date(), 'yyyy-MM-dd')}
               max={format(addDays(new Date(), 30), 'yyyy-MM-dd')}
-              className="form-input"
+              className="form-input text-sm md:text-base"
               required
             />
           </div>
@@ -404,25 +365,25 @@ const ReservationPage: React.FC = () => {
           />
 
           {selectedStartTime && selectedEndTime && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-md">
-              <h3 className="font-semibold text-gray-900">
+            <div className="mt-4 md:mt-6 p-3 md:p-4 bg-gray-50 rounded-md">
+              <h3 className="font-semibold text-gray-900 text-sm md:text-base">
                 {t('reservationPage.summaryTitle')}
               </h3>
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center text-sm text-gray-700">
-                  <Calendar size={16} className="mr-2" />
+              <div className="mt-2 space-y-1 md:space-y-2">
+                <div className="flex items-center text-xs md:text-sm text-gray-700">
+                  <Calendar size={14} className="mr-2" />
                   <span>{format(selectedDate, 'MMMM dd, yyyy')}</span>
                 </div>
-                <div className="flex items-center text-sm text-gray-700">
-                  <Clock size={16} className="mr-2" />
+                <div className="flex items-center text-xs md:text-sm text-gray-700">
+                  <Clock size={14} className="mr-2" />
                   <span>
                     {format(selectedStartTime, 'h:mm a')} -{' '}
                     {format(selectedEndTime, 'h:mm a')}
                   </span>
                 </div>
-                <div className="flex items-center text-sm text-gray-700">
-                  <DollarSign size={16} className="mr-2" />
-                  <span>
+                <div className="flex items-center text-xs md:text-sm text-gray-700">
+                  <DollarSign size={14} className="mr-2" />
+                  <span className="font-medium">
                     {t('reservationPage.summaryTotalLabel')}{' '}
                     {formatFCFA(calculateTotalPrice())}
                   </span>
@@ -432,20 +393,36 @@ const ReservationPage: React.FC = () => {
           )}
 
           {selectedStartTime && selectedEndTime && (
-            <div className="mt-6">
-              <PaymentMethodSelector
-                onComplete={async (method: 'on_spot' | 'online') => {
-                  if (method === 'on_spot') {
-                    await handleCashReservation()
-                  } else {
-                    await handleOnlinePayment()
-                  }
-                }}
-              />
+            <div className="mt-4 md:mt-6">
+              <button
+                onClick={() => setShowPurchaseModal(true)}
+                className="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-medium py-3 md:py-4 px-6 rounded-md transition-colors text-sm md:text-base"
+              >
+                {t(
+                  'reservationPage.proceedToPayment',
+                  'Continue with Reservation',
+                )}
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Purchase Form Modal */}
+      {court && selectedStartTime && selectedEndTime && (
+        <PurchaseFormModal
+          isOpen={showPurchaseModal}
+          onClose={() => setShowPurchaseModal(false)}
+          reservationData={{
+            court,
+            selectedDate,
+            selectedStartTime,
+            selectedEndTime,
+            totalPrice: calculateTotalPrice(),
+          }}
+          onConfirm={handlePurchaseConfirm}
+        />
+      )}
     </div>
   )
 }

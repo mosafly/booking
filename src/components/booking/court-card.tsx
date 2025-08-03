@@ -58,7 +58,7 @@ const CourtCard: React.FC<CourtCardProps> = ({ court }) => {
 
   return (
     <div className="card animate-fade-in">
-      <div className="relative h-48 w-full">
+      <div className="relative h-40 sm:h-48 w-full">
         <img
           src={court.image_url || getCourtImage(court.id, court.name)}
           alt={court.name}
@@ -72,14 +72,18 @@ const CourtCard: React.FC<CourtCardProps> = ({ court }) => {
         />
         <div className="absolute top-2 right-2">{getStatusBadge()}</div>
       </div>
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900">{court.name}</h3>
-        <p className="text-sm text-gray-600 mt-1">{description}</p>
+      <div className="p-3 sm:p-4">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+          {court.name}
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
+          {description}
+        </p>
 
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex items-center text-sm text-gray-700">
-            <Tag size={16} className="mr-1" />
-            <span>
+        <div className="mt-2 sm:mt-3 flex items-center justify-between">
+          <div className="flex items-center text-xs sm:text-sm text-gray-700">
+            <Tag size={14} className="mr-1 flex-shrink-0" />
+            <span className="font-medium">
               {(() => {
                 const equipmentType = getEquipmentType(court)
                 if (
@@ -99,11 +103,11 @@ const CourtCard: React.FC<CourtCardProps> = ({ court }) => {
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-3 sm:mt-4">
           <button
             onClick={handleBookNow}
             disabled={court.status !== 'available'}
-            className={`w-full btn ${
+            className={`w-full btn text-sm sm:text-base py-2 sm:py-3 ${
               court.status === 'available'
                 ? 'btn-primary'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'

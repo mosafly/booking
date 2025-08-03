@@ -149,7 +149,10 @@ function App() {
                 <Route path="financial" element={<FinancialTracking />} />
                 <Route path="products" element={<ProductsManagement />} />
                 <Route path="pricing" element={<PricingManagement />} />
-                <Route path="verify/:verificationId" element={<VerificationPage />} />
+                <Route
+                  path="verify/:verificationId"
+                  element={<VerificationPage />}
+                />
               </Route>
 
               {/* Coach Routes */}

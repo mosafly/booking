@@ -25,12 +25,16 @@ CREATE TABLE IF NOT EXISTS public.courts (
 -- RESERVATIONS table
 CREATE TABLE IF NOT EXISTS public.reservations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE, -- Made nullable for users without accounts
   court_id UUID NOT NULL REFERENCES public.courts(id) ON DELETE CASCADE,
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
   total_price NUMERIC NOT NULL CHECK (total_price >= 0),
   status public.reservation_status DEFAULT 'pending',
+  -- User information (for users without accounts)
+  user_name TEXT,
+  user_email TEXT,
+  user_phone TEXT,
   email_dispatch_status TEXT DEFAULT 'NOT_INITIATED' NOT NULL,
   email_dispatch_attempts INTEGER DEFAULT 0 NOT NULL,
   email_last_dispatch_attempt_at TIMESTAMPTZ,
@@ -40,7 +44,11 @@ CREATE TABLE IF NOT EXISTS public.reservations (
   verification_used_at TIMESTAMPTZ,
   verified_by TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
-  CONSTRAINT reservations_timeframe_check CHECK (end_time > start_time)
+  CONSTRAINT reservations_timeframe_check CHECK (end_time > start_time),
+  CONSTRAINT reservations_user_info_check CHECK (
+    (user_id IS NOT NULL) OR 
+    (user_name IS NOT NULL AND user_email IS NOT NULL)
+  )
 );
 
 -- PAYMENTS table
@@ -48,7 +56,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reservation_id UUID REFERENCES public.reservations(id) ON DELETE CASCADE,
   sale_id UUID, -- Will add foreign key constraint after sales table is created
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, -- Made nullable for anonymous payments
   amount DECIMAL(10, 2) NOT NULL,
   currency TEXT NOT NULL DEFAULT 'XOF',
   payment_method TEXT NOT NULL CHECK (payment_method IN ('online', 'on_spot')),
@@ -177,6 +185,26 @@ AS $$
   );
 $$;
 
+-- Function to verify registration PIN (allows public access for signup)
+CREATE OR REPLACE FUNCTION public.verify_registration_pin(p_pin TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    stored_pin TEXT;
+BEGIN
+    -- Get the stored registration PIN from config
+    SELECT config_value INTO stored_pin
+    FROM public.verification_config
+    WHERE config_key = 'admin_registration_pin';
+    
+    -- Return true if PIN matches
+    RETURN (stored_pin = p_pin);
+END;
+$$;
+
 -- Function to check if the current user is an admin
 CREATE OR REPLACE FUNCTION public.is_current_user_admin()
 RETURNS boolean
@@ -238,27 +266,42 @@ CREATE POLICY "courts_delete_policy" ON public.courts
   USING (public.is_admin_simple((select auth.uid())));
 
 -- POLICIES for RESERVATIONS table
-CREATE POLICY "Authenticated users can read reservations"
+CREATE POLICY "Admin users can read all reservations"
   ON public.reservations FOR SELECT TO authenticated
-  USING (public.is_current_user_admin() OR (select auth.uid()) = user_id);
-CREATE POLICY "Users can insert reservations for themselves"
-  ON public.reservations FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
-CREATE POLICY "Authenticated users can update reservations"
+  USING (public.is_current_user_admin());
+CREATE POLICY "Users can read their own reservations"
+  ON public.reservations FOR SELECT TO authenticated
+  USING ((select auth.uid()) = user_id);
+CREATE POLICY "Anyone can create reservations"
+  ON public.reservations FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Authenticated users can create reservations"
+  ON public.reservations FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id OR user_id IS NULL);
+CREATE POLICY "Admin users can update all reservations"
   ON public.reservations FOR UPDATE TO authenticated
-  USING (public.is_current_user_admin() OR ((select auth.uid()) = user_id AND status = 'pending'));
+  USING (public.is_current_user_admin());
+CREATE POLICY "Users can update their own pending reservations"
+  ON public.reservations FOR UPDATE TO authenticated
+  USING ((select auth.uid()) = user_id AND status = 'pending');
 
 -- POLICIES for PAYMENTS table
-CREATE POLICY "Authenticated users can view payments"
+CREATE POLICY "Admin users can view all payments"
   ON public.payments FOR SELECT TO authenticated
-  USING (public.is_current_user_admin() OR user_id = (select auth.uid()));
-CREATE POLICY "Users can create their own payments"
-  ON public.payments FOR INSERT TO authenticated WITH CHECK (user_id = (select auth.uid()));
+  USING (public.is_current_user_admin());
+CREATE POLICY "Users can view their own payments"
+  ON public.payments FOR SELECT TO authenticated
+  USING (user_id = (select auth.uid()));
+CREATE POLICY "Anyone can create payments"
+  ON public.payments FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Authenticated users can create payments"
+  ON public.payments FOR INSERT TO authenticated WITH CHECK (user_id = (select auth.uid()) OR user_id IS NULL);
 CREATE POLICY "Admins can update all payments"
   ON public.payments FOR UPDATE TO authenticated USING (public.is_current_user_admin());
 
 -- GRANTS (Example for courts, adjust as needed)
 GRANT SELECT ON public.courts TO authenticated;
 GRANT SELECT ON public.courts TO anon; -- Courts should be publicly readable
+GRANT INSERT ON public.reservations TO anon; -- Allow users without accounts to create reservations
+GRANT INSERT ON public.payments TO anon; -- Allow users without accounts to create payments
 GRANT USAGE ON SCHEMA public TO anon;
 
 -- Create verification config table for storing secure settings
@@ -283,16 +326,29 @@ WITH CHECK (public.is_admin_simple(auth.uid()));
 
 -- Insert the verification PIN (can be updated later)
 INSERT INTO public.verification_config (config_key, config_value) 
-VALUES ('staff_verification_pin', '1704') -- Default PIN, should be changed in Supabase dashboard
+VALUES ('staff_verification_pin', '2025') -- Default PIN, should be changed in Supabase dashboard
 ON CONFLICT (config_key) DO UPDATE SET 
     config_value = EXCLUDED.config_value,
     updated_at = NOW();
+
+-- Insert the registration PIN for admin signup (different from verification PIN)
+INSERT INTO public.verification_config (config_key, config_value) 
+VALUES ('admin_registration_pin', '1704') -- Default registration PIN, should be changed in Supabase dashboard
+ON CONFLICT (config_key) DO UPDATE SET 
+    config_value = EXCLUDED.config_value,
+    updated_at = NOW();
+
+-- Grant permissions for registration PIN function
+GRANT EXECUTE ON FUNCTION public.verify_registration_pin(TEXT) TO anon;
+GRANT EXECUTE ON FUNCTION public.verify_registration_pin(TEXT) TO authenticated;
 
 -- Comments for new columns
 COMMENT ON COLUMN public.reservations.email_dispatch_status IS 'Tracks the status of the booking confirmation email dispatch process.';
 COMMENT ON COLUMN public.reservations.email_dispatch_attempts IS 'Number of times an attempt was made to dispatch the email.';
 COMMENT ON COLUMN public.reservations.email_last_dispatch_attempt_at IS 'Timestamp of the last email dispatch attempt.';
 COMMENT ON COLUMN public.reservations.email_dispatch_error IS 'Stores any error message from the last failed dispatch attempt.';
+
+COMMENT ON FUNCTION public.verify_registration_pin IS 'Verifies the registration PIN for admin signup.';
 
 DO $$
 BEGIN

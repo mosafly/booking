@@ -78,7 +78,7 @@ const LoginPage: React.FC = () => {
             <Racket className="h-12 w-12 text-[var(--primary)]" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+            Admin Sign In
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Or{' '}
@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
               to="/register"
               className="font-medium text-[var(--primary)] hover:text-[var(--primary-dark)]"
             >
-              create a new account
+              create a new admin account
             </Link>
           </p>
         </div>

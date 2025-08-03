@@ -37,15 +37,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log('Fetching role for user:', user.id)
 
         // Debug: Check user authentication status
-        const { data: debugData, error: debugError } = await supabase
-          .rpc('debug_user_auth')
+        const { data: debugData, error: debugError } =
+          await supabase.rpc('debug_user_auth')
 
         if (!debugError && debugData && debugData.length > 0) {
           const debug = debugData[0]
           console.log('Debug auth status:', debug)
 
           if (!debug.user_exists_in_auth) {
-            console.error('User does not exist in auth.users table! This is the root problem.')
+            console.error(
+              'User does not exist in auth.users table! This is the root problem.',
+            )
             setUserRole('client')
             return
           }
@@ -62,8 +64,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Profile doesn't exist, use our ensure_user_profile function
           console.log('Profile not found, creating it...')
           try {
-            const { data: roleData, error: roleError } = await supabase
-              .rpc('ensure_user_profile', { user_id: user.id })
+            const { data: roleData, error: roleError } = await supabase.rpc(
+              'ensure_user_profile',
+              { user_id: user.id },
+            )
 
             if (roleError) {
               console.error('Error creating profile:', roleError)

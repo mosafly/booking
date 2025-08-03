@@ -38,7 +38,10 @@ const HomePage: React.FC = () => {
           setError(t('homePage.errorLoadingGeneric'))
           toast.error(t('homePage.errorLoadingToast'))
         } else {
-          console.log('Fallback successful, courts received:', fallbackData?.length || 0)
+          console.log(
+            'Fallback successful, courts received:',
+            fallbackData?.length || 0,
+          )
           setCourts(fallbackData || [])
 
           if (!fallbackData || fallbackData.length === 0) {
@@ -75,7 +78,10 @@ const HomePage: React.FC = () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
-      console.log('Current session:', session?.user ? 'User logged in' : 'No user')
+      console.log(
+        'Current session:',
+        session?.user ? 'User logged in' : 'No user',
+      )
     }
 
     logSessionInfo()
@@ -172,10 +178,10 @@ const HomePage: React.FC = () => {
         >
           <p className="text-red-500 mb-4">{error}</p>
           {error &&
-            (error.includes('auth') ||
-              error.includes('credentials') ||
-              error.includes('session') ||
-              error.includes(t('homePage.errorLoadingGeneric'))) ? (
+          (error.includes('auth') ||
+            error.includes('credentials') ||
+            error.includes('session') ||
+            error.includes(t('homePage.errorLoadingGeneric'))) ? (
             <div>
               <p className="text-gray-600 mb-4">
                 {t('homePage.errorAuthMessage')}

@@ -18,7 +18,7 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate()
 
   const handleGetStarted = () => {
-    navigate('/login')
+    navigate('/home/reservation')
   }
 
   const scrollToSection = (sectionId: string) => {
@@ -31,25 +31,25 @@ const LandingPage: React.FC = () => {
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm shadow-lg z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-3">
+          <div className="flex justify-between items-center h-16 md:h-20">
+            <div className="flex items-center space-x-2 md:space-x-3">
               {/* Logo */}
               <img
                 src="/icon.png"
                 alt="Padel Palmeraie Logo"
-                className="w-12 h-12 rounded-full object-cover"
+                className="w-8 h-8 md:w-12 md:h-12 rounded-full object-cover"
                 onError={(e) => {
                   // Fallback si le logo n'existe pas encore
                   e.currentTarget.style.display = 'none'
                   e.currentTarget.parentElement!.innerHTML =
-                    '<div class="w-12 h-12 bg-gradient-to-br from-lime-400 to-green-600 rounded-full flex items-center justify-center"><span class="text-white font-bold text-lg">P</span></div>'
+                    '<div class="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-lime-400 to-green-600 rounded-full flex items-center justify-center"><span class="text-white font-bold text-sm md:text-lg">P</span></div>'
                 }}
               />
               <div>
-                <div className="text-2xl font-bold text-gray-800">
+                <div className="text-lg md:text-2xl font-bold text-gray-800">
                   Padel Palmeraie
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-xs md:text-sm text-gray-600">
                   Riviera Faya, Abidjan
                 </div>
               </div>
@@ -88,7 +88,7 @@ const LandingPage: React.FC = () => {
             </div>
             <button
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-lime-500 to-green-600 text-white px-8 py-3 rounded-full hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 font-semibold shadow-lg"
+              className="bg-gradient-to-r from-lime-500 to-green-600 text-white px-4 py-2 md:px-8 md:py-3 rounded-full hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 font-semibold shadow-lg text-sm md:text-base"
             >
               Réserver
             </button>
@@ -116,26 +116,26 @@ const LandingPage: React.FC = () => {
         </div>
 
         <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
             Bienvenue au <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-green-400">
               Padel Palmeraie
             </span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90 leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 max-w-3xl mx-auto opacity-90 leading-relaxed px-2">
             Le club de padel premium de Riviera Faya. Découvrez le sport le plus
             passionnant dans un cadre exceptionnel à Abidjan.
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center px-4">
             <button
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-lime-500 to-green-600 text-white px-10 py-4 rounded-full text-lg font-semibold hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-xl"
+              className="w-full sm:w-auto bg-gradient-to-r from-lime-500 to-green-600 text-white px-6 py-3 md:px-10 md:py-4 rounded-full text-base md:text-lg font-semibold hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-xl"
             >
               Réservez votre terrain
             </button>
             <button
               onClick={() => scrollToSection('about')}
-              className="border-2 border-white text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-white hover:text-gray-800 transition-all backdrop-blur-sm"
+              className="w-full sm:w-auto border-2 border-white text-white px-6 py-3 md:px-10 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-white hover:text-gray-800 transition-all backdrop-blur-sm"
             >
               Découvrir le club
             </button>
@@ -243,7 +243,7 @@ const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
@@ -252,29 +252,30 @@ const LandingPage: React.FC = () => {
                 <img
                   src={`/images/courts/court-${i}.jpg`}
                   alt={`Terrain ${i}`}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-40 md:h-48 object-cover"
                   onError={(e) => {
                     // Fallback vers une image Unsplash si locale non disponible
                     e.currentTarget.src =
                       'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
                   }}
                 />
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-3 text-gray-800">
+                <div className="p-4 md:p-6">
+                  <h3 className="text-lg md:text-xl font-semibold mb-2 md:mb-3 text-gray-800">
                     Terrain {i}
                   </h3>
-                  <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+                  <p className="text-gray-600 mb-3 md:mb-4 text-sm leading-relaxed">
                     Terrain professionnel avec éclairage LED, revêtement
                     synthétique et murs en verre trempé.
                   </p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center text-lime-600 font-semibold">
-                      <Star size={16} className="mr-1 fill-current" />
+                      <Star size={14} className="mr-1 fill-current" />
                       <span>Premium</span>
                     </div>
                     <div className="flex items-center text-green-600 font-medium">
-                      <Calendar size={16} className="mr-1" />
-                      <span>Disponible</span>
+                      <Calendar size={14} className="mr-1" />
+                      <span className="hidden sm:inline">Disponible</span>
+                      <span className="sm:hidden">Libre</span>
                     </div>
                   </div>
                 </div>
@@ -457,7 +458,7 @@ const LandingPage: React.FC = () => {
               Le club de padel premium de Riviera Faya, Abidjan
             </p>
             <p className="text-gray-500">
-              &copy; 2024 Padel Palmeraie. Tous droits réservés.
+              &copy; 2025 Padel Palmeraie. Tous droits réservés.
             </p>
           </div>
         </div>

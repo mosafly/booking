@@ -41,11 +41,11 @@ BEGIN
         r.start_time,
         r.total_price,
         c.name as court_name,
-        u.email as user_email
+        COALESCE(u.email, r.user_email) as user_email
     INTO v_reservation_record
     FROM public.reservations r
     JOIN public.courts c ON r.court_id = c.id
-    JOIN auth.users u ON r.user_id = u.id
+    LEFT JOIN auth.users u ON r.user_id = u.id
     WHERE r.id = p_reservation_id 
     AND r.verification_id = p_verification_id;
 
@@ -174,15 +174,15 @@ BEGIN
         r.start_time,
         r.end_time,
         r.total_price,
-        u.email as user_email,
-        p.full_name as user_name,
+        COALESCE(u.email, r.user_email) as user_email,
+        COALESCE(p.full_name, r.user_name) as user_name,
         r.verification_used_at,
         r.verified_by,
         r.status
     FROM public.reservations r
     JOIN public.courts c ON r.court_id = c.id
-    JOIN public.profiles p ON r.user_id = p.id
-    JOIN auth.users u ON p.id = u.id
+    LEFT JOIN public.profiles p ON r.user_id = p.id
+    LEFT JOIN auth.users u ON p.id = u.id
     WHERE r.verification_id = p_verification_id;
 END;
 $$;

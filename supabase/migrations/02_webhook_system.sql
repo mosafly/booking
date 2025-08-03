@@ -23,7 +23,7 @@ BEGIN
     -- 0. Currency validation/casting is removed as payments.currency is TEXT.
     -- If payments.currency were an ENUM, casting would be needed here.
 
-    -- 1. Get user_id from the reservation
+    -- 1. Get user_id from the reservation (can be null for users without accounts)
     SELECT user_id, EXISTS(SELECT 1 FROM public.reservations WHERE id = p_reservation_id)
     INTO v_user_id, v_reservation_exists
     FROM public.reservations
@@ -34,10 +34,7 @@ BEGIN
         RETURN;
     END IF;
 
-    IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'User ID not found for Padel reservation ID %.', p_reservation_id;
-        RETURN;
-    END IF;
+    -- v_user_id can be NULL for users without accounts, which is allowed
 
     -- 2. Insert or Update payment record
     INSERT INTO public.payments (

@@ -18,8 +18,8 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        u.email AS user_email,
-        p.full_name AS user_name, -- Now using full_name from profiles table
+        COALESCE(u.email, r.user_email) AS user_email,
+        COALESCE(p.full_name, r.user_name) AS user_name, -- Use user_name for users without accounts
         c.name AS court_name,
         r.start_time,
         r.total_price,
@@ -27,9 +27,9 @@ BEGIN
                      -- Assumes a payment record is created before this function is called.
     FROM 
         public.reservations r
-    JOIN 
+    LEFT JOIN 
         public.profiles p ON r.user_id = p.id
-    JOIN 
+    LEFT JOIN 
         auth.users u ON p.id = u.id
     JOIN 
         public.courts c ON r.court_id = c.id

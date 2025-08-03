@@ -13,10 +13,6 @@ export const AdminDashboard: React.FC = () => {
   })
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadStats()
-  }, [loadStats])
-
   const loadStats = useCallback(async () => {
     try {
       setLoading(true)
@@ -50,6 +46,10 @@ export const AdminDashboard: React.FC = () => {
       setLoading(false)
     }
   }, [supabase])
+
+  useEffect(() => {
+    loadStats()
+  }, [loadStats])
 
   if (loading) {
     return (

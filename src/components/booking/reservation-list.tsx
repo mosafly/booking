@@ -8,13 +8,17 @@ export type Reservation = {
   id: string
   court_id: string
   court_name: string
-  user_id: string
+  user_id: string | null
   user_email?: string
+  user_name?: string
+  user_phone?: string
   start_time: string
   end_time: string
   total_price: number
   status: 'pending' | 'confirmed' | 'cancelled'
   created_at: string
+  email_dispatch_status?: string
+  email_dispatch_attempts?: number
 }
 
 interface ReservationListProps {
@@ -88,36 +92,45 @@ const ReservationList: React.FC<ReservationListProps> = ({
             key={reservation.id}
             className="bg-white rounded-md shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
           >
-            <div className="p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {reservation.court_name}
-                  </h3>
+            <div className="p-3 sm:p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-3 sm:space-y-0">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between sm:block">
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900">
+                      {reservation.court_name}
+                    </h3>
+                    <div className="sm:hidden">
+                      {getStatusBadge(reservation.status)}
+                    </div>
+                  </div>
                   {isAdmin && reservation.user_email && (
-                    <div className="mt-1 text-sm text-gray-700">
+                    <div className="mt-1 text-xs sm:text-sm text-gray-700">
                       {t('reservationList.userPrefix')} {reservation.user_email}
                     </div>
                   )}
-                  <div className="mt-1 flex items-center text-sm text-gray-700">
-                    <Calendar size={16} className="mr-1" />
-                    <span>{formatDate(reservation.start_time)}</span>
-                  </div>
-                  <div className="mt-1 flex items-center text-sm text-gray-700">
-                    <Clock size={16} className="mr-1" />
-                    <span>
-                      {formatTime(reservation.start_time)} -{' '}
-                      {formatTime(reservation.end_time)}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex items-center text-sm text-gray-700">
-                    <DollarSign size={16} className="mr-1" />
-                    <span>{formatCurrency(reservation.total_price)}</span>
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center text-xs sm:text-sm text-gray-700">
+                      <Calendar size={14} className="mr-2 flex-shrink-0" />
+                      <span>{formatDate(reservation.start_time)}</span>
+                    </div>
+                    <div className="flex items-center text-xs sm:text-sm text-gray-700">
+                      <Clock size={14} className="mr-2 flex-shrink-0" />
+                      <span>
+                        {formatTime(reservation.start_time)} -{' '}
+                        {formatTime(reservation.end_time)}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-xs sm:text-sm text-gray-700">
+                      <DollarSign size={14} className="mr-2 flex-shrink-0" />
+                      <span className="font-medium">
+                        {formatCurrency(reservation.total_price)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-4 sm:mt-0 flex flex-col items-end">
-                  <div className="mb-3">
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start space-x-2 sm:space-x-0 sm:space-y-3">
+                  <div className="hidden sm:block">
                     {getStatusBadge(reservation.status)}
                   </div>
 
@@ -127,7 +140,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
                       onConfirm && (
                         <button
                           onClick={() => onConfirm(reservation.id)}
-                          className="btn btn-secondary text-xs px-3 py-1"
+                          className="btn btn-secondary text-xs px-2 py-1 sm:px-3"
                         >
                           {t('reservationList.confirmButton')}
                         </button>
@@ -138,7 +151,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
                       onCancel && (
                         <button
                           onClick={() => onCancel(reservation.id)}
-                          className="btn btn-danger text-xs px-3 py-1"
+                          className="btn btn-danger text-xs px-2 py-1 sm:px-3"
                         >
                           {t('reservationList.cancelButton')}
                         </button>

@@ -2,18 +2,17 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL");
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const supabaseUrl = Deno.env.get('SUPABASE_URL')
+const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
   console.error(
-    "Supabase URL or Service Role Key is not set. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are defined in Edge Function environment variables.",
-  );
+    'Supabase URL or Service Role Key is not set. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are defined in Edge Function environment variables.',
+  )
 }
-const supabase = createClient(supabaseUrl || "", supabaseServiceRoleKey || "");
-
+const supabase = createClient(supabaseUrl || '', supabaseServiceRoleKey || '')
 
 // Environment variables (should be set in Supabase Function settings)
 const LOMI_API_KEY = Deno.env.get('LOMI_API_KEY')
@@ -96,36 +95,35 @@ serve(async (req: Request) => {
     let useDynamic = useDynamicPricing
 
     if (courtId && !useDynamicPricing) {
-        try {
-            const { data: courtData, error: courtError } = await supabase
-                .from('courts')
-                .select('lomi_product_id')
-                .eq('id', courtId)
-                .single();
+      try {
+        const { data: courtData, error: courtError } = await supabase
+          .from('courts')
+          .select('lomi_product_id')
+          .eq('id', courtId)
+          .single()
 
-            if (courtError) throw courtError;
+        if (courtError) throw courtError
 
-            const { data: settingsData, error: settingsError } = await supabase
-                .from('pricing_settings')
-                .select('use_dynamic_pricing')
-                .single();
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('pricing_settings')
+          .select('use_dynamic_pricing')
+          .single()
 
-            if (settingsError) throw settingsError;
-            
-            if (settingsData?.use_dynamic_pricing) {
-                useDynamic = true;
-            } else if (courtData?.lomi_product_id) {
-                finalProductId = courtData.lomi_product_id;
-            }
-        } catch (error) {
-            console.warn(
-              'Failed to fetch pricing settings, falling back to amount-based:',
-              error,
-            )
-            useDynamic = true
+        if (settingsError) throw settingsError
+
+        if (settingsData?.use_dynamic_pricing) {
+          useDynamic = true
+        } else if (courtData?.lomi_product_id) {
+          finalProductId = courtData.lomi_product_id
         }
+      } catch (error) {
+        console.warn(
+          'Failed to fetch pricing settings, falling back to amount-based:',
+          error,
+        )
+        useDynamic = true
+      }
     }
-
 
     // Final validation - ensure we have either amount or product_id
     if (!finalAmount && !finalProductId) {
