@@ -16,7 +16,6 @@ import {
   CalendarCheck,
   DollarSign,
   Users,
-  ShoppingCart,
   Package,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -218,13 +217,6 @@ const Dashboard: React.FC = () => {
           <h3 className="text-lg font-bold mb-4">Actions Rapides</h3>
           <div className="space-y-3">
             <a
-              href="/pos"
-              className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Interface Caisse
-            </a>
-            <a
               href="/admin/products"
               className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
@@ -312,13 +304,12 @@ const Dashboard: React.FC = () => {
                 >
                   <p className="font-medium">{court.name}</p>
                   <span
-                    className={`badge ${
-                      court.status === 'available'
-                        ? 'badge-success'
-                        : court.status === 'maintenance'
-                          ? 'badge-danger'
-                          : 'badge-accent'
-                    }`}
+                    className={`badge ${court.status === 'available'
+                      ? 'badge-success'
+                      : court.status === 'maintenance'
+                        ? 'badge-danger'
+                        : 'badge-accent'
+                      }`}
                   >
                     {court.status.charAt(0).toUpperCase() +
                       court.status.slice(1)}

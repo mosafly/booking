@@ -31,9 +31,6 @@ import ReservationsManagement from './pages/admin/ReservationsManagement'
 import FinancialTracking from './pages/admin/FinancialTracking'
 import ProductsManagement from './pages/admin/ProductsManagement'
 import { PricingManagement } from './components/admin/PricingManagement'
-import PosDashboard from './pages/pos/PosDashboard'
-import PosSuccessPage from './pages/pos/PosSuccessPage'
-import PosCancelPage from './pages/pos/PosCancelPage'
 import { VerificationPage } from './pages/admin/VerificationPage'
 
 // Coach Pages
@@ -152,9 +149,6 @@ function App() {
                 <Route path="financial" element={<FinancialTracking />} />
                 <Route path="products" element={<ProductsManagement />} />
                 <Route path="pricing" element={<PricingManagement />} />
-                <Route path="pos" element={<PosDashboard />} />
-                <Route path="pos/success" element={<PosSuccessPage />} />
-                <Route path="pos/cancel" element={<PosCancelPage />} />
                 <Route path="verify/:verificationId" element={<VerificationPage />} />
               </Route>
 
@@ -185,23 +179,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <PaymentCancelPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/pos/success"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <PosSuccessPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/pos/cancel"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <PosCancelPage />
                   </ProtectedRoute>
                 }
               />
