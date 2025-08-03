@@ -17,18 +17,20 @@ VALUES
 -- ==================================================================
 -- POS PRODUCTS SEED DATA
 -- ==================================================================
-INSERT INTO public.products (name, description, price_cents, category, is_active, lomi_product_id)
-VALUES
-  ('Padel Racket Pro', 'Professional padel racket for advanced players', 25000, 'Equipment', true, ''),
-  ('Padel Balls (Pack of 3)', 'Official padel balls pack', 1500, 'Equipment', true, ''),
-  ('Sports Drink', 'Isotonic sports drink 500ml', 800, 'Beverages', true, ''),
-  ('Energy Bar', 'Protein energy bar', 600, 'Food', true, ''),
-  ('Water Bottle', 'Reusable sports water bottle', 1200, 'Accessories', true, ''),
-  ('Padel Bag', 'Professional padel equipment bag', 8000, 'Equipment', true, ''),
-  ('Grip Tape', 'Anti-slip grip tape for rackets', 500, 'Accessories', true, ''),
-  ('Sports Towel', 'Microfiber sports towel', 2000, 'Accessories', true, ''),
-  ('Sweatband Set', 'Wristband and headband set', 1000, 'Accessories', true, ''),
-  ('Court Shoes', 'Professional padel court shoes', 15000, 'Equipment', true, '');
+-- NOTE: Products table disabled - POS system migration commented out
+-- Uncomment the lines below when POS system is re-enabled
+-- INSERT INTO public.products (name, description, price_cents, category, is_active, lomi_product_id)
+-- VALUES
+--   ('Padel Racket Pro', 'Professional padel racket for advanced players', 25000, 'Equipment', true, ''),
+--   ('Padel Balls (Pack of 3)', 'Official padel balls pack', 1500, 'Equipment', true, ''),
+--   ('Sports Drink', 'Isotonic sports drink 500ml', 800, 'Beverages', true, ''),
+--   ('Energy Bar', 'Protein energy bar', 600, 'Food', true, ''),
+--   ('Water Bottle', 'Reusable sports water bottle', 1200, 'Accessories', true, ''),
+--   ('Padel Bag', 'Professional padel equipment bag', 8000, 'Equipment', true, ''),
+--   ('Grip Tape', 'Anti-slip grip tape for rackets', 500, 'Accessories', true, ''),
+--   ('Sports Towel', 'Microfiber sports towel', 2000, 'Accessories', true, ''),
+--   ('Sweatband Set', 'Wristband and headband set', 1000, 'Accessories', true, ''),
+--   ('Court Shoes', 'Professional padel court shoes', 15000, 'Equipment', true, '');
 
 -- ==================================================================
 -- SAMPLE COACH PROFILES SEED DATA
@@ -89,12 +91,12 @@ VALUES
 -- Verify that all seed data has been inserted correctly
 
 SELECT 'Courts inserted:' as info, COUNT(*) as count FROM public.courts;
-SELECT 'Products inserted:' as info, COUNT(*) as count FROM public.products;
-SELECT 'Pricing settings initialized:' as info, COUNT(*) as count FROM public.pricing_settings;
+-- SELECT 'Products inserted:' as info, COUNT(*) as count FROM public.products; -- Disabled: POS system commented out
+-- SELECT 'Pricing settings initialized:' as info, COUNT(*) as count FROM public.pricing_settings; -- Disabled: POS system commented out
 
 -- Show sample data
 SELECT 'Sample court:' as info, name, price_per_hour FROM public.courts LIMIT 1;
-SELECT 'Sample product:' as info, name, price_cents FROM public.products LIMIT 1;
+-- SELECT 'Sample product:' as info, name, price_cents FROM public.products LIMIT 1; -- Disabled: POS system commented out
 
 -- Final status
 SELECT '✅ Seed data loaded successfully - Ready for production use!' as status;

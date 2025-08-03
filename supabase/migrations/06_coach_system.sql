@@ -2,30 +2,42 @@
 -- Combines and simplifies the coach system from previous migration attempts
 
 -- Create coach types enum
-CREATE TYPE IF NOT EXISTS public.coach_type AS ENUM (
-  'fitness',
-  'yoga', 
-  'danse',
-  'padel'
-);
+DO $$ BEGIN
+    CREATE TYPE public.coach_type AS ENUM (
+      'fitness',
+      'yoga', 
+      'danse',
+      'padel'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create class types enum
-CREATE TYPE IF NOT EXISTS public.class_type AS ENUM (
-  'fitness',
-  'yoga',
-  'danse',
-  'cardio',
-  'musculation',
-  'crossfit'
-);
+DO $$ BEGIN
+    CREATE TYPE public.class_type AS ENUM (
+      'fitness',
+      'yoga',
+      'danse',
+      'cardio',
+      'musculation',
+      'crossfit'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create booking status enum
-CREATE TYPE IF NOT EXISTS public.booking_status AS ENUM (
-  'scheduled',
-  'in_progress',
-  'completed',
-  'cancelled'
-);
+DO $$ BEGIN
+    CREATE TYPE public.booking_status AS ENUM (
+      'scheduled',
+      'in_progress',
+      'completed',
+      'cancelled'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create coach profiles table
 CREATE TABLE IF NOT EXISTS public.coach_profiles (
@@ -87,11 +99,13 @@ $$ LANGUAGE plpgsql
 SET search_path = public;
 
 -- Create triggers for updated_at columns
-CREATE TRIGGER IF NOT EXISTS handle_coach_profiles_updated_at
+DROP TRIGGER IF EXISTS handle_coach_profiles_updated_at ON public.coach_profiles;
+CREATE TRIGGER handle_coach_profiles_updated_at
   BEFORE UPDATE ON public.coach_profiles
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
-CREATE TRIGGER IF NOT EXISTS handle_gym_bookings_updated_at
+DROP TRIGGER IF EXISTS handle_gym_bookings_updated_at ON public.gym_bookings;
+CREATE TRIGGER handle_gym_bookings_updated_at
   BEFORE UPDATE ON public.gym_bookings
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 

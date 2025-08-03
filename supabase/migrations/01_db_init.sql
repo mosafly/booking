@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.reservations (
 CREATE TABLE IF NOT EXISTS public.payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reservation_id UUID REFERENCES public.reservations(id) ON DELETE CASCADE,
-  sale_id UUID REFERENCES public.sales(id) ON DELETE CASCADE,
+  sale_id UUID, -- Will add foreign key constraint after sales table is created
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   amount DECIMAL(10, 2) NOT NULL,
   currency TEXT NOT NULL DEFAULT 'XOF',
