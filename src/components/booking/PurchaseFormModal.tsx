@@ -15,19 +15,7 @@ import { Court } from './court-card'
 import { formatFCFA } from '@/lib/utils/currency'
 import { format } from 'date-fns'
 import { useTranslation } from 'react-i18next'
-
-// Phone number validation for West African numbers
-const formatPhoneNumber = (value: string): string => {
-  // Remove all non-digits
-  const digits = value.replace(/\D/g, '')
-
-  // Format for Senegal/West Africa: +221 XX XXX XX XX
-  if (digits.length <= 3) return digits
-  if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`
-  if (digits.length <= 8)
-    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`
-  return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`
-}
+import PhoneNumberInput from '@/components/ui/phone-number-input'
 
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -35,10 +23,9 @@ const validateEmail = (email: string): boolean => {
 }
 
 const validatePhone = (phone: string): boolean => {
-  // Remove all non-digits for validation
-  const digits = phone.replace(/\D/g, '')
-  // Should be 9 digits for Senegal (without country code)
-  return digits.length >= 9
+  // Basic validation for international phone numbers
+  // The PhoneNumberInput component handles formatting and validation
+  return !!(phone && phone.trim().length >= 8)
 }
 
 interface ReservationData {
@@ -92,12 +79,6 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
       setIsLoading(false)
     }
   }, [isOpen])
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    const formatted = formatPhoneNumber(value)
-    setUserPhone(formatted)
-  }
 
   const isFormValid = (): boolean => {
     return (
@@ -288,20 +269,15 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
                 >
                   {t('purchaseModal.labels.phone', 'Phone Number')} *
                 </Label>
-                <div className="flex">
-                  <span className="inline-flex items-center px-2 sm:px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-xs sm:text-sm">
-                    +221
-                  </span>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={userPhone}
-                    onChange={handlePhoneChange}
-                    placeholder="XX XXX XX XX"
-                    required
-                    className="rounded-l-none text-sm sm:text-base"
-                  />
-                </div>
+                <PhoneNumberInput
+                  value={userPhone}
+                  onChange={(value) => setUserPhone(value || '')}
+                  placeholder={t(
+                    'purchaseModal.placeholders.phone',
+                    'Enter your phone number',
+                  )}
+                  className="text-sm sm:text-base"
+                />
               </div>
             </div>
 
@@ -329,7 +305,7 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
                       <div className="text-xs sm:text-sm text-gray-600">
                         {t(
                           'purchaseModal.payOnlineDesc',
-                          'Secure payment via Lomi',
+                          'Secure payment via lomi.',
                         )}
                       </div>
                     </div>

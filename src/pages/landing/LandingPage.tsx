@@ -105,7 +105,7 @@ const LandingPage: React.FC = () => {
       >
         <div className="absolute inset-0">
           <img
-            src="/hero.jpg"
+            src="/hero.png"
             alt="Padel Palmeraie - Terrain de padel moderne"
             className="w-full h-full object-cover"
             onError={(e) => {

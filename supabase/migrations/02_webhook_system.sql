@@ -1,14 +1,14 @@
 -- Supabase migration for Padel App webhook system
 
--- Function to record a Lomi payment and update relevant Padel app tables.
--- This function is called by the Padel app's Lomi webhook handler.
+-- Function to record a lomi. payment and update relevant Padel app tables.
+-- This function is called by the Padel app's lomi. webhook handler.
 CREATE OR REPLACE FUNCTION public.record_padel_lomi_payment(
     p_reservation_id UUID,
-    p_lomi_payment_id TEXT, -- Lomi's transaction_id (can be null if only checkout_session_id is available)
-    p_lomi_checkout_session_id TEXT, -- Lomi's checkout_session_id (can be null if not a checkout event)
+    p_lomi_payment_id TEXT, -- lomi.'s transaction_id (can be null if only checkout_session_id is available)
+    p_lomi_checkout_session_id TEXT, -- lomi.'s checkout_session_id (can be null if not a checkout event)
     p_amount_paid NUMERIC,
     p_currency_paid TEXT,
-    p_lomi_event_payload JSONB -- The full event payload from Lomi for auditing/reference
+    p_lomi_event_payload JSONB -- The full event payload from lomi. for auditing/reference
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -56,10 +56,10 @@ BEGIN
         p_currency_paid, -- Directly use the TEXT input
         'online', -- Payment method
         'lomi',   -- Payment provider
-        COALESCE(p_lomi_payment_id, p_lomi_checkout_session_id, 'N/A'), -- Lomi's unique ID for the payment
+        COALESCE(p_lomi_payment_id, p_lomi_checkout_session_id, 'N/A'), -- lomi.'s unique ID for the payment
         'completed', -- Set status to completed
         NOW(),      -- Payment date
-        p_lomi_event_payload -- Store Lomi payload if you have a metadata column
+        p_lomi_event_payload -- Store lomi. payload if you have a metadata column
     )
     ON CONFLICT (reservation_id) DO UPDATE SET
         amount = p_amount_paid,
@@ -71,7 +71,7 @@ BEGIN
         updated_at = NOW()
     RETURNING id INTO v_payment_id;
 
-    RAISE LOG 'Recorded Lomi payment. Padel Payment ID: %, Lomi Payment/Checkout ID: % for Reservation ID: %', 
+    RAISE LOG 'Recorded lomi. payment. Padel Payment ID: %, lomi. Payment/Checkout ID: % for Reservation ID: %', 
                 v_payment_id, 
                 COALESCE(p_lomi_payment_id, p_lomi_checkout_session_id, 'N/A'), 
                 p_reservation_id;
@@ -89,7 +89,7 @@ $$;
 -- Grant execute permission to the service_role (used by Supabase functions/backend calls)
 GRANT EXECUTE ON FUNCTION public.record_padel_lomi_payment(UUID, TEXT, TEXT, NUMERIC, TEXT, JSONB) TO service_role;
 
-COMMENT ON FUNCTION public.record_padel_lomi_payment IS 'Records a successful payment processed via Lomi for a Padel court reservation and updates related tables.';
+COMMENT ON FUNCTION public.record_padel_lomi_payment IS 'Records a successful payment processed via lomi. for a Padel court reservation and updates related tables.';
 
 -- Function to update email dispatch status
 CREATE OR REPLACE FUNCTION public.update_booking_email_dispatch_status(
@@ -125,3 +125,43 @@ GRANT EXECUTE ON FUNCTION public.update_booking_email_dispatch_status(UUID, TEXT
 
 COMMENT ON FUNCTION public.update_booking_email_dispatch_status(UUID, TEXT, TEXT)
 IS 'Updates the email dispatch status and related fields for a reservation record';
+
+-- Add constraint to prevent double booking
+-- This ensures no two confirmed reservations can overlap for the same court
+
+-- Function to check for overlapping reservations
+CREATE OR REPLACE FUNCTION public.check_reservation_overlap()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only check for confirmed reservations (ignore cancelled ones)
+  IF NEW.status = 'confirmed' THEN
+    -- Check if there's any overlapping confirmed reservation for the same court
+    IF EXISTS (
+      SELECT 1 FROM public.reservations 
+      WHERE court_id = NEW.court_id 
+        AND status = 'confirmed'
+        AND id != COALESCE(NEW.id, '00000000-0000-0000-0000-000000000000'::UUID)
+        AND (
+          -- Check for any time overlap
+          (start_time < NEW.end_time AND end_time > NEW.start_time)
+        )
+    ) THEN
+      RAISE EXCEPTION 'Time slot conflict: Another confirmed reservation exists for this court during the selected time.';
+    END IF;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public;
+
+-- Create trigger to check for overlaps before insert/update
+CREATE TRIGGER prevent_reservation_overlap
+  BEFORE INSERT OR UPDATE ON public.reservations
+  FOR EACH ROW EXECUTE FUNCTION public.check_reservation_overlap();
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.check_reservation_overlap() TO service_role;
+
+COMMENT ON FUNCTION public.check_reservation_overlap() IS 'Prevents overlapping confirmed reservations for the same court';

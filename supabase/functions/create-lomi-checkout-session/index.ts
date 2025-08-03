@@ -42,7 +42,7 @@ serve(async (req: Request) => {
       // --- Optional Fields (with defaults or null if not provided) ---
       userEmail = null, // Customer's email, pre-fills lomi.checkout.
       userName = null, // Customer's name, pre-fills lomi.checkout.
-      // userPhone = null, // Customer's phone number.
+      userPhone = null, // Customer's phone number, pre-fills lomi.checkout.
       successUrlPath = '/payment/success', // Relative path for success redirect (e.g., /payment/success).
       cancelUrlPath = '/payment/cancel', // Relative path for cancel redirect (e.g., /payment/cancel).
       allowedProviders = null, // Array of allowed payment providers (e.g., ["WAVE", "ORANGE_MONEY"]).
@@ -207,7 +207,7 @@ serve(async (req: Request) => {
       quantity: quantity,
       customer_email: userEmail,
       customer_name: userName,
-      // customer_phone: userPhone,
+      customer_phone: userPhone,
       allow_coupon_code: allow_coupon_code,
       allow_quantity: allowQuantity,
       metadata: finalMetadata,

@@ -304,12 +304,13 @@ const Dashboard: React.FC = () => {
                 >
                   <p className="font-medium">{court.name}</p>
                   <span
-                    className={`badge ${court.status === 'available'
+                    className={`badge ${
+                      court.status === 'available'
                         ? 'badge-success'
                         : court.status === 'maintenance'
                           ? 'badge-danger'
                           : 'badge-accent'
-                      }`}
+                    }`}
                   >
                     {court.status.charAt(0).toUpperCase() +
                       court.status.slice(1)}

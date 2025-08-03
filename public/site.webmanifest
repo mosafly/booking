@@ -1,0 +1,63 @@
+{
+  "name": "Padel Palmeraie - Réservez vos terrains de padel",
+  "short_name": "Padel Palmeraie",
+  "description": "Réservez facilement vos terrains de padel avec Padel Palmeraie. Trouvez des terrains disponibles, faites votre réservation et jouez en toute confiance.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "fr",
+  "categories": ["sports", "réservation", "lifestyle"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/hero.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Réserver un terrain",
+      "short_name": "Réserver",
+      "description": "Réservez rapidement un court de padel",
+      "url": "/reservation",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mes Réservations",
+      "short_name": "Réservations",
+      "description": "Voir vos réservations actuelles",
+      "url": "/my-reservations",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/hero.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Interface principale de Padel Palmeraie"
+    }
+  ]
+}

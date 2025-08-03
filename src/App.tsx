@@ -192,7 +192,7 @@ function App() {
               {/* Gym Booking Route */}
               <Route path="/gym" element={<GymBookingPage />} />
 
-              {/* Payment Routes (for Lomi redirects) */}
+              {/* Payment Routes (for lomi. redirects) */}
               <Route
                 path="/payment/success"
                 element={

@@ -178,9 +178,9 @@ const CourtsManagement: React.FC = () => {
             initialData={
               editingCourt
                 ? {
-                  ...editingCourt,
-                  image_url: editingCourt.image_url || '',
-                }
+                    ...editingCourt,
+                    image_url: editingCourt.image_url || '',
+                  }
                 : undefined
             }
             onSubmit={handleSubmit}
@@ -258,12 +258,13 @@ const CourtsManagement: React.FC = () => {
                       style={{ minWidth: '120px' }}
                     >
                       <span
-                        className={`badge ${court.status === 'available'
+                        className={`badge ${
+                          court.status === 'available'
                             ? 'badge-success'
                             : court.status === 'maintenance'
                               ? 'badge-danger'
                               : 'badge-accent'
-                          }`}
+                        }`}
                       >
                         {court.status.charAt(0).toUpperCase() +
                           court.status.slice(1)}
@@ -278,10 +279,11 @@ const CourtsManagement: React.FC = () => {
                           onClick={() =>
                             handleStatusToggle(court.id, court.status)
                           }
-                          className={`p-1 rounded-md ${court.status === 'available'
+                          className={`p-1 rounded-md ${
+                            court.status === 'available'
                               ? 'text-red-600 hover:bg-red-100'
                               : 'text-green-600 hover:bg-green-100'
-                            }`}
+                          }`}
                           title={
                             court.status === 'available'
                               ? 'Set to maintenance'

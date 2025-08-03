@@ -153,7 +153,8 @@
     },
     "placeholders": {
       "name": "Entrez votre nom complet",
-      "email": "Entrez votre adresse email"
+      "email": "Entrez votre adresse email",
+      "phone": "Entrez votre numéro de téléphone"
     },
     "paymentMethod": "Mode de paiement",
     "payOnline": "Payer en ligne",
@@ -171,7 +172,7 @@
     "buttons": {
       "cancel": "Annuler",
       "processing": "Traitement...",
-      "payNow": "Payer maintenant",
+      "payNow": "Payer",
       "reserve": "Réserver maintenant"
     }
   },

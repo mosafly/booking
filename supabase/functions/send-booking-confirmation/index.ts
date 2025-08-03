@@ -346,7 +346,7 @@ serve(async (req: Request) => {
     const emailHtml = `...` // Same HTML as before
 
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: `Padel Society CI <${fromEmail}>`,
+      from: `Padel Palmeraie CI <${fromEmail}>`,
       to: bookingData.user_email,
       subject: `Confirmation de réservation - ${bookingData.court_name}`,
       html: emailHtml,

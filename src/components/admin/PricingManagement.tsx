@@ -156,9 +156,9 @@ export const PricingManagement: React.FC = () => {
     setPricingSettings((prev) =>
       prev
         ? {
-          ...prev,
-          use_dynamic_pricing: !prev.use_dynamic_pricing,
-        }
+            ...prev,
+            use_dynamic_pricing: !prev.use_dynamic_pricing,
+          }
         : null,
     )
   }
@@ -234,7 +234,7 @@ export const PricingManagement: React.FC = () => {
             Pricing Management
           </h1>
           <p className="text-gray-600">
-            Configure Lomi product IDs and dynamic pricing
+            Configure lomi. product IDs and dynamic pricing
           </p>
         </div>
         <Button onClick={saveSettings} disabled={saving} className="gap-2">
@@ -251,7 +251,7 @@ export const PricingManagement: React.FC = () => {
             Pricing Mode
           </CardTitle>
           <CardDescription>
-            Choose between product-based pricing (tracked by Lomi) or dynamic
+            Choose between product-based pricing (tracked by lomi.) or dynamic
             pricing (manual prices)
           </CardDescription>
         </CardHeader>
@@ -269,23 +269,23 @@ export const PricingManagement: React.FC = () => {
               </Label>
               <p className="text-sm text-gray-600">
                 {pricingSettings?.use_dynamic_pricing
-                  ? 'Prices are manually set, no Lomi product tracking'
-                  : 'Prices come from Lomi products, better tracking and analytics'}
+                  ? 'Prices are manually set, no lomi. product tracking'
+                  : 'Prices come from lomi. products, better tracking and analytics'}
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Lomi Product ID Configuration */}
+      {/* lomi. Product ID Configuration */}
       {!pricingSettings?.use_dynamic_pricing && (
         <div className="space-y-6">
           {/* Courts */}
           <Card>
             <CardHeader>
-              <CardTitle>Court Lomi Product IDs</CardTitle>
+              <CardTitle>Court lomi. Product IDs</CardTitle>
               <CardDescription>
-                Configure which Lomi product ID each court should use for
+                Configure which lomi. product ID each court should use for
                 payments
               </CardDescription>
             </CardHeader>
@@ -304,7 +304,7 @@ export const PricingManagement: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <Label htmlFor={`court-${court.id}`} className="text-sm">
-                        Lomi Product ID
+                        lomi. Product ID
                       </Label>
                       <Input
                         id={`court-${court.id}`}
@@ -325,10 +325,10 @@ export const PricingManagement: React.FC = () => {
           {/* Products (POS) */}
           <Card>
             <CardHeader>
-              <CardTitle>Product Lomi Product IDs</CardTitle>
+              <CardTitle>Product lomi. Product IDs</CardTitle>
               <CardDescription>
-                Configure Lomi product IDs for POS system items (drinks, snacks,
-                equipment)
+                Configure lomi. product IDs for POS system items (drinks,
+                snacks, equipment)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -350,7 +350,7 @@ export const PricingManagement: React.FC = () => {
                         htmlFor={`product-${product.id}`}
                         className="text-sm"
                       >
-                        Lomi Product ID
+                        lomi. Product ID
                       </Label>
                       <Input
                         id={`product-${product.id}`}
@@ -371,9 +371,9 @@ export const PricingManagement: React.FC = () => {
           {/* Gym Bookings (Classes, Massage, etc.) */}
           <Card>
             <CardHeader>
-              <CardTitle>Gym Service Lomi Product IDs</CardTitle>
+              <CardTitle>Gym Service lomi. Product IDs</CardTitle>
               <CardDescription>
-                Configure Lomi product IDs for gym classes, massage, and other
+                Configure lomi. product IDs for gym classes, massage, and other
                 services
               </CardDescription>
             </CardHeader>
@@ -396,7 +396,7 @@ export const PricingManagement: React.FC = () => {
                         htmlFor={`booking-${booking.id}`}
                         className="text-sm"
                       >
-                        Lomi Product ID
+                        lomi. Product ID
                       </Label>
                       <Input
                         id={`booking-${booking.id}`}
@@ -427,9 +427,9 @@ export const PricingManagement: React.FC = () => {
               <strong>How it works:</strong>
             </p>
             <ul className="list-disc list-inside space-y-1 text-gray-600">
-              <li>Each court has a Lomi product ID</li>
-              <li>Lomi handles pricing and currency conversion</li>
-              <li>Better tracking and analytics in Lomi dashboard</li>
+              <li>Each court has a lomi. product ID</li>
+              <li>lomi. handles pricing and currency conversion</li>
+              <li>Better tracking and analytics in lomi. dashboard</li>
               <li>Supports quantity-based pricing (2h = 2x 1h product)</li>
             </ul>
           </CardContent>
@@ -446,7 +446,7 @@ export const PricingManagement: React.FC = () => {
             <ul className="list-disc list-inside space-y-1 text-gray-600">
               <li>Prices are set manually in the app</li>
               <li>More flexible for special offers or events</li>
-              <li>No product tracking in Lomi</li>
+              <li>No product tracking in lomi.</li>
               <li>Suitable for custom pricing strategies</li>
             </ul>
           </CardContent>

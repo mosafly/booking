@@ -107,8 +107,8 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                   const isSelected =
                     selectedStartTime && selectedEndTime
                       ? selectedStartTime.getTime() ===
-                      slot.startTime.getTime() &&
-                      selectedEndTime.getTime() === slot.endTime.getTime()
+                          slot.startTime.getTime() &&
+                        selectedEndTime.getTime() === slot.endTime.getTime()
                       : false
 
                   return (
@@ -119,9 +119,10 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                       }
                       className={`
                         px-2 py-2 md:px-3 md:py-2 rounded-md text-center text-xs md:text-sm transition-colors min-h-[3rem]
-                        ${isSelected
-                          ? 'bg-[var(--primary)] text-white'
-                          : 'bg-white border border-gray-300 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)] active:bg-gray-50'
+                        ${
+                          isSelected
+                            ? 'bg-[var(--primary)] text-white'
+                            : 'bg-white border border-gray-300 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)] active:bg-gray-50'
                         }
                       `}
                     >

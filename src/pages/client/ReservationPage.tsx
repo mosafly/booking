@@ -217,7 +217,7 @@ const ReservationPage: React.FC = () => {
           throw new Error('Payment session creation failed (no URL returned).')
         }
 
-        console.log('Lomi checkout URL received:', functionData.checkout_url)
+        console.log('lomi. checkout URL received:', functionData.checkout_url)
 
         // Store reservation data in localStorage for post-payment tracking
         setPendingReservation({
@@ -230,7 +230,7 @@ const ReservationPage: React.FC = () => {
           createdAt: new Date().toISOString(),
         })
 
-        // Redirect to Lomi checkout page
+        // Redirect to lomi. checkout page
         window.location.href = functionData.checkout_url
       } else {
         // Handle on-spot payment

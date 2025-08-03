@@ -123,6 +123,6 @@ SELECT '✅ Seed data loaded successfully - Ready for production use!' as status
 -- 
 -- 4. PRICING CONFIGURATION:
 --    - Access admin panel to configure dynamic pricing
---    - Set up Lomi payment integration
+--    - Set up lomi. payment integration
 -- 
 -- ==================================================================

@@ -18,14 +18,14 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 })
 
-// --- Lomi Webhook Secret ---
+// --- lomi. Webhook Secret ---
 // This will be set in Vercel environment variables
 const LOMI_WEBHOOK_SECRET = process.env.LOMI_WEBHOOK_SECRET
 
-// --- Helper: Verify Lomi Webhook Signature ---
+// --- Helper: Verify lomi. Webhook Signature ---
 async function verifyLomiWebhook(rawBody, signatureHeader) {
   if (!signatureHeader) {
-    throw new Error('Missing Lomi signature header (X-Lomi-Signature).')
+    throw new Error('Missing lomi. signature header (X-lomi.-Signature).')
   }
   if (!LOMI_WEBHOOK_SECRET) {
     console.error('LOMI_WEBHOOK_SECRET is not set. Cannot verify webhook.')
@@ -45,12 +45,12 @@ async function verifyLomiWebhook(rawBody, signatureHeader) {
       sigBuffer.length !== expectedSigBuffer.length ||
       !crypto.timingSafeEqual(sigBuffer, expectedSigBuffer)
     ) {
-      throw new Error('Lomi webhook signature mismatch.')
+      throw new Error('lomi. webhook signature mismatch.')
     }
   } catch (e) {
     console.error('Error during signature comparison:', e.message)
     throw new Error(
-      'Lomi webhook signature verification failed due to comparison error or invalid signature format.',
+      'lomi. webhook signature verification failed due to comparison error or invalid signature format.',
     )
   }
 
@@ -88,17 +88,20 @@ export default async function handler(req, res) {
 
   // Get raw body for signature verification
   const rawBody = await getRawBody(req)
-  const signature = req.headers['x-lomi-signature'] // Lomi sends this header
+  const signature = req.headers['x-lomi-signature'] // lomi. sends this header
 
   let eventPayload
   try {
     eventPayload = await verifyLomiWebhook(rawBody, signature)
     console.log(
-      'Padel App: Lomi webhook event verified:',
+      'Padel App: lomi. webhook event verified:',
       eventPayload?.event || 'Event type missing',
     )
   } catch (err) {
-    console.error('Padel App: Lomi signature verification failed:', err.message)
+    console.error(
+      'Padel App: lomi. signature verification failed:',
+      err.message,
+    )
     res.setHeader('Content-Type', 'application/json')
     return res
       .status(400)
@@ -112,13 +115,13 @@ export default async function handler(req, res) {
 
     if (!lomiEventType || !eventData) {
       console.warn(
-        'Padel App: Event type or data missing in Lomi payload.',
+        'Padel App: Event type or data missing in lomi. payload.',
         eventPayload,
       )
       return res.status(400).json({ error: 'Event type or data missing.' })
     }
 
-    console.log('Padel App: Received Lomi event type:', lomiEventType)
+    console.log('Padel App: Received lomi. event type:', lomiEventType)
     console.log(
       'Padel App: Full event payload:',
       JSON.stringify(eventPayload, null, 2),
@@ -140,21 +143,21 @@ export default async function handler(req, res) {
 
     if (!reservationId) {
       console.error(
-        'Padel App Webhook Error: Missing reservation_id in Lomi webhook metadata.',
+        'Padel App Webhook Error: Missing reservation_id in lomi. webhook metadata.',
         { lomiEventData: eventData },
       )
       return res.status(400).json({
         error:
-          'Missing reservation_id in Lomi webhook metadata for processing.',
+          'Missing reservation_id in lomi. webhook metadata for processing.',
       })
     }
     if (amount === undefined || !currency) {
       console.error(
-        'Padel App Webhook Error: Missing amount or currency from Lomi event data.',
+        'Padel App Webhook Error: Missing amount or currency from lomi. event data.',
         { amount, currency, lomiEventData: eventData },
       )
       return res.status(400).json({
-        error: 'Missing amount or currency in Lomi webhook payload.',
+        error: 'Missing amount or currency in lomi. webhook payload.',
       })
     }
 
@@ -239,7 +242,7 @@ export default async function handler(req, res) {
       }
     } else {
       console.log(
-        'Padel App: Lomi event type not a success event or not handled:',
+        'Padel App: lomi. event type not a success event or not handled:',
         lomiEventType,
       )
     }
