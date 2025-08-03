@@ -95,21 +95,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user, supabase])
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      setSession(data.session)
-      setUser(data.session?.user ?? null)
-      setIsLoading(false)
-    }
-    getSession()
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
+    const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
+        setIsLoading(false)
       },
     )
-    return () => listener.subscription.unsubscribe()
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
   }, [supabase])
 
   const signIn = async (email: string, password: string) => {

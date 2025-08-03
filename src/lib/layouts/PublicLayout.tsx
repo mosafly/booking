@@ -1,6 +1,4 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { LogIn } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/components/dashboard/language-switcher'
 
@@ -9,7 +7,6 @@ interface PublicLayoutProps {
 }
 
 const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
-  const navigate = useNavigate()
   const { t } = useTranslation()
 
   return (
@@ -26,15 +23,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
               {t('brand')}
             </h1>
           </div>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/login')}
-              className="flex items-center text-sm font-medium text-gray-700 hover:text-[var(--primary)] transition-colors"
-            >
-              <LogIn size={16} className="mr-1" />
-              {t('adminLogin', 'Admin Login')}
-            </button>
-          </div>
+          <div className="flex items-center space-x-4"></div>
         </div>
       </header>
 

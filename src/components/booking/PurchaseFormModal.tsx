@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2, CreditCard, DollarSign, Calendar, Clock } from 'lucide-react'
+import { Loader2, CreditCard, Calendar, Clock } from 'lucide-react'
 import { Court } from './court-card'
 import { formatFCFA } from '@/lib/utils/currency'
 import { format } from 'date-fns'
@@ -78,7 +78,7 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
   const [isLoading, setIsLoading] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     'online' | 'on_spot' | null
-  >(null)
+  >('online')
   const [error, setError] = useState<string | null>(null)
 
   // Reset form when modal opens/closes
@@ -87,7 +87,7 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
       setUserName('')
       setUserEmail('')
       setUserPhone('')
-      setSelectedPaymentMethod(null)
+      setSelectedPaymentMethod('online')
       setError(null)
       setIsLoading(false)
     }
@@ -104,8 +104,7 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
       userName.trim().length > 0 &&
       userEmail.trim().length > 0 &&
       validateEmail(userEmail) &&
-      validatePhone(userPhone) &&
-      selectedPaymentMethod !== null
+      validatePhone(userPhone)
     )
   }
 
@@ -136,15 +135,6 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
       )
       return
     }
-    if (!selectedPaymentMethod) {
-      setError(
-        t(
-          'purchaseModal.errors.paymentMethodRequired',
-          'Please select a payment method',
-        ),
-      )
-      return
-    }
 
     setIsLoading(true)
 
@@ -155,7 +145,7 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
         phone: userPhone.trim(),
       }
 
-      await onConfirm(userDetails, selectedPaymentMethod)
+      await onConfirm(userDetails, selectedPaymentMethod || 'online')
 
       // Don't close modal here - let parent handle success/redirect
     } catch (err: unknown) {
@@ -231,8 +221,7 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
                   </span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                  <span className="text-gray-600 flex items-center">
-                    <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                  <span className="text-gray-600">
                     {t('purchaseModal.total', 'Total')}:
                   </span>
                   <span className="font-bold text-base sm:text-lg text-[var(--primary)]">
@@ -346,31 +335,6 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
                     </div>
                   </div>
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedPaymentMethod('on_spot')}
-                  className={`p-3 sm:p-4 border rounded-lg text-left transition-colors ${
-                    selectedPaymentMethod === 'on_spot'
-                      ? 'border-[var(--primary)] bg-[var(--primary)]/5'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 text-[var(--primary)] flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-sm sm:text-base">
-                        {t('purchaseModal.payOnSpot', 'Pay at Venue')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">
-                        {t(
-                          'purchaseModal.payOnSpotDesc',
-                          'Pay when you arrive',
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </button>
               </div>
             </div>
 
@@ -405,9 +369,7 @@ const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
               ) : (
                 <>
                   <CreditCard className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                  {selectedPaymentMethod === 'online'
-                    ? t('purchaseModal.buttons.payNow', 'Pay Now')
-                    : t('purchaseModal.buttons.reserve', 'Reserve Now')}
+                  {t('purchaseModal.buttons.payNow', 'Pay Now')}
                 </>
               )}
             </Button>

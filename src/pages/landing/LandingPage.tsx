@@ -14,11 +14,10 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LanguageSwitcher } from '@/components/dashboard/language-switcher'
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const handleGetStarted = () => {
     navigate('/home/reservation')
@@ -488,7 +487,17 @@ const LandingPage: React.FC = () => {
               {t('landingPage.footer.description')}
             </p>
             <div className="flex justify-center mb-4">
-              <LanguageSwitcher />
+              <button
+                onClick={() => {
+                  const currentLang = i18n.language
+                  const newLang = currentLang === 'en' ? 'fr' : 'en'
+                  i18n.changeLanguage(newLang)
+                  localStorage.setItem('language', newLang)
+                }}
+                className="text-white hover:text-lime-300 transition-colors text-sm font-medium px-4 py-2 border border-white/20 rounded-full hover:border-lime-300"
+              >
+                {i18n.language === 'en' ? 'Français' : 'English'}
+              </button>
             </div>
             <p className="text-gray-500">{t('landingPage.footer.copyright')}</p>
           </div>

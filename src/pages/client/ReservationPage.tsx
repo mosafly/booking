@@ -9,7 +9,7 @@ import PurchaseFormModal, {
   UserDetails,
 } from '@/components/booking/PurchaseFormModal'
 import { calculatePrice } from '@/lib/utils/reservation-rules'
-import { Calendar, Clock, DollarSign } from 'lucide-react'
+import { Calendar, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Spinner } from '@/components/dashboard/spinner'
 import { useTranslation } from 'react-i18next'
@@ -39,7 +39,14 @@ const ReservationPage: React.FC = () => {
   // Fetch court details
   useEffect(() => {
     const fetchCourt = async () => {
-      if (!courtId) return
+      if (!courtId) {
+        console.log(
+          'No courtId provided in URL parameters, redirecting to home',
+        )
+        navigate('/home')
+        setIsLoading(false)
+        return
+      }
 
       try {
         const { data, error } = await supabase
@@ -319,7 +326,6 @@ const ReservationPage: React.FC = () => {
             </p>
 
             <div className="mt-3 md:mt-4 flex items-center text-gray-700">
-              <DollarSign size={18} className="mr-1" />
               <span className="text-base md:text-lg font-medium">
                 {formatFCFA(court.price_per_hour)}{' '}
                 {t('courtCard.pricePerHourSuffix')}
@@ -382,7 +388,6 @@ const ReservationPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex items-center text-xs md:text-sm text-gray-700">
-                  <DollarSign size={14} className="mr-2" />
                   <span className="font-medium">
                     {t('reservationPage.summaryTotalLabel')}{' '}
                     {formatFCFA(calculateTotalPrice())}

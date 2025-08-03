@@ -1,7 +1,7 @@
 import React from 'react'
 import { format } from 'date-fns'
 import { enUS, fr } from 'date-fns/locale'
-import { Calendar, Clock, DollarSign } from 'lucide-react'
+import { Calendar, Clock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export type Reservation = {
@@ -121,7 +121,6 @@ const ReservationList: React.FC<ReservationListProps> = ({
                       </span>
                     </div>
                     <div className="flex items-center text-xs sm:text-sm text-gray-700">
-                      <DollarSign size={14} className="mr-2 flex-shrink-0" />
                       <span className="font-medium">
                         {formatCurrency(reservation.total_price)}
                       </span>

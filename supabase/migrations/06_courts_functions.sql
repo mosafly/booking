@@ -15,6 +15,10 @@ $$;
 GRANT EXECUTE ON FUNCTION public.get_all_courts() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_all_courts() TO anon;
 
+-- Ensure anon role has explicit grants on the courts table
+GRANT USAGE ON SCHEMA public TO anon;
+GRANT SELECT ON TABLE public.courts TO anon;
+
 COMMENT ON FUNCTION public.get_all_courts() IS 'Fetches all courts, bypassing RLS for public viewing.';
 
 -- Create a function to ensure user profiles exist and are properly created

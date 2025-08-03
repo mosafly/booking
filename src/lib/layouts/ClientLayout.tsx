@@ -4,7 +4,6 @@ import { Brackets as Racket, Calendar, LogOut } from 'lucide-react'
 import { useAuth } from '@/lib/contexts/Auth'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
-import { LanguageSwitcher } from '@/components/dashboard/language-switcher'
 import { Spinner } from '@/components/dashboard/spinner'
 
 const ClientLayout: React.FC = () => {
@@ -116,7 +115,6 @@ const ClientLayout: React.FC = () => {
           <p className="text-sm text-gray-500">
             &copy; {new Date().getFullYear()} {t('footer.copyright')}
           </p>
-          <LanguageSwitcher />
         </div>
       </footer>
     </div>

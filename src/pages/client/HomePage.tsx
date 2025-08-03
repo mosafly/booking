@@ -16,52 +16,80 @@ const HomePage: React.FC = () => {
 
   const fetchCourts = useCallback(async () => {
     try {
-      console.log('Fetching courts using RPC...')
+      console.log('🔍 Starting court fetch process...')
+      console.log('Supabase client:', supabase ? 'Available' : 'Not available')
       setIsLoading(true)
       setError(null)
 
+      // Check current session status
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      console.log(
+        'Current session status:',
+        session ? 'Authenticated' : 'Anonymous',
+      )
+
       // Fetch courts using the new RPC function for reliable access
+      console.log('🔄 Attempting RPC call: get_all_courts...')
       const { data, error } = await supabase.rpc('get_all_courts')
 
       if (error) {
-        console.error('Supabase RPC error fetching courts:', error)
+        console.error('❌ Supabase RPC error fetching courts:', error)
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        })
 
         // If RPC fails, try direct table access as fallback
-        console.log('RPC failed, trying direct table access...')
+        console.log('🔄 RPC failed, trying direct table access...')
         const { data: fallbackData, error: fallbackError } = await supabase
           .from('courts')
           .select('*')
           .order('name')
 
         if (fallbackError) {
-          console.error('Fallback query also failed:', fallbackError)
+          console.error('❌ Fallback query also failed:', fallbackError)
+          console.error('Fallback error details:', {
+            message: fallbackError.message,
+            details: fallbackError.details,
+            hint: fallbackError.hint,
+            code: fallbackError.code,
+          })
           setError(t('homePage.errorLoadingGeneric'))
           toast.error(t('homePage.errorLoadingToast'))
         } else {
           console.log(
-            'Fallback successful, courts received:',
+            '✅ Fallback successful, courts received:',
             fallbackData?.length || 0,
           )
+          console.log('Fallback courts data:', fallbackData)
           setCourts(fallbackData || [])
 
           if (!fallbackData || fallbackData.length === 0) {
-            console.warn('No courts found in database')
+            console.warn('⚠️ No courts found in database')
             toast.error(t('homePage.noCourtsAvailable'))
           }
         }
       } else {
-        console.log('RPC successful, courts received:', data?.length || 0)
-        console.log('Courts data:', data)
+        console.log('✅ RPC successful, courts received:', data?.length || 0)
+        console.log('RPC courts data:', data)
         setCourts(data || [])
 
         // If no courts found, show helpful message
         if (!data || data.length === 0) {
-          console.warn('No courts found in database')
+          console.warn(
+            '⚠️ No courts found in database - might need to run seed.sql',
+          )
           toast.error(t('homePage.noCourtsAvailable'))
         }
       }
     } catch (error) {
-      console.error('Exception while fetching courts:', error)
+      console.error('💥 Exception while fetching courts:', error)
+      console.error('Exception type:', typeof error)
+      console.error('Exception details:', error)
       setError(t('homePage.errorLoadingRefresh'))
     } finally {
       setIsLoading(false)
@@ -73,18 +101,69 @@ const HomePage: React.FC = () => {
   }
 
   useEffect(() => {
-    // Log session information for debugging
-    const logSessionInfo = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      console.log(
-        'Current session:',
-        session?.user ? 'User logged in' : 'No user',
-      )
+    // Test database connectivity for anonymous users
+    const testDatabaseConnectivity = async () => {
+      console.log('🧪 Testing database connectivity...')
+
+      try {
+        // Test 1: Basic Supabase connection
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        console.log(
+          '✅ Supabase auth connection:',
+          session ? 'Authenticated' : 'Anonymous',
+        )
+
+        // Test 2: Try a simple query to test basic connectivity
+        const { data: testData, error: testError } = await supabase
+          .from('courts')
+          .select('count(*)')
+          .limit(1)
+
+        if (testError) {
+          console.error('❌ Basic connectivity test failed:', testError)
+        } else {
+          console.log('✅ Basic database connectivity test passed:', testData)
+        }
+
+        // Test 3: Check if RPC function exists
+        try {
+          const { data: rpcTest, error: rpcError } =
+            await supabase.rpc('get_all_courts')
+          if (rpcError) {
+            console.error('❌ RPC function test failed:', rpcError)
+          } else {
+            console.log(
+              '✅ RPC function exists and accessible, got courts:',
+              rpcTest?.length || 0,
+            )
+          }
+        } catch (rpcException) {
+          console.error('❌ RPC function exception:', rpcException)
+        }
+
+        // Test 4: Test anonymous access function (if available)
+        try {
+          const { data: anonTest, error: anonError } = await supabase.rpc(
+            'test_anonymous_access',
+          )
+          if (anonError) {
+            console.error('❌ Anonymous access test failed:', anonError)
+          } else {
+            console.log('✅ Anonymous access test passed:', anonTest)
+          }
+        } catch {
+          console.log(
+            'ℹ️ Anonymous access test function not available (run migration 07)',
+          )
+        }
+      } catch (exception) {
+        console.error('💥 Database connectivity test exception:', exception)
+      }
     }
 
-    logSessionInfo()
+    testDatabaseConnectivity()
 
     // Charger les courts immédiatement
     fetchCourts()
