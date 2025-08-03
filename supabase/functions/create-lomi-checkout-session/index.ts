@@ -43,6 +43,7 @@ serve(async (req: Request) => {
       userEmail = null, // Customer's email, pre-fills lomi.checkout.
       userName = null, // Customer's name, pre-fills lomi.checkout.
       userPhone = null, // Customer's phone number, pre-fills lomi.checkout.
+      courtName = null, // Court name for display purposes
       successUrlPath = '/payment/success', // Relative path for success redirect (e.g., /payment/success).
       cancelUrlPath = '/payment/cancel', // Relative path for cancel redirect (e.g., /payment/cancel).
       allowedProviders = null, // Array of allowed payment providers (e.g., ["WAVE", "ORANGE_MONEY"]).
@@ -192,11 +193,8 @@ serve(async (req: Request) => {
     const finalMetadata = metadata || defaultMetadata
 
     // Generate default title and description if not provided
-    const finalTitle =
-      title || `Padel Reservation ${reservationId} (x${quantity})`
-    const finalDescription =
-      public_description ||
-      `Payment for ${quantity} padel court reservation(s) ${reservationId}`
+    const finalTitle = title || `Réservation ${courtName || 'terrain'}`
+    const finalDescription = public_description || `Paiement pour réservation de ${courtName || 'terrain'}`
 
     // Base payload sent to lomi.
     const baseLomiPayload = {
@@ -204,7 +202,8 @@ serve(async (req: Request) => {
       cancel_url: `${APP_BASE_URL}${cancelUrlPath}?reservation_id=${reservationId}&status=cancelled`,
       allowed_providers: allowedProviders || DEFAULT_ALLOWED_PROVIDERS,
       currency_code: currencyCode,
-      quantity: quantity,
+      // Only include quantity if it's more than 1 or explicitly allowed
+      ...(quantity > 1 || allowQuantity ? { quantity: quantity } : {}),
       customer_email: userEmail,
       customer_name: userName,
       customer_phone: userPhone,

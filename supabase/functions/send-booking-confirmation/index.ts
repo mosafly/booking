@@ -254,7 +254,7 @@ serve(async (req: Request) => {
     y -= 40
 
     const details = [
-      { label: 'Court:', value: bookingData.court_name },
+      { label: 'Terrain:', value: bookingData.court_name },
       {
         label: 'Date:',
         value: new Date(bookingData.start_time).toLocaleDateString('fr-FR', {
@@ -343,7 +343,66 @@ serve(async (req: Request) => {
     const pdfBytes = await pdfDoc.save()
 
     // --- 6. Send Email ---
-    const emailHtml = `...` // Same HTML as before
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Confirmation de réservation</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #2d5a27; margin-bottom: 10px;">PADEL SOCIETY CI</h1>
+            <h2 style="color: #333; font-size: 24px; margin: 0;">Confirmation de réservation</h2>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+            <h3 style="color: #2d5a27; border-bottom: 2px solid #2d5a27; padding-bottom: 10px;">Détails de votre réservation</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #333;">Terrain:</td>
+                    <td style="padding: 10px 0; color: #666;">${bookingData.court_name}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #333;">Date:</td>
+                    <td style="padding: 10px 0; color: #666;">${new Date(bookingData.start_time).toLocaleDateString('fr-FR', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #333;">Heure:</td>
+                    <td style="padding: 10px 0; color: #666;">${new Date(bookingData.start_time).toLocaleTimeString('fr-FR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #333;">Prix total:</td>
+                    <td style="padding: 10px 0; color: #666;">${bookingData.total_price} ${bookingData.currency || 'XOF'}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px;">
+            <h3 style="color: #2d5a27; margin-bottom: 15px;">QR Code de vérification</h3>
+            <p style="color: #666; margin-bottom: 15px;">Présentez ce QR code à l'accueil pour confirmer votre arrivée</p>
+            <div style="margin: 20px 0;">
+                <a href="${verificationUrl}" style="display: inline-block; background-color: #2d5a27; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">Voir les détails de réservation</a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; border-top: 1px solid #eee; padding-top: 20px; color: #999; font-size: 14px;">
+            <p>Merci de votre confiance !</p>
+            <p>Padel Society CI - Votre partenaire sport</p>
+        </div>
+    </div>
+</body>
+</html>
+    `
 
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: `Padel Palmeraie CI <${fromEmail}>`,

@@ -196,6 +196,7 @@ const ReservationPage: React.FC = () => {
               currencyCode: 'XOF',
               reservationId: reservation.id,
               courtId: court.id,
+              courtName: court.name,
               userEmail: userDetails.email,
               userName: userDetails.name,
               userPhone: userDetails.phone,
