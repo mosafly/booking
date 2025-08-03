@@ -125,11 +125,34 @@
     "gymEquipmentDescription": "Fitness equipment available for reservation",
     "noMatchingResults": "No results match your search criteria"
   },
+  "gymBookingPage": {
+    "title": "Gym Booking",
+    "subtitle": "Book your spot in group classes organized by our coaches",
+    "selectDate": "Select a date",
+    "availableClasses": "Available classes on",
+    "noClassesAvailable": "No classes available for this date",
+    "coach": "Coach",
+    "participants": "participants",
+    "mainGymRoom": "Main gym room",
+    "cancel": "Cancel",
+    "book": "Book",
+    "full": "Full",
+    "loginToBook": "Login to Book",
+    "pleaseLoginToBook": "Please log in to book a class",
+    "alreadyBooked": "You are already registered for this class",
+    "classFull": "This class is full",
+    "bookingSuccess": "Registration successful!",
+    "bookingError": "Error during registration",
+    "cancelSuccess": "Reservation cancelled",
+    "cancelError": "Error during cancellation",
+    "loadingError": "Error loading classes"
+  },
   "paymentSuccessPage": {
     "title": "Payment successful!",
     "message": "Your payment has been processed successfully. Your reservation status will be updated shortly.",
     "reservationIdLabel": "Reservation ID:",
-    "button": "View my reservations"
+    "button": "View my reservations",
+    "backToHome": "Back to home"
   },
   "paymentCancelPage": {
     "title": "Payment cancelled or failed",

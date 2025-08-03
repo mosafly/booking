@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle, Home, Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 const PaymentSuccessPage: React.FC = () => {
@@ -9,29 +9,40 @@ const PaymentSuccessPage: React.FC = () => {
   const reservationId = searchParams.get('reservation_id')
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-md shadow-md text-center">
-      <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-      <h1 className="text-2xl font-bold mb-2">
-        {t('paymentSuccessPage.title', 'Payment Successful!')}
+    <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-md shadow-lg text-center">
+      <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
+      <h1 className="text-3xl font-bold mb-4 text-gray-900">
+        {t('paymentSuccessPage.title')}
       </h1>
-      <p className="text-gray-600 mb-6">
-        {t(
-          'paymentSuccessPage.message',
-          'Your payment has been processed successfully. Your reservation status will be updated shortly.',
-        )}
+      <p className="text-gray-600 mb-6 leading-relaxed">
+        {t('paymentSuccessPage.message')}
       </p>
       {reservationId && (
-        <p className="text-sm text-gray-500 mb-6">
-          {t('paymentSuccessPage.reservationIdLabel', 'Reservation ID:')}{' '}
-          {reservationId}
-        </p>
+        <div className="bg-gray-50 p-4 rounded-md mb-6">
+          <p className="text-sm text-gray-500 mb-1">
+            {t('paymentSuccessPage.reservationIdLabel')}
+          </p>
+          <p className="font-mono text-lg font-semibold text-gray-800">
+            {reservationId}
+          </p>
+        </div>
       )}
-      <Link
-        to="/home/my-reservations"
-        className="inline-block py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition duration-300"
-      >
-        {t('paymentSuccessPage.button', 'View My Reservations')}
-      </Link>
+      <div className="space-y-3">
+        <Link
+          to="/home/my-reservations"
+          className="w-full inline-flex items-center justify-center py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+        >
+          <Eye className="w-5 h-5 mr-2" />
+          {t('paymentSuccessPage.button')}
+        </Link>
+        <Link
+          to="/home"
+          className="w-full inline-flex items-center justify-center py-3 px-6 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+        >
+          <Home className="w-5 h-5 mr-2" />
+          {t('paymentSuccessPage.backToHome')}
+        </Link>
+      </div>
     </div>
   )
 }

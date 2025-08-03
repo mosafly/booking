@@ -125,11 +125,34 @@
     "gymEquipmentDescription": "Équipements de fitness disponibles à la réservation",
     "noMatchingResults": "Aucun résultat ne correspond aux critères de recherche"
   },
+  "gymBookingPage": {
+    "title": "Réservation de la Salle de Sport",
+    "subtitle": "Réservez votre place dans les cours collectifs organisés par nos coachs",
+    "selectDate": "Sélectionner une date",
+    "availableClasses": "Cours disponibles le",
+    "noClassesAvailable": "Aucun cours disponible pour cette date",
+    "coach": "Coach",
+    "participants": "participants",
+    "mainGymRoom": "Salle de sport principale",
+    "cancel": "Annuler",
+    "book": "Réserver",
+    "full": "Complet",
+    "loginToBook": "Se connecter pour réserver",
+    "pleaseLoginToBook": "Veuillez vous connecter pour réserver un cours",
+    "alreadyBooked": "Vous êtes déjà inscrit à ce cours",
+    "classFull": "Ce cours est complet",
+    "bookingSuccess": "Inscription réussie!",
+    "bookingError": "Erreur lors de l'inscription",
+    "cancelSuccess": "Réservation annulée",
+    "cancelError": "Erreur lors de l'annulation",
+    "loadingError": "Erreur lors du chargement des cours"
+  },
   "paymentSuccessPage": {
     "title": "Paiement réussi !",
     "message": "Votre paiement a été traité avec succès. Le statut de votre réservation sera mis à jour sous peu.",
     "reservationIdLabel": "ID de réservation :",
-    "button": "Voir mes réservations"
+    "button": "Voir mes réservations",
+    "backToHome": "Retour à l'accueil"
   },
   "paymentCancelPage": {
     "title": "Le paiement a échoué",

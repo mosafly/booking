@@ -14,7 +14,6 @@ import ErrorBoundary from './components/booking/error-boundary'
 import { Spinner } from './components/dashboard/spinner'
 
 // Layouts
-import ClientLayout from './lib/layouts/ClientLayout'
 import AdminLayout from './lib/layouts/AdminLayout'
 import PublicLayout from './lib/layouts/PublicLayout'
 
@@ -120,20 +119,42 @@ function App() {
                   </PublicLayout>
                 }
               />
-
-              {/* Protected Client Routes */}
               <Route
                 path="/home/my-reservations"
                 element={
-                  <ProtectedRoute>
-                    <ClientLayout />
-                  </ProtectedRoute>
+                  <PublicLayout>
+                    <MyReservationsPage />
+                  </PublicLayout>
                 }
-              >
-                <Route index element={<MyReservationsPage />} />
-              </Route>
+              />
+
+              {/* Public Gym Booking Route */}
+              <Route
+                path="/gym"
+                element={
+                  <PublicLayout>
+                    <GymBookingPage />
+                  </PublicLayout>
+                }
+              />
 
               {/* Public Payment Routes */}
+              <Route
+                path="/payment/success"
+                element={
+                  <PublicLayout>
+                    <PaymentSuccessPage />
+                  </PublicLayout>
+                }
+              />
+              <Route
+                path="/payment/cancel"
+                element={
+                  <PublicLayout>
+                    <PaymentCancelPage />
+                  </PublicLayout>
+                }
+              />
               <Route
                 path="/home/payment/success"
                 element={
@@ -185,27 +206,6 @@ function App() {
                 element={
                   <ProtectedRoute requiredRole="coach">
                     <CoachDashboard />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Gym Booking Route */}
-              <Route path="/gym" element={<GymBookingPage />} />
-
-              {/* Payment Routes (for lomi. redirects) */}
-              <Route
-                path="/payment/success"
-                element={
-                  <ProtectedRoute>
-                    <PaymentSuccessPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/payment/cancel"
-                element={
-                  <ProtectedRoute>
-                    <PaymentCancelPage />
                   </ProtectedRoute>
                 }
               />

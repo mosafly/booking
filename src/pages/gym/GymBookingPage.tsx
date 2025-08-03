@@ -6,10 +6,12 @@ import { fr } from 'date-fns/locale'
 import toast from 'react-hot-toast'
 import { Calendar, Clock, Users, DollarSign, User, MapPin } from 'lucide-react'
 import { useAuth } from '@/lib/contexts/Auth'
+import { useTranslation } from 'react-i18next'
 
 export const GymBookingPage: React.FC = () => {
   const { user } = useAuth()
   const { supabase } = useSupabase()
+  const { t } = useTranslation()
   const [bookings, setBookings] = useState<GymBooking[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -38,11 +40,11 @@ export const GymBookingPage: React.FC = () => {
       setBookings(bookingsData || [])
     } catch (error) {
       console.error('Error loading bookings:', error)
-      toast.error('Erreur lors du chargement des cours')
+      toast.error(t('gymBookingPage.loadingError'))
     } finally {
       setLoading(false)
     }
-  }, [selectedDate, supabase])
+  }, [selectedDate, supabase, t])
 
   useEffect(() => {
     loadBookings()
@@ -50,7 +52,7 @@ export const GymBookingPage: React.FC = () => {
 
   const handleJoinClass = async (bookingId: string) => {
     if (!user) {
-      toast.error('Veuillez vous connecter pour réserver')
+      toast.error(t('gymBookingPage.pleaseLoginToBook'))
       return
     }
 
@@ -64,7 +66,7 @@ export const GymBookingPage: React.FC = () => {
         .single()
 
       if (existing) {
-        toast.error('Vous êtes déjà inscrit à ce cours')
+        toast.error(t('gymBookingPage.alreadyBooked'))
         return
       }
 
@@ -79,7 +81,7 @@ export const GymBookingPage: React.FC = () => {
         !booking ||
         booking.current_participants >= booking.max_participants
       ) {
-        toast.error('Ce cours est complet')
+        toast.error(t('gymBookingPage.classFull'))
         return
       }
 
@@ -103,11 +105,11 @@ export const GymBookingPage: React.FC = () => {
 
       if (updateError) throw updateError
 
-      toast.success('Inscription réussie!')
+      toast.success(t('gymBookingPage.bookingSuccess'))
       loadBookings()
     } catch (error) {
       console.error('Error joining class:', error)
-      toast.error("Erreur lors de l'inscription")
+      toast.error(t('gymBookingPage.bookingError'))
     }
   }
 
@@ -142,11 +144,11 @@ export const GymBookingPage: React.FC = () => {
 
       if (updateError) throw updateError
 
-      toast.success('Réservation annulée')
+      toast.success(t('gymBookingPage.cancelSuccess'))
       loadBookings()
     } catch (error) {
       console.error('Error leaving class:', error)
-      toast.error("Erreur lors de l'annulation")
+      toast.error(t('gymBookingPage.cancelError'))
     }
   }
 
@@ -196,17 +198,16 @@ export const GymBookingPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Réservation de la Salle de Sport
+            {t('gymBookingPage.title')}
           </h1>
           <p className="text-gray-600">
-            Réservez votre place dans les cours collectifs organisés par nos
-            coachs
+            {t('gymBookingPage.subtitle')}
           </p>
         </div>
 
         {/* Date Selector */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Sélectionner une date</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('gymBookingPage.selectDate')}</h2>
           <input
             type="date"
             value={format(selectedDate, 'yyyy-MM-dd')}
@@ -219,7 +220,7 @@ export const GymBookingPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
-              Cours disponibles le{' '}
+              {t('gymBookingPage.availableClasses')}{' '}
               {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
             </h2>
           </div>
@@ -229,7 +230,7 @@ export const GymBookingPage: React.FC = () => {
               <div className="px-6 py-12 text-center">
                 <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500">
-                  Aucun cours disponible pour cette date
+                  {t('gymBookingPage.noClassesAvailable')}
                 </p>
               </div>
             ) : (
@@ -247,15 +248,14 @@ export const GymBookingPage: React.FC = () => {
                             {booking.title}
                           </h3>
                           <span
-                            className={`px-2 py-1 text-xs font-medium rounded-md ${
-                              booking.class_type === 'fitness'
-                                ? 'bg-green-100 text-green-800'
-                                : booking.class_type === 'yoga'
-                                  ? 'bg-purple-100 text-purple-800'
-                                  : booking.class_type === 'danse'
-                                    ? 'bg-pink-100 text-pink-800'
-                                    : 'bg-blue-100 text-blue-800'
-                            }`}
+                            className={`px-2 py-1 text-xs font-medium rounded-md ${booking.class_type === 'fitness'
+                              ? 'bg-green-100 text-green-800'
+                              : booking.class_type === 'yoga'
+                                ? 'bg-purple-100 text-purple-800'
+                                : booking.class_type === 'danse'
+                                  ? 'bg-pink-100 text-pink-800'
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}
                           >
                             {booking.class_type}
                           </span>
@@ -283,7 +283,7 @@ export const GymBookingPage: React.FC = () => {
                           <div className="flex items-center">
                             <Users className="w-4 h-4 mr-1" />
                             {booking.current_participants}/
-                            {booking.max_participants}
+                            {booking.max_participants} {t('gymBookingPage.participants')}
                           </div>
                           <div className="flex items-center">
                             <DollarSign className="w-4 h-4 mr-1" />
@@ -293,29 +293,41 @@ export const GymBookingPage: React.FC = () => {
 
                         <div className="mt-3 flex items-center text-sm text-gray-500">
                           <MapPin className="w-4 h-4 mr-1" />
-                          Salle de sport principale
+                          {t('gymBookingPage.mainGymRoom')}
                         </div>
                       </div>
 
                       <div className="ml-4">
-                        {isBooked ? (
-                          <button
-                            onClick={() => handleLeaveClass(booking.id)}
-                            className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
-                          >
-                            Annuler
-                          </button>
+                        {user ? (
+                          isBooked ? (
+                            <button
+                              onClick={() => handleLeaveClass(booking.id)}
+                              className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
+                            >
+                              {t('gymBookingPage.cancel')}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleJoinClass(booking.id)}
+                              disabled={isFull}
+                              className={`px-4 py-2 text-sm rounded-md transition-colors ${isFull
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                            >
+                              {isFull ? t('gymBookingPage.full') : t('gymBookingPage.book')}
+                            </button>
+                          )
                         ) : (
                           <button
                             onClick={() => handleJoinClass(booking.id)}
                             disabled={isFull}
-                            className={`px-4 py-2 text-sm rounded-md transition-colors ${
-                              isFull
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                            }`}
+                            className={`px-4 py-2 text-sm rounded-md transition-colors ${isFull
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                              }`}
                           >
-                            {isFull ? 'Complet' : 'Réserver'}
+                            {isFull ? t('gymBookingPage.full') : t('gymBookingPage.loginToBook')}
                           </button>
                         )}
                       </div>
