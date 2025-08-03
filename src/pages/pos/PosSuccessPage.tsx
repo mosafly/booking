@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, ShoppingCart } from 'lucide-react';
-import { supabase } from '@/lib/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 
 type SaleItem = {
@@ -55,6 +55,7 @@ export default function PosSuccessPage() {
           id: data.id,
           total_cents: data.total_cents,
           created_at: data.created_at,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           sale_items: data.sale_items.map((item: any) => ({
             id: item.id,
             name: item.products.name,
