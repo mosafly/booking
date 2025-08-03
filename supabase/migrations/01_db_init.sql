@@ -143,11 +143,12 @@ SET search_path = public;
 CREATE OR REPLACE FUNCTION public.is_current_user_admin()
 RETURNS boolean
 LANGUAGE sql SECURITY DEFINER
+SET search_path = public
 AS $$
   SELECT EXISTS (
     SELECT 1
     FROM public.profiles
-    WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
+    WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin')
   );
 $$;
 

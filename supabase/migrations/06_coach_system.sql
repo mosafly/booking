@@ -83,7 +83,8 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+SET search_path = public;
 
 -- Create triggers for updated_at columns
 CREATE TRIGGER IF NOT EXISTS handle_coach_profiles_updated_at
@@ -109,10 +110,10 @@ CREATE POLICY "coach_profiles_select_all" ON public.coach_profiles
   FOR SELECT USING (true);
 
 CREATE POLICY "coach_profiles_insert_own" ON public.coach_profiles
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE POLICY "coach_profiles_update_own" ON public.coach_profiles
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING ((select auth.uid()) = user_id);
 
 -- Gym bookings policies
 CREATE POLICY "gym_bookings_select_all" ON public.gym_bookings
@@ -122,7 +123,7 @@ CREATE POLICY "gym_bookings_insert_coach_only" ON public.gym_bookings
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.coach_profiles 
-      WHERE coach_profiles.user_id = auth.uid()
+      WHERE coach_profiles.user_id = (select auth.uid())
     )
   );
 
@@ -130,7 +131,7 @@ CREATE POLICY "gym_bookings_update_own_coach" ON public.gym_bookings
   FOR UPDATE USING (
     coach_id = (
       SELECT id FROM public.coach_profiles 
-      WHERE coach_profiles.user_id = auth.uid()
+      WHERE coach_profiles.user_id = (select auth.uid())
     )
   );
 
@@ -138,7 +139,7 @@ CREATE POLICY "gym_bookings_delete_own_coach" ON public.gym_bookings
   FOR DELETE USING (
     coach_id = (
       SELECT id FROM public.coach_profiles 
-      WHERE coach_profiles.user_id = auth.uid()
+      WHERE coach_profiles.user_id = (select auth.uid())
     )
   );
 
@@ -147,10 +148,10 @@ CREATE POLICY "gym_booking_participants_select_all" ON public.gym_booking_partic
   FOR SELECT USING (true);
 
 CREATE POLICY "gym_booking_participants_insert_auth" ON public.gym_booking_participants
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE POLICY "gym_booking_participants_delete_own" ON public.gym_booking_participants
-  FOR DELETE USING (auth.uid() = user_id);
+  FOR DELETE USING ((select auth.uid()) = user_id);
 
 COMMENT ON TABLE public.coach_profiles IS 'Profiles for coaches offering various fitness and wellness services';
 COMMENT ON TABLE public.gym_bookings IS 'Bookings for gym classes, training sessions, and wellness activities';

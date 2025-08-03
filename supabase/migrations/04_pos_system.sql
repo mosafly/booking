@@ -60,6 +60,10 @@ CREATE TABLE IF NOT EXISTS public.sale_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create indexes for foreign keys in sale_items table
+CREATE INDEX IF NOT EXISTS sale_items_sale_id_idx ON public.sale_items(sale_id);
+CREATE INDEX IF NOT EXISTS sale_items_product_id_idx ON public.sale_items(product_id);
+
 -- Create functions for automatic timestamps
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -67,7 +71,8 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql
+SET search_path = public;
 
 -- Create triggers for automatic timestamp updates
 CREATE TRIGGER update_products_updated_at_trigger
@@ -88,7 +93,8 @@ BEGIN
     VALUES (NEW.id, 0, 0, 100);
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql
+SET search_path = public;
 
 -- Create trigger to automatically add product to inventory
 CREATE TRIGGER add_product_to_inventory_trigger
@@ -105,7 +111,8 @@ BEGIN
     WHERE product_id = NEW.product_id;
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql
+SET search_path = public;
 
 -- Create trigger to update inventory after sale
 CREATE TRIGGER update_inventory_after_sale_trigger
@@ -123,16 +130,84 @@ UPDATE public.products
 SET lomi_product_id = '' 
 WHERE lomi_product_id IS NULL;
 
--- Enable RLS for pricing settings
+-- Enable RLS for all POS tables
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sale_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pricing_settings ENABLE ROW LEVEL SECURITY;
 
--- RLS Policy - anyone can read, only super_admin can modify
+-- RLS Policies for products table
+CREATE POLICY "products_select_all" ON public.products
+  FOR SELECT USING (true);
+CREATE POLICY "products_insert_admin" ON public.products
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+CREATE POLICY "products_update_admin" ON public.products
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+CREATE POLICY "products_delete_admin" ON public.products
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+
+-- RLS Policies for inventory table
+CREATE POLICY "inventory_select_all" ON public.inventory
+  FOR SELECT USING (true);
+CREATE POLICY "inventory_insert_admin" ON public.inventory
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+CREATE POLICY "inventory_update_admin" ON public.inventory
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+CREATE POLICY "inventory_delete_admin" ON public.inventory
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+
+-- RLS Policies for sales table
+CREATE POLICY "sales_select_all" ON public.sales
+  FOR SELECT USING (true);
+CREATE POLICY "sales_insert_admin" ON public.sales
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+CREATE POLICY "sales_update_admin" ON public.sales
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+CREATE POLICY "sales_delete_admin" ON public.sales
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+
+-- RLS Policies for sale_items table
+CREATE POLICY "sale_items_select_all" ON public.sale_items
+  FOR SELECT USING (true);
+CREATE POLICY "sale_items_insert_admin" ON public.sale_items
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+CREATE POLICY "sale_items_update_admin" ON public.sale_items
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+CREATE POLICY "sale_items_delete_admin" ON public.sale_items
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin'))
+  );
+
+-- RLS Policy for pricing settings - anyone can read, only super_admin can modify
 CREATE POLICY "Anyone can read pricing settings" ON public.pricing_settings
   FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Super admin can modify pricing settings" ON public.pricing_settings
   FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'super_admin')
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = (select auth.uid()) AND role = 'super_admin')
   );
 
 -- ####################################################################
