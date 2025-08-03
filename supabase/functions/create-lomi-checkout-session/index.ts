@@ -43,7 +43,7 @@ serve(async (req: Request) => {
       userEmail = null, // Customer's email, pre-fills lomi.checkout.
       userName = null, // Customer's name, pre-fills lomi.checkout.
       userPhone = null, // Customer's phone number, pre-fills lomi.checkout.
-      courtName = null, // Court name for display purposes
+      gymBookingId = null, // Gym booking ID for fitness classes
       successUrlPath = '/payment/success', // Relative path for success redirect (e.g., /payment/success).
       cancelUrlPath = '/payment/cancel', // Relative path for cancel redirect (e.g., /payment/cancel).
       allowedProviders = null, // Array of allowed payment providers (e.g., ["WAVE", "ORANGE_MONEY"]).
@@ -183,18 +183,41 @@ serve(async (req: Request) => {
     console.log('Product ID being used:', finalProductId)
     console.log('Using dynamic pricing:', useDynamic)
 
+    // --- Fetch Booking Details for Smart Titles ---
+    let bookingDetails = { title: 'terrain', description_prefix: 'terrain' }
+    try {
+      const { data: detailsData, error: detailsError } = await supabase.rpc(
+        'get_booking_details_for_payment',
+        {
+          p_reservation_id: reservationId,
+          p_court_id: courtId,
+          p_gym_booking_id: gymBookingId,
+        },
+      )
+
+      if (detailsError) {
+        console.warn('Failed to fetch booking details:', detailsError)
+      } else if (detailsData && detailsData.length > 0) {
+        bookingDetails = detailsData[0]
+        console.log('Booking details fetched:', bookingDetails)
+      }
+    } catch (error) {
+      console.warn('Error fetching booking details:', error)
+    }
+
     // Generate default metadata if not provided
     const defaultMetadata = {
       reservation_id: reservationId,
       source: 'padel_app',
       is_product_based: String(isProductBased),
       court_id: courtId || 'unknown',
+      gym_booking_id: gymBookingId || 'none',
     }
     const finalMetadata = metadata || defaultMetadata
 
     // Generate default title and description if not provided
-    const finalTitle = title || `Réservation ${courtName || 'terrain'}`
-    const finalDescription = public_description || `Paiement pour réservation de ${courtName || 'terrain'}`
+    const finalTitle = title || `Réservation ${bookingDetails.title}`
+    const finalDescription = public_description || `Paiement pour une réservation de ${bookingDetails.description_prefix}`
 
     // Base payload sent to lomi.
     const baseLomiPayload = {

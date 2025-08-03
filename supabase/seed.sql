@@ -12,24 +12,6 @@ VALUES
   ('f2e7b7e8-3e4a-4a8a-92e1-7e8c9d0b2a7b', 'Padel Court B', 'Training court for beginners', 6000, 'https://images.pexels.com/photos/209977/pexels-photo-209977.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', '');
 
 -- ==================================================================
--- POS PRODUCTS SEED DATA
--- ==================================================================
--- NOTE: Products table disabled - POS system migration commented out
--- Uncomment the lines below when POS system is re-enabled
--- INSERT INTO public.products (name, description, price_cents, category, is_active, lomi_product_id)
--- VALUES
---   ('Padel Racket Pro', 'Professional padel racket for advanced players', 25000, 'Equipment', true, ''),
---   ('Padel Balls (Pack of 3)', 'Official padel balls pack', 1500, 'Equipment', true, ''),
---   ('Sports Drink', 'Isotonic sports drink 500ml', 800, 'Beverages', true, ''),
---   ('Energy Bar', 'Protein energy bar', 600, 'Food', true, ''),
---   ('Water Bottle', 'Reusable sports water bottle', 1200, 'Accessories', true, ''),
---   ('Padel Bag', 'Professional padel equipment bag', 8000, 'Equipment', true, ''),
---   ('Grip Tape', 'Anti-slip grip tape for rackets', 500, 'Accessories', true, ''),
---   ('Sports Towel', 'Microfiber sports towel', 2000, 'Accessories', true, ''),
---   ('Sweatband Set', 'Wristband and headband set', 1000, 'Accessories', true, ''),
---   ('Court Shoes', 'Professional padel court shoes', 15000, 'Equipment', true, '');
-
--- ==================================================================
 -- SAMPLE COACH PROFILES SEED DATA
 -- ==================================================================
 -- Note: These will be linked to actual users after user registration

@@ -170,3 +170,78 @@ CREATE POLICY "gym_booking_participants_delete_own" ON public.gym_booking_partic
 COMMENT ON TABLE public.coach_profiles IS 'Profiles for coaches offering various fitness and wellness services';
 COMMENT ON TABLE public.gym_bookings IS 'Bookings for gym classes, training sessions, and wellness activities';
 COMMENT ON TABLE public.gym_booking_participants IS 'Participants enrolled in gym bookings';
+
+-- Function to get booking details for smart payment titles
+CREATE OR REPLACE FUNCTION public.get_booking_details_for_payment(
+    p_reservation_id UUID DEFAULT NULL,
+    p_court_id UUID DEFAULT NULL,
+    p_gym_booking_id UUID DEFAULT NULL
+)
+RETURNS TABLE (
+    booking_type TEXT,
+    title TEXT,
+    description_prefix TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    -- Check if it's a court reservation (padel/tennis/etc)
+    IF p_court_id IS NOT NULL OR p_reservation_id IS NOT NULL THEN
+        RETURN QUERY
+        SELECT
+            'court'::TEXT as booking_type,
+            c.name as title,
+            'terrain'::TEXT as description_prefix
+        FROM public.reservations r
+        JOIN public.courts c ON r.court_id = c.id
+        WHERE r.id = p_reservation_id
+        LIMIT 1;
+        
+        IF FOUND THEN
+            RETURN;
+        END IF;
+    END IF;
+    
+    -- Check if it's a gym booking (fitness class)
+    IF p_gym_booking_id IS NOT NULL THEN
+        RETURN QUERY
+        SELECT
+            'gym'::TEXT as booking_type,
+            CASE gb.class_type
+                WHEN 'fitness' THEN 'Cours de Fitness'
+                WHEN 'yoga' THEN 'Séance de Yoga'
+                WHEN 'danse' THEN 'Cours de Danse'
+                WHEN 'cardio' THEN 'Séance Cardio'
+                WHEN 'musculation' THEN 'Séance Musculation'
+                WHEN 'crossfit' THEN 'Séance CrossFit'
+                ELSE 'Cours Sportif'
+            END as title,
+            CASE gb.class_type
+                WHEN 'fitness' THEN 'cours de fitness'
+                WHEN 'yoga' THEN 'séance de yoga'
+                WHEN 'danse' THEN 'cours de danse'
+                WHEN 'cardio' THEN 'séance cardio'
+                WHEN 'musculation' THEN 'séance musculation'
+                WHEN 'crossfit' THEN 'séance crossfit'
+                ELSE 'cours sportif'
+            END as description_prefix
+        FROM public.gym_bookings gb
+        WHERE gb.id = p_gym_booking_id
+        LIMIT 1;
+        
+        IF FOUND THEN
+            RETURN;
+        END IF;
+    END IF;
+    
+    -- Default fallback
+    RETURN QUERY SELECT 'court'::TEXT, 'terrain'::TEXT, 'terrain'::TEXT;
+END;
+$$;
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.get_booking_details_for_payment(UUID, UUID, UUID) TO service_role;
+
+COMMENT ON FUNCTION public.get_booking_details_for_payment IS 'Gets booking details for smart French payment titles - handles courts and gym bookings';
