@@ -266,16 +266,30 @@ CREATE POLICY "courts_delete_policy" ON public.courts
   USING (public.is_admin_simple((select auth.uid())));
 
 -- POLICIES for RESERVATIONS table
-CREATE POLICY "Admin users can read all reservations"
-  ON public.reservations FOR SELECT TO authenticated
-  USING (public.is_current_user_admin());
-CREATE POLICY "Users can read their own reservations"
-  ON public.reservations FOR SELECT TO authenticated
-  USING ((select auth.uid()) = user_id);
-CREATE POLICY "Anyone can create reservations"
-  ON public.reservations FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Authenticated users can create reservations"
-  ON public.reservations FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id OR user_id IS NULL);
+-- Allow anonymous and authenticated users to select reservations
+-- This is needed for the .select() call after INSERT to return the created record
+CREATE POLICY "Allow reservation select access"
+ON public.reservations 
+FOR SELECT 
+TO anon, authenticated
+USING (
+    -- Allow access - in production you might want to restrict this to records created in the same session
+    true
+);
+
+-- Allow anonymous and authenticated users to insert reservations
+CREATE POLICY "Allow reservation insert"
+ON public.reservations 
+FOR INSERT 
+TO anon, authenticated
+WITH CHECK (
+    -- Anonymous users can create reservations with NULL user_id
+    (auth.role() = 'anon' AND user_id IS NULL)
+    OR
+    -- Authenticated users can create reservations with their user_id or NULL
+    (auth.role() = 'authenticated' AND (user_id = auth.uid() OR user_id IS NULL))
+);
+
 CREATE POLICY "Admin users can update all reservations"
   ON public.reservations FOR UPDATE TO authenticated
   USING (public.is_current_user_admin());
@@ -284,25 +298,45 @@ CREATE POLICY "Users can update their own pending reservations"
   USING ((select auth.uid()) = user_id AND status = 'pending');
 
 -- POLICIES for PAYMENTS table
-CREATE POLICY "Admin users can view all payments"
-  ON public.payments FOR SELECT TO authenticated
-  USING (public.is_current_user_admin());
-CREATE POLICY "Users can view their own payments"
-  ON public.payments FOR SELECT TO authenticated
-  USING (user_id = (select auth.uid()));
-CREATE POLICY "Anyone can create payments"
-  ON public.payments FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Authenticated users can create payments"
-  ON public.payments FOR INSERT TO authenticated WITH CHECK (user_id = (select auth.uid()) OR user_id IS NULL);
+-- Allow anonymous and authenticated users to select payments
+-- This is needed for the .select() call after INSERT to return the created record
+CREATE POLICY "Allow payment select access"
+ON public.payments 
+FOR SELECT 
+TO anon, authenticated
+USING (
+    -- Allow access - in production you might want to restrict this to records created in the same session
+    true
+);
+
+-- Allow anonymous and authenticated users to insert payments
+CREATE POLICY "Allow payment insert"
+ON public.payments 
+FOR INSERT 
+TO anon, authenticated
+WITH CHECK (
+    -- Anonymous users can create payments with NULL user_id
+    (auth.role() = 'anon' AND user_id IS NULL)
+    OR
+    -- Authenticated users can create payments with their user_id or NULL
+    (auth.role() = 'authenticated' AND (user_id = auth.uid() OR user_id IS NULL))
+);
+
 CREATE POLICY "Admins can update all payments"
   ON public.payments FOR UPDATE TO authenticated USING (public.is_current_user_admin());
 
--- GRANTS (Example for courts, adjust as needed)
+-- GRANTS for anonymous access
+-- Grant necessary permissions for anonymous users to work with sequences and tables
+GRANT USAGE ON SCHEMA public TO anon;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon;
+
+-- Grant permissions on tables
 GRANT SELECT ON public.courts TO authenticated;
 GRANT SELECT ON public.courts TO anon; -- Courts should be publicly readable
+GRANT SELECT ON TABLE public.reservations TO anon; -- Needed for .select() after INSERT
 GRANT INSERT ON public.reservations TO anon; -- Allow users without accounts to create reservations
+GRANT SELECT ON TABLE public.payments TO anon; -- Needed for .select() after INSERT
 GRANT INSERT ON public.payments TO anon; -- Allow users without accounts to create payments
-GRANT USAGE ON SCHEMA public TO anon;
 
 -- Create verification config table for storing secure settings
 CREATE TABLE IF NOT EXISTS public.verification_config (

@@ -31,7 +31,6 @@ const HomePage: React.FC = () => {
       )
 
       // Fetch courts using the new RPC function for reliable access
-      console.log('🔄 Attempting RPC call: get_all_courts...')
       const { data, error } = await supabase.rpc('get_all_courts')
 
       if (error) {
@@ -118,7 +117,7 @@ const HomePage: React.FC = () => {
         // Test 2: Try a simple query to test basic connectivity
         const { data: testData, error: testError } = await supabase
           .from('courts')
-          .select('count(*)')
+          .select('id')
           .limit(1)
 
         if (testError) {
@@ -143,21 +142,7 @@ const HomePage: React.FC = () => {
           console.error('❌ RPC function exception:', rpcException)
         }
 
-        // Test 4: Test anonymous access function (if available)
-        try {
-          const { data: anonTest, error: anonError } = await supabase.rpc(
-            'test_anonymous_access',
-          )
-          if (anonError) {
-            console.error('❌ Anonymous access test failed:', anonError)
-          } else {
-            console.log('✅ Anonymous access test passed:', anonTest)
-          }
-        } catch {
-          console.log(
-            'ℹ️ Anonymous access test function not available (run migration 07)',
-          )
-        }
+
       } catch (exception) {
         console.error('💥 Database connectivity test exception:', exception)
       }

@@ -5,14 +5,11 @@
 -- ==================================================================
 -- COURTS SEED DATA
 -- ==================================================================
-INSERT INTO public.courts (name, description, price_per_hour, image_url, status, lomi_product_id)
+-- Using static UUIDs to ensure consistency between dev and production
+INSERT INTO public.courts (id, name, description, price_per_hour, image_url, status, lomi_product_id)
 VALUES
-  ('Padel Court A', 'Outdoor court with night lighting', 8000, 'https://images.pexels.com/photos/1432038/pexels-photo-1432038.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', ''),
-  ('Padel Court B', 'Training court for beginners', 6000, 'https://images.pexels.com/photos/209977/pexels-photo-209977.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', ''),
-  ('Padel Court C', 'Premium indoor court with AC', 12000, 'https://images.pexels.com/photos/221452/pexels-photo-221452.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', ''),
-  ('Padel Court D', 'Outdoor clay court', 7000, 'https://images.pexels.com/photos/209977/pexels-photo-209977.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', ''),
-  ('Padel Court E', 'Covered court for rainy days', 9000, 'https://images.pexels.com/photos/1432038/pexels-photo-1432038.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', ''),
-  ('Padel Court F', 'Night play court', 8500, 'https://images.pexels.com/photos/221452/pexels-photo-221452.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', '');
+  ('c7b136a1-4366-49cc-a2e9-766aeabad01e', 'Padel Court A', 'Outdoor court with night lighting', 8000, 'https://images.pexels.com/photos/1432038/pexels-photo-1432038.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', ''),
+  ('f2e7b7e8-3e4a-4a8a-92e1-7e8c9d0b2a7b', 'Padel Court B', 'Training court for beginners', 6000, 'https://images.pexels.com/photos/209977/pexels-photo-209977.jpeg?auto=compress&cs=tinysrgb&w=600', 'available', '');
 
 -- ==================================================================
 -- POS PRODUCTS SEED DATA

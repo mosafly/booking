@@ -122,3 +122,7 @@ ON public.courts
 FOR SELECT
 TO anon, authenticated
 USING (true);
+
+-- Grant execution permissions for the get_all_courts function to all users
+GRANT EXECUTE ON FUNCTION public.get_all_courts() TO anon;
+GRANT EXECUTE ON FUNCTION public.get_all_courts() TO authenticated;
