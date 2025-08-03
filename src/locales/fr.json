@@ -101,6 +101,7 @@
     "errorLoadingGeneric": "Échec du chargement des terrains. Veuillez vérifier la connexion ou réessayer plus tard.",
     "errorLoadingToast": "Échec du chargement des terrains",
     "errorLoadingRefresh": "Échec du chargement des terrains. Veuillez essayer de rafraîchir la page.",
+    "errorPermission": "Permission refusée. Veuillez vérifier le statut de votre compte.",
     "title": "Trouvez votre terrain",
     "subtitle": "Réservez facilement votre terrain de padel préféré",
     "searchPlaceholder": "Rechercher des terrains...",

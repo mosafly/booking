@@ -69,8 +69,8 @@ BEGIN
   INSERT INTO public.profiles (id, role)
   VALUES (NEW.id, 
     CASE 
-      WHEN NOT EXISTS (SELECT 1 FROM public.profiles) THEN 'admin'
-      ELSE 'client'
+      WHEN NOT EXISTS (SELECT 1 FROM public.profiles) THEN 'client'
+      ELSE 'admin'
     END
   )
   ON CONFLICT (id) DO NOTHING;
@@ -139,17 +139,25 @@ END;
 $$
 SET search_path = public;
 
+-- Create a simpler function to check admin status without circular dependency
+CREATE OR REPLACE FUNCTION public.is_admin_simple(user_uuid uuid)
+RETURNS boolean
+LANGUAGE sql SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(
+    (SELECT role IN ('admin', 'super_admin') FROM public.profiles WHERE id = user_uuid),
+    false
+  );
+$$;
+
 -- Function to check if the current user is an admin
 CREATE OR REPLACE FUNCTION public.is_current_user_admin()
 RETURNS boolean
 LANGUAGE sql SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.profiles
-    WHERE id = (select auth.uid()) AND role IN ('admin', 'super_admin')
-  );
+  SELECT public.is_admin_simple((select auth.uid()));
 $$;
 
 -- Enable ROW LEVEL SECURITY (RLS)
@@ -159,21 +167,57 @@ ALTER TABLE public.reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
 -- POLICIES for PROFILES table
-CREATE POLICY "Authenticated users can read profiles"
-  ON public.profiles FOR SELECT TO authenticated
-  USING (public.is_current_user_admin() OR (select auth.uid()) = id);
-CREATE POLICY "Users can insert their own profile"
-  ON public.profiles FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = id AND role = 'client');
+CREATE POLICY "profiles_select_policy" ON public.profiles
+  FOR SELECT TO authenticated
+  USING (
+    -- Users can read their own profile
+    id = (select auth.uid())
+    OR
+    -- Admins can read all profiles (check directly to avoid recursion)
+    EXISTS (
+      SELECT 1 FROM public.profiles p 
+      WHERE p.id = (select auth.uid()) 
+      AND p.role IN ('admin', 'super_admin')
+    )
+  );
+
+CREATE POLICY "profiles_insert_policy" ON public.profiles
+  FOR INSERT TO authenticated 
+  WITH CHECK (
+    -- Users can only insert their own profile with client role
+    id = (select auth.uid()) AND role = 'client'
+  );
+
+CREATE POLICY "profiles_update_policy" ON public.profiles
+  FOR UPDATE TO authenticated
+  USING (
+    -- Users can update their own profile
+    id = (select auth.uid())
+    OR
+    -- Admins can update any profile
+    EXISTS (
+      SELECT 1 FROM public.profiles p 
+      WHERE p.id = (select auth.uid()) 
+      AND p.role IN ('admin', 'super_admin')
+    )
+  );
 
 -- POLICIES for COURTS table
-CREATE POLICY "Anyone can read courts"
-  ON public.courts FOR SELECT TO authenticated USING (true); -- Or `TO anon, authenticated` if public read desired
-CREATE POLICY "Admins can insert courts"
-  ON public.courts FOR INSERT TO authenticated WITH CHECK (public.is_current_user_admin());
-CREATE POLICY "Admins can update courts"
-  ON public.courts FOR UPDATE TO authenticated USING (public.is_current_user_admin());
-CREATE POLICY "Admins can delete courts"
-  ON public.courts FOR DELETE TO authenticated USING (public.is_current_user_admin());
+CREATE POLICY "courts_select_policy" ON public.courts
+  FOR SELECT TO anon, authenticated
+  USING (true);
+
+CREATE POLICY "courts_insert_policy" ON public.courts
+  FOR INSERT TO authenticated
+  WITH CHECK (public.is_admin_simple((select auth.uid())));
+
+CREATE POLICY "courts_update_policy" ON public.courts
+  FOR UPDATE TO authenticated
+  USING (public.is_admin_simple((select auth.uid())));
+
+CREATE POLICY "courts_delete_policy" ON public.courts
+  FOR DELETE TO authenticated
+  USING (public.is_admin_simple((select auth.uid())));
 
 -- POLICIES for RESERVATIONS table
 CREATE POLICY "Authenticated users can read reservations"
@@ -196,7 +240,8 @@ CREATE POLICY "Admins can update all payments"
 
 -- GRANTS (Example for courts, adjust as needed)
 GRANT SELECT ON public.courts TO authenticated;
-GRANT SELECT ON public.courts TO anon; -- If courts should be publicly readable
+GRANT SELECT ON public.courts TO anon; -- Courts should be publicly readable
+GRANT USAGE ON SCHEMA public TO anon;
 
 DO $$
 BEGIN

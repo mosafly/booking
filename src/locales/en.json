@@ -101,6 +101,7 @@
     "errorLoadingGeneric": "Failed to load courts. Please check connection or try again later.",
     "errorLoadingToast": "Failed to load courts",
     "errorLoadingRefresh": "Failed to load courts. Please try refreshing the page.",
+    "errorPermission": "Permission denied. Please check your account status.",
     "title": "Find your court",
     "subtitle": "Book your preferred padel court easily",
     "searchPlaceholder": "Search courts...",

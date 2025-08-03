@@ -20,7 +20,7 @@ const HomePage: React.FC = () => {
       setIsLoading(true)
       setError(null)
 
-      // Requête simple sans vérification d'authentification
+      // Try to fetch courts with better error handling
       const { data, error } = await supabase
         .from('courts')
         .select('*')
@@ -28,11 +28,22 @@ const HomePage: React.FC = () => {
 
       if (error) {
         console.error('Supabase error fetching courts:', error)
-        setError(t('homePage.errorLoadingGeneric'))
+        // More specific error handling
+        if (error.code === 'PGRST301') {
+          setError(t('homePage.errorPermission'))
+        } else {
+          setError(t('homePage.errorLoadingGeneric'))
+        }
         toast.error(t('homePage.errorLoadingToast'))
       } else {
         console.log('Courts data received:', data?.length || 0, 'courts')
         setCourts(data || [])
+
+        // If no courts found, show helpful message
+        if (!data || data.length === 0) {
+          console.warn('No courts found in database')
+          toast.error(t('homePage.noCourtsAvailable'))
+        }
       }
     } catch (error) {
       console.error('Exception while fetching courts:', error)
@@ -52,19 +63,7 @@ const HomePage: React.FC = () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
-      console.log('Current session:', session)
-
-      if (session?.user) {
-        const { data: userProfile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-
-        console.log('User role:', userProfile?.role)
-      } else {
-        console.log('No authenticated user')
-      }
+      console.log('Current session:', session?.user ? 'User logged in' : 'No user')
     }
 
     logSessionInfo()
@@ -149,10 +148,10 @@ const HomePage: React.FC = () => {
         >
           <p className="text-red-500 mb-4">{error}</p>
           {error &&
-          (error.includes('auth') ||
-            error.includes('credentials') ||
-            error.includes('session') ||
-            error.includes(t('homePage.errorLoadingGeneric'))) ? (
+            (error.includes('auth') ||
+              error.includes('credentials') ||
+              error.includes('session') ||
+              error.includes(t('homePage.errorLoadingGeneric'))) ? (
             <div>
               <p className="text-gray-600 mb-4">
                 {t('homePage.errorAuthMessage')}

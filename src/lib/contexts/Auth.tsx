@@ -33,12 +33,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return
     }
     const fetchRole = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      setUserRole(data?.role ?? null)
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        if (error) {
+          console.warn('Error fetching user role:', error)
+          // If profile doesn't exist or can't be fetched, try to create it
+          if (error.code === 'PGRST116' || error.code === 'PGRST301') {
+            console.log('Attempting to create user profile...')
+            const { error: insertError } = await supabase
+              .from('profiles')
+              .insert([{ id: user.id, role: 'client' }])
+
+            if (!insertError) {
+              setUserRole('client')
+            } else {
+              console.error('Failed to create profile:', insertError)
+              setUserRole('client') // Default to client role
+            }
+          } else {
+            setUserRole('client') // Default to client role on other errors
+          }
+        } else {
+          setUserRole(data?.role ?? 'client')
+        }
+      } catch (error) {
+        console.error('Exception while fetching role:', error)
+        setUserRole('client') // Default to client role
+      }
     }
     fetchRole()
   }, [user, supabase])
