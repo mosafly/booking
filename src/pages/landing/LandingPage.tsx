@@ -22,8 +22,8 @@ const LandingPage: React.FC = () => {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-3">
               {/* Logo */}
-              <img 
-                src="/images/logo/Logo-padel-palmeraie.png.png" 
+              <img
+                src="/icon.png"
                 alt="Padel Palmeraie Logo"
                 className="w-12 h-12 rounded-full object-cover"
                 onError={(e) => {
@@ -44,7 +44,7 @@ const LandingPage: React.FC = () => {
               <button onClick={() => scrollToSection('services')} className="text-gray-700 hover:text-lime-600 transition-colors font-medium">Services</button>
               <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-lime-600 transition-colors font-medium">Contact</button>
             </div>
-            <button 
+            <button
               onClick={handleGetStarted}
               className="bg-gradient-to-r from-lime-500 to-green-600 text-white px-8 py-3 rounded-full hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 font-semibold shadow-lg"
             >
@@ -57,8 +57,8 @@ const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <section id="hero" className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img 
-            src="/images/landing/hero-bg.jpg"
+          <img
+            src="/hero.jpg"
             alt="Padel Palmeraie - Terrain de padel moderne"
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -68,7 +68,7 @@ const LandingPage: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60"></div>
         </div>
-        
+
         <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
             Bienvenue au <br />
@@ -80,13 +80,13 @@ const LandingPage: React.FC = () => {
             Le club de padel premium de Riviera Faya. Découvrez le sport le plus passionnant dans un cadre exceptionnel à Abidjan.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <button 
+            <button
               onClick={handleGetStarted}
               className="bg-gradient-to-r from-lime-500 to-green-600 text-white px-10 py-4 rounded-full text-lg font-semibold hover:from-lime-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-xl"
             >
               Réservez votre terrain
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection('about')}
               className="border-2 border-white text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-white hover:text-gray-800 transition-all backdrop-blur-sm"
             >
@@ -171,7 +171,7 @@ const LandingPage: React.FC = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2">
-                <img 
+                <img
                   src={`/images/courts/court-${i}.jpg`}
                   alt={`Terrain ${i}`}
                   className="w-full h-48 object-cover"
@@ -307,7 +307,7 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={handleGetStarted}
                 className="w-full bg-white text-lime-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors text-lg shadow-lg"
               >
@@ -323,8 +323,8 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <img 
-                src="/images/logo/logo-padel-palmeraie.png" 
+              <img
+                src="/icon.png"
                 alt="Padel Palmeraie Logo"
                 className="w-10 h-10 rounded-full object-cover"
                 onError={(e) => {

@@ -51,3 +51,15 @@ export const centsToAmount = (cents: number): number => {
 export const amountToCents = (amount: number): number => {
   return Math.round(amount * 100);
 };
+
+/**
+ * Format amount in FCFA without currency symbol
+ * @param amount The amount to format
+ * @returns Formatted number string without symbol
+ */
+export const formatFCFAWithoutSymbol = (amount: number): string => {
+  return new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};

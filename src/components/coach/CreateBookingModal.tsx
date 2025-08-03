@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { CoachType } from '../../types/coach';
+import { CoachType, CreateGymBookingData } from '../../types/coach';
 
 interface CreateBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: CreateGymBookingData) => void;
   coachType: CoachType;
 }
 
@@ -36,13 +36,13 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const bookingData = {
       ...formData,
       start_time: new Date(formData.start_time).toISOString(),
       end_time: new Date(formData.end_time).toISOString(),
     };
-    
+
     onSave(bookingData);
   };
 

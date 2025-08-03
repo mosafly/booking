@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../lib/contexts/Auth';
-import { useSupabase } from '../../lib/contexts/Supabase';
-import { CoachProfile, GymBooking, CoachDashboardStats } from '../../types/coach';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/lib/contexts/Auth';
+import { useSupabase } from '@/lib/contexts/Supabase';
+import { CoachProfile, GymBooking, CoachDashboardStats, CreateGymBookingData, CreateCoachProfileData } from '@/types/coach';
 import { format, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { Calendar, Clock, Users, DollarSign, Plus, Edit, Trash2 } from 'lucide-react';
-import { CreateBookingModal } from '../../components/coach/CreateBookingModal';
-import { CoachProfileModal } from '../../components/coach/CoachProfileModal';
-import { GlobalSchedule } from '../../components/schedule/GlobalSchedule';
+import { CreateBookingModal } from '@/components/coach/CreateBookingModal';
+import { CoachProfileModal } from '@/components/coach/CoachProfileModal';
+import { GlobalSchedule } from '@/components/schedule/GlobalSchedule';
 
 export const CoachDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -25,16 +25,31 @@ export const CoachDashboard: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadCoachData();
-    }
-  }, [user]);
+  const loadBookings = useCallback(async (coachId: string) => {
+    try {
+      const { data: bookingsData, error } = await supabase
+        .from('gym_bookings')
+        .select(`
+          *,
+          coach:coach_profiles!coach_id(*)
+        `)
+        .eq('coach_id', coachId)
+        .order('start_time', { ascending: true });
 
-  const loadCoachData = async () => {
+      if (error) throw error;
+
+      setBookings(bookingsData || []);
+      calculateStats(bookingsData || []);
+    } catch (error) {
+      console.error('Error loading bookings:', error);
+      toast.error('Erreur lors du chargement des réservations');
+    }
+  }, [supabase]);
+
+  const loadCoachData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Load coach profile
       const { data: profileData, error: profileError } = await supabase
         .from('coach_profiles')
@@ -56,33 +71,18 @@ export const CoachDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, supabase, loadBookings]);
 
-  const loadBookings = async (coachId: string) => {
-    try {
-      const { data: bookingsData, error } = await supabase
-        .from('gym_bookings')
-        .select(`
-          *,
-          coach:coach_profiles!coach_id(*)
-        `)
-        .eq('coach_id', coachId)
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
-
-      setBookings(bookingsData || []);
-      calculateStats(bookingsData || []);
-    } catch (error) {
-      console.error('Error loading bookings:', error);
-      toast.error('Erreur lors du chargement des réservations');
+  useEffect(() => {
+    if (user) {
+      loadCoachData();
     }
-  };
+  }, [user, loadCoachData]);
 
   const calculateStats = (bookings: GymBooking[]) => {
     const now = new Date();
     const upcoming = bookings.filter(b => isAfter(new Date(b.start_time), now));
-    
+
     const stats: CoachDashboardStats = {
       total_classes: bookings.length,
       upcoming_classes: upcoming.length,
@@ -93,7 +93,7 @@ export const CoachDashboard: React.FC = () => {
     setStats(stats);
   };
 
-  const handleCreateBooking = async (bookingData: any) => {
+  const handleCreateBooking = async (bookingData: CreateGymBookingData) => {
     if (!coachProfile) return;
 
     try {
@@ -122,9 +122,10 @@ export const CoachDashboard: React.FC = () => {
       toast.success('Cours créé avec succès!');
       setShowCreateModal(false);
       loadBookings(coachProfile.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating booking:', error);
-      toast.error(`Erreur: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur: ${errorMessage}`);
     }
   };
 
@@ -138,14 +139,16 @@ export const CoachDashboard: React.FC = () => {
       if (error) throw error;
 
       toast.success('Cours supprimé');
-      coachProfile && loadBookings(coachProfile.id);
+      if (coachProfile) {
+        loadBookings(coachProfile.id);
+      }
     } catch (error) {
       console.error('Error deleting booking:', error);
       toast.error('Erreur lors de la suppression');
     }
   };
 
-  const handleCreateProfile = async (profileData: any) => {
+  const handleCreateProfile = async (profileData: CreateCoachProfileData) => {
     try {
       const { data, error } = await supabase
         .from('coach_profiles')
@@ -334,9 +337,9 @@ export const CoachDashboard: React.FC = () => {
 
         {/* Planning Global */}
         <div className="mt-8">
-          <GlobalSchedule 
-            viewMode="coach" 
-            coachId={coachProfile?.id} 
+          <GlobalSchedule
+            viewMode="coach"
+            coachId={coachProfile?.id}
           />
         </div>
 

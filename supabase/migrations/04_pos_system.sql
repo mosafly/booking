@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
     category VARCHAR(100),
     is_active BOOLEAN DEFAULT TRUE,
+    lomi_product_id TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -38,6 +39,14 @@ CREATE TABLE IF NOT EXISTS public.sales (
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Simple global toggle for dynamic pricing
+CREATE TABLE IF NOT EXISTS public.pricing_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  use_dynamic_pricing BOOLEAN DEFAULT FALSE,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  updated_by UUID REFERENCES auth.users(id)
 );
 
 -- Create sale_items table
@@ -103,6 +112,28 @@ CREATE TRIGGER update_inventory_after_sale_trigger
     AFTER INSERT ON public.sale_items
     FOR EACH ROW
     EXECUTE FUNCTION public.update_inventory_after_sale();
+
+-- Insert default pricing setting
+INSERT INTO public.pricing_settings (use_dynamic_pricing) 
+VALUES (FALSE) 
+ON CONFLICT DO NOTHING;
+
+-- Update existing products with default product IDs
+UPDATE public.products 
+SET lomi_product_id = '' 
+WHERE lomi_product_id IS NULL;
+
+-- Enable RLS for pricing settings
+ALTER TABLE public.pricing_settings ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy - anyone can read, only super_admin can modify
+CREATE POLICY "Anyone can read pricing settings" ON public.pricing_settings
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Super admin can modify pricing settings" ON public.pricing_settings
+  FOR ALL TO authenticated USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );
 
 -- ####################################################################
 -- ### DOWN MIGRATION (ROLLBACK)

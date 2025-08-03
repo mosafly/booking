@@ -5,14 +5,14 @@ import { useSupabase } from "@/lib/contexts/Supabase";
 import { useAuth } from "@/lib/contexts/Auth";
 import { Court } from "@/components/booking/court-card";
 import TimeSlotPicker from "@/components/booking/time-slot-picker";
-import { getEquipmentType, calculatePrice } from "@/lib/utils/reservation-rules";
+import { calculatePrice } from "@/lib/utils/reservation-rules";
 import { Calendar, Clock, DollarSign } from "lucide-react";
 import toast from "react-hot-toast";
 import PaymentMethodSelector from "@/components/booking/payment-method-selector";
 import { Spinner } from "@/components/dashboard/spinner";
 import { useTranslation } from "react-i18next";
 import { formatFCFA } from "@/lib/utils/currency";
-import { getCourtImage } from "@/lib/utils/court-images";
+// Updated imports for dual pricing system
 
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams();
@@ -77,10 +77,10 @@ const ReservationPage: React.FC = () => {
           for (let minutes = 0; minutes < 60; minutes += 30) {
             const startTime = new Date(selectedDate);
             startTime.setHours(hour, minutes, 0, 0);
-            
+
             const endTime = new Date(startTime);
             endTime.setHours(hour, minutes + 30, 0, 0);
-            
+
             allSlots.push({ startTime, endTime });
           }
         }
@@ -252,6 +252,7 @@ const ReservationPage: React.FC = () => {
             amount: totalPrice,
             currencyCode: "XOF", // Send currency code
             reservationId: reservationId,
+            courtId: court.id, // NEW: Pass court ID for product ID lookup
             userEmail: user.email,
             userName: user.user_metadata?.full_name || user.email, // Pass user details
             // Optionally pass specific success/cancel paths if needed
@@ -335,11 +336,11 @@ const ReservationPage: React.FC = () => {
         <div className="md:flex">
           <div className="md:w-1/3">
             <img
-              src={court.image_url || getCourtImage(court.id, court.name)}
+              src={court.image_url || "https://images.pexels.com/photos/2277807/pexels-photo-2277807.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"}
               alt={court.name}
               className="w-full h-64 md:h-full object-cover"
               onError={(e) => {
-                // Fallback to default image if local image fails to load
+                // Fallback to default image if court image fails to load
                 const target = e.target as HTMLImageElement;
                 target.src = "https://images.pexels.com/photos/2277807/pexels-photo-2277807.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
               }}

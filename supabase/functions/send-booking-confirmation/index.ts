@@ -96,7 +96,7 @@ serve(async (req: Request) => {
     const verificationId = crypto.randomUUID();
 
     // Store verification ID in database
-    const { data: storeResult, error: storeError } = await supabase.rpc(
+    const { error: storeError } = await supabase.rpc(
       "store_verification_id",
       {
         p_reservation_id: reservationIdFromRequest,

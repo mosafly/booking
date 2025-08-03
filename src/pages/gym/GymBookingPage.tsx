@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useSupabase } from '../../lib/contexts/Supabase';
-import { GymBooking } from '../../types/coach';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSupabase } from '@/lib/contexts/Supabase';
+import { GymBooking } from '@/types/coach';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { Calendar, Clock, Users, DollarSign, User, MapPin } from 'lucide-react';
-import { useAuth } from '../../lib/contexts/Auth';
+import { useAuth } from '@/lib/contexts/Auth';
 
 export const GymBookingPage: React.FC = () => {
   const { user } = useAuth();
@@ -14,14 +14,10 @@ export const GymBookingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  useEffect(() => {
-    loadBookings();
-  }, [selectedDate]);
-
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const startDate = startOfDay(selectedDate);
       const endDate = endOfDay(selectedDate);
 
@@ -44,7 +40,11 @@ export const GymBookingPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate, supabase]);
+
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
 
   const handleJoinClass = async (bookingId: string) => {
     if (!user) {
@@ -142,7 +142,7 @@ export const GymBookingPage: React.FC = () => {
     }
   };
 
-  const checkUserBooking = async (bookingId: string): Promise<boolean> => {
+  const checkUserBooking = useCallback(async (bookingId: string): Promise<boolean> => {
     if (!user) return false;
 
     const { data } = await supabase
@@ -153,7 +153,7 @@ export const GymBookingPage: React.FC = () => {
       .single();
 
     return !!data;
-  };
+  }, [user, supabase]);
 
   const [userBookings, setUserBookings] = useState<Set<string>>(new Set());
 
@@ -170,7 +170,7 @@ export const GymBookingPage: React.FC = () => {
       };
       loadUserBookings();
     }
-  }, [user, bookings]);
+  }, [user, bookings, checkUserBooking]);
 
   if (loading) {
     return (
@@ -230,16 +230,15 @@ export const GymBookingPage: React.FC = () => {
                           <h3 className="text-lg font-semibold text-gray-900 mr-3">
                             {booking.title}
                           </h3>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            booking.class_type === 'fitness' ? 'bg-green-100 text-green-800' :
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${booking.class_type === 'fitness' ? 'bg-green-100 text-green-800' :
                             booking.class_type === 'yoga' ? 'bg-purple-100 text-purple-800' :
-                            booking.class_type === 'danse' ? 'bg-pink-100 text-pink-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}>
+                              booking.class_type === 'danse' ? 'bg-pink-100 text-pink-800' :
+                                'bg-blue-100 text-blue-800'
+                            }`}>
                             {booking.class_type}
                           </span>
                         </div>
-                        
+
                         {booking.description && (
                           <p className="text-gray-600 mb-3">{booking.description}</p>
                         )}
@@ -281,11 +280,10 @@ export const GymBookingPage: React.FC = () => {
                           <button
                             onClick={() => handleJoinClass(booking.id)}
                             disabled={isFull}
-                            className={`px-4 py-2 text-sm rounded-md transition-colors ${
-                              isFull
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                            }`}
+                            className={`px-4 py-2 text-sm rounded-md transition-colors ${isFull
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                              }`}
                           >
                             {isFull ? 'Complet' : 'Réserver'}
                           </button>

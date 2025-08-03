@@ -5,7 +5,7 @@ CREATE TYPE public.reservation_status AS ENUM ('pending', 'confirmed', 'cancelle
 -- PROFILES table
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
-  role TEXT NOT NULL DEFAULT 'client' CHECK (role IN ('client', 'admin')),
+  role TEXT NOT NULL DEFAULT 'client' CHECK (role IN ('client', 'admin', 'super_admin')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.courts (
   price_per_hour NUMERIC NOT NULL CHECK (price_per_hour >= 0),
   image_url TEXT,
   status public.court_status DEFAULT 'available',
+  lomi_product_id TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -36,7 +37,8 @@ CREATE TABLE IF NOT EXISTS public.reservations (
 -- PAYMENTS table
 CREATE TABLE IF NOT EXISTS public.payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  reservation_id UUID NOT NULL REFERENCES public.reservations(id) ON DELETE CASCADE,
+  reservation_id UUID REFERENCES public.reservations(id) ON DELETE CASCADE,
+  sale_id UUID REFERENCES public.sales(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   amount DECIMAL(10, 2) NOT NULL,
   currency TEXT NOT NULL DEFAULT 'XOF',
@@ -52,6 +54,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
 
 -- INDEXES for PAYMENTS table
 CREATE INDEX IF NOT EXISTS payments_reservation_id_idx ON public.payments(reservation_id);
+CREATE INDEX IF NOT EXISTS payments_sale_id_idx ON public.payments(sale_id);
 CREATE INDEX IF NOT EXISTS payments_user_id_idx ON public.payments(user_id);
 CREATE INDEX IF NOT EXISTS payments_status_idx ON public.payments(status);
 
@@ -144,7 +147,7 @@ AS $$
   SELECT EXISTS (
     SELECT 1
     FROM public.profiles
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
   );
 $$;
 

@@ -57,7 +57,7 @@ const AdminLayout: React.FC = () => {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = () => {
       if (viewDropdownOpen) {
         setViewDropdownOpen(false);
       }
@@ -87,7 +87,7 @@ const AdminLayout: React.FC = () => {
   const handleViewChange = (view: ViewMode) => {
     setCurrentView(view);
     setViewDropdownOpen(false);
-    
+
     // Navigate to the appropriate route based on view
     switch (view) {
       case 'admin':
@@ -172,9 +172,9 @@ const AdminLayout: React.FC = () => {
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
             <div className="flex items-center">
-              <img 
-                src="/images/logo/Logo-padel-palmeraie.png.png" 
-                alt="Padel Palmeraie Logo" 
+              <img
+                src="/icon.png"
+                alt="Padel Palmeraie Logo"
                 className="h-8 w-auto"
               />
               <h1 className="ml-2 text-xl font-bold text-[var(--primary)]">
@@ -216,6 +216,14 @@ const AdminLayout: React.FC = () => {
               icon={<Package size={20} />}
               label="Produits"
             />
+            {/* Super Admin Only */}
+            {userRole === 'super_admin' && (
+              <NavItem
+                to="/admin/pricing"
+                icon={<Settings size={20} />}
+                label="Pricing Management"
+              />
+            )}
           </div>
 
           <div className="p-4 border-t border-gray-200">
@@ -272,33 +280,30 @@ const AdminLayout: React.FC = () => {
                     <span>Vue: {getViewLabel(currentView)}</span>
                     <ChevronDown size={16} className={`transform transition-transform ${viewDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
-                  
+
                   {viewDropdownOpen && (
                     <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                       <div className="py-1">
                         <button
                           onClick={() => handleViewChange('admin')}
-                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
-                            currentView === 'admin' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                          }`}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${currentView === 'admin' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                            }`}
                         >
                           <Settings size={16} />
                           <span>Administration</span>
                         </button>
                         <button
                           onClick={() => handleViewChange('coach')}
-                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
-                            currentView === 'coach' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                          }`}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${currentView === 'coach' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                            }`}
                         >
                           <Users size={16} />
                           <span>Coach</span>
                         </button>
                         <button
                           onClick={() => handleViewChange('client')}
-                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
-                            currentView === 'client' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                          }`}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${currentView === 'client' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                            }`}
                         >
                           <User size={16} />
                           <span>Client</span>
@@ -308,7 +313,7 @@ const AdminLayout: React.FC = () => {
                   )}
                 </div>
               )}
-              
+
               <span className="hidden sm:inline-block text-sm font-medium text-gray-700">
                 Welcome, {userRole === 'super_admin' ? 'Super Admin' : userRole === 'admin' ? 'Admin' : 'User'}
               </span>

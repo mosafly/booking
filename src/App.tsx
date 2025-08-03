@@ -29,6 +29,7 @@ import CourtsManagement from "./pages/admin/CourtsManagement";
 import ReservationsManagement from "./pages/admin/ReservationsManagement";
 import FinancialTracking from "./pages/admin/FinancialTracking";
 import ProductsManagement from "./pages/admin/ProductsManagement";
+import { PricingManagement } from "./components/admin/PricingManagement";
 import PosDashboard from "./pages/pos/PosDashboard";
 import PosSuccessPage from "./pages/pos/PosSuccessPage";
 import PosCancelPage from "./pages/pos/PosCancelPage";
@@ -144,6 +145,7 @@ function App() {
                 <Route path="reservations" element={<ReservationsManagement />} />
                 <Route path="financial" element={<FinancialTracking />} />
                 <Route path="products" element={<ProductsManagement />} />
+                <Route path="pricing" element={<PricingManagement />} />
                 <Route path="pos" element={<PosDashboard />} />
                 <Route path="pos/success" element={<PosSuccessPage />} />
                 <Route path="pos/cancel" element={<PosCancelPage />} />
@@ -161,6 +163,24 @@ function App() {
 
               {/* Gym Booking Route */}
               <Route path="/gym" element={<GymBookingPage />} />
+
+              {/* Payment Routes (for Lomi redirects) */}
+              <Route
+                path="/payment/success"
+                element={
+                  <ProtectedRoute>
+                    <PaymentSuccessPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/cancel"
+                element={
+                  <ProtectedRoute>
+                    <PaymentCancelPage />
+                  </ProtectedRoute>
+                }
+              />
 
               <Route
                 path="/pos/success"

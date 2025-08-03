@@ -76,8 +76,6 @@ const FinancialTracking: React.FC = () => {
         // Fetch monthly revenue data from reservations and POS sales
         const monthlyData = [];
         let runningTotal = 0;
-        let totalPosRevenue = 0;
-        let totalReservationRevenue = 0;
 
         for (let i = 0; i < monthsToFetch; i++) {
           const currentMonth = subMonths(today, i);
@@ -143,8 +141,6 @@ const FinancialTracking: React.FC = () => {
           // Only count the first month in total (current month)
           if (i === 0) {
             runningTotal = monthRevenue;
-            totalPosRevenue = posRevenue;
-            totalReservationRevenue = reservationRevenue;
             setRevenueByStatus({
               confirmed: confirmedRevenue,
               pending: pendingRevenue,
@@ -176,7 +172,7 @@ const FinancialTracking: React.FC = () => {
         courtData?.forEach((item) => {
           // Check if courts data exists and is not null
           const court = item.courts as unknown as { id: string; name: string } | null;
-          
+
           if (court && court.id && court.name) {
             const courtId = court.id;
             const courtName = court.name;

@@ -47,9 +47,9 @@ const ClientLayout: React.FC = () => {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <img 
-              src="/images/logo/Logo-padel-palmeraie.png.png" 
-              alt="Padel Palmeraie Logo" 
+            <img
+              src="/icon.png"
+              alt="Padel Palmeraie Logo"
               className="h-8 w-auto"
             />
             <h1 className="ml-2 text-xl font-bold text-[var(--primary)]">

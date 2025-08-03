@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '../../lib/contexts/Supabase';
 import { format, startOfWeek, endOfWeek, addDays, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -18,14 +18,35 @@ interface ScheduleItem {
   class_type?: string;
 }
 
+interface CourtReservation {
+  id: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  courts: Array<{ name: string }> | null;
+  profiles: Array<{ first_name: string; last_name: string }> | null;
+}
+
+interface GymBooking {
+  id: string;
+  title: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  max_participants: number;
+  price_cents: number;
+  class_type: string;
+  coach_profiles: Array<{ first_name: string; last_name: string }> | null;
+}
+
 interface GlobalScheduleProps {
   viewMode?: 'admin' | 'coach';
   coachId?: string;
 }
 
-export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({ 
-  viewMode = 'admin', 
-  coachId 
+export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
+  viewMode = 'admin',
+  coachId
 }) => {
   const { supabase } = useSupabase();
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
@@ -33,15 +54,11 @@ export const GlobalSchedule: React.FC<GlobalScheduleProps> = ({
   const [loading, setLoading] = useState(true);
   const [viewType, setViewType] = useState<'day' | 'week'>('week');
 
-  useEffect(() => {
-    loadSchedule();
-  }, [selectedDate, coachId]);
-
-  const loadSchedule = async () => {
+  const loadSchedule = useCallback(async () => {
     try {
       setLoading(true);
-      
-// Charger les réservations de terrains
+
+      // Charger les réservations de terrains
       const courtQuery = supabase
         .from('reservations')
         .select(`
@@ -85,27 +102,27 @@ courts:court_id(name),
       if (courtRes.error) throw courtRes.error;
       if (gymRes.error) throw gymRes.error;
 
-      const courtBookings: ScheduleItem[] = (courtRes.data || []).map(item => ({
+      const courtBookings: ScheduleItem[] = (courtRes.data as CourtReservation[] || []).map(item => ({
         id: item.id,
-        title: `Réservation ${(item.courts as any)?.[0]?.name || 'Terrain'}`,
+        title: `Réservation ${item.courts?.[0]?.name || 'Terrain'}`,
         start_time: item.start_time,
         end_time: item.end_time,
-        type: 'court',
-        court_name: (item.courts as any)?.[0]?.name,
-        coach_name: `${(item.profiles as any)?.[0]?.first_name || ''} ${(item.profiles as any)?.[0]?.last_name || ''}`.trim(),
-        status: item.status,
+        type: 'court' as const,
+        court_name: item.courts?.[0]?.name,
+        coach_name: `${item.profiles?.[0]?.first_name || ''} ${item.profiles?.[0]?.last_name || ''}`.trim(),
+        status: item.status as 'scheduled' | 'completed' | 'cancelled',
       }));
 
-      const gymBookings: ScheduleItem[] = (gymRes.data || []).map(item => ({
+      const gymBookings: ScheduleItem[] = (gymRes.data as GymBooking[] || []).map(item => ({
         id: item.id,
         title: item.title,
         start_time: item.start_time,
         end_time: item.end_time,
-        type: 'gym',
-        coach_name: `${(item.coach_profiles as any)?.[0]?.first_name || ''} ${(item.coach_profiles as any)?.[0]?.last_name || ''}`.trim(),
+        type: 'gym' as const,
+        coach_name: `${item.coach_profiles?.[0]?.first_name || ''} ${item.coach_profiles?.[0]?.last_name || ''}`.trim(),
         max_participants: item.max_participants,
         price: item.price_cents,
-        status: item.status,
+        status: item.status as 'scheduled' | 'completed' | 'cancelled',
         class_type: item.class_type,
       }));
 
@@ -115,7 +132,11 @@ courts:court_id(name),
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, selectedDate, coachId, viewMode]);
+
+  useEffect(() => {
+    loadSchedule();
+  }, [loadSchedule]);
 
   const getWeekDays = () => {
     const start = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -140,10 +161,10 @@ courts:court_id(name),
     return schedule.filter(item => {
       const itemStart = parseISO(item.start_time);
       const itemEnd = parseISO(item.end_time);
-      return isSameDay(itemStart, date) && 
-             ((itemStart >= slotStart && itemStart < slotEnd) ||
-              (itemEnd > slotStart && itemEnd <= slotEnd) ||
-              (itemStart <= slotStart && itemEnd >= slotEnd));
+      return isSameDay(itemStart, date) &&
+        ((itemStart >= slotStart && itemStart < slotEnd) ||
+          (itemEnd > slotStart && itemEnd <= slotEnd) ||
+          (itemStart <= slotStart && itemEnd >= slotEnd));
     });
   };
 
@@ -200,7 +221,7 @@ courts:court_id(name),
                 </div>
               ))}
             </div>
-            
+
             {getTimeSlots().map(time => (
               <div key={time} className="grid grid-cols-8 gap-px bg-gray-200">
                 <div className="bg-white p-2 text-sm font-medium">{time}</div>
@@ -234,10 +255,10 @@ courts:court_id(name),
       ) : (
         <div className="space-y-4">
           {getWeekDays().map(day => {
-            const dayItems = schedule.filter(item => 
+            const dayItems = schedule.filter(item =>
               isSameDay(parseISO(item.start_time), day)
             );
-            
+
             return (
               <div key={day.toISOString()} className="border rounded-lg p-4">
                 <h3 className="font-semibold text-lg mb-2">
@@ -253,7 +274,7 @@ courts:court_id(name),
                           <div>
                             <h4 className="font-semibold">{item.title}</h4>
                             <p className="text-sm text-gray-600">
-                              {format(parseISO(item.start_time), 'HH:mm', { locale: fr })} - 
+                              {format(parseISO(item.start_time), 'HH:mm', { locale: fr })} -
                               {format(parseISO(item.end_time), 'HH:mm', { locale: fr })}
                             </p>
                             {item.court_name && (

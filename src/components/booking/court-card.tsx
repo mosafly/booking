@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Tag } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 
-import { formatFCFA, formatFCFAWithoutSymbol } from "@/lib/utils/currency";
-import { getCourtImage } from "@/lib/utils/court-images";
-import { getEquipmentType } from "@/lib/utils/reservation-rules";
+import { formatFCFA, formatFCFAWithoutSymbol } from "../../lib/utils/currency";
+import { getCourtImage } from "../../lib/utils/court-images";
+import { getEquipmentType } from "../../lib/utils/reservation-rules";
 
 export type Court = {
   id: string;
@@ -67,10 +67,10 @@ const CourtCard: React.FC<CourtCardProps> = ({ court }) => {
           <div className="flex items-center text-sm text-gray-700">
             <Tag size={16} className="mr-1" />
             <span>
-{(() => {
+              {(() => {
                 const equipmentType = getEquipmentType(court);
-                if (equipmentType === 'gym_equipment') {
-                  // For gym equipment, show price per 30 minutes
+                if (equipmentType === 'tennis' || equipmentType === 'basketball' || equipmentType === 'football') {
+                  // For other sports equipment, show price per 30 minutes
                   const pricePerHalfHour = court.price_per_hour / 2;
                   return `${formatFCFAWithoutSymbol(pricePerHalfHour)} / 30min`;
                 } else {

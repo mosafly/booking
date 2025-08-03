@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -26,12 +26,24 @@ export default function PosDashboard() {
   const [showProductManagement, setShowProductManagement] = useState(false);
   const navigate = useNavigate();
 
-  // Vérifier l'authentification
-  useEffect(() => {
-    checkAuth();
+  const loadProducts = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       navigate('/login');
@@ -51,24 +63,12 @@ export default function PosDashboard() {
     }
 
     loadProducts();
-  };
+  }, [navigate, loadProducts]);
 
-  const loadProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (error) {
-      console.error('Error loading products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Vérifier l'authentification
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const addToCart = (product: Product) => {
     setCart(prevCart => {

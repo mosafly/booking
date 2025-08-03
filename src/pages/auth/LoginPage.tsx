@@ -24,7 +24,7 @@ const LoginPage: React.FC = () => {
 
       // Get user session and role after successful login
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session?.user) {
         // Fetch user role from profiles table
         const { data: profile } = await supabase
@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
           .select("role")
           .eq("id", session.user.id)
           .single();
-        
+
         // Redirect based on role
         const userRole = profile?.role;
         if (userRole === "super_admin") {
@@ -48,15 +48,16 @@ const LoginPage: React.FC = () => {
       } else {
         navigate("/home");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error:", error);
-      
+
       // Better error handling
-      if (error?.message?.includes("Invalid login credentials")) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes("Invalid login credentials")) {
         setError("Email ou mot de passe incorrect. Veuillez réessayer.");
-      } else if (error?.message?.includes("Email not confirmed")) {
+      } else if (errorMessage.includes("Email not confirmed")) {
         setError("Veuillez confirmer votre email avant de vous connecter.");
-      } else if (error?.message?.includes("Too many requests")) {
+      } else if (errorMessage.includes("Too many requests")) {
         setError("Trop de tentatives. Veuillez attendre avant de réessayer.");
       } else {
         setError("Erreur de connexion. Veuillez réessayer.");

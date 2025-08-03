@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/lib/contexts/Supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,18 +48,13 @@ export default function ProductsManagement() {
     max_stock: 100
   });
 
-  useEffect(() => {
-    loadProducts();
-    loadInventory();
-  }, []);
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .order('name');
-      
+
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
@@ -68,20 +63,25 @@ export default function ProductsManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const loadInventory = async () => {
+  const loadInventory = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('inventory')
         .select('*');
-      
+
       if (error) throw error;
       setInventory(data || []);
     } catch (error) {
       console.error('Error loading inventory:', error);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadProducts();
+    loadInventory();
+  }, [loadProducts, loadInventory]);
 
   const getStockForProduct = (productId: string) => {
     const item = inventory.find(inv => inv.product_id === productId);
@@ -90,7 +90,7 @@ export default function ProductsManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (editingProduct) {
         // Update existing product

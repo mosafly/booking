@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '../../lib/contexts/Supabase';
-import { useAuth } from '../../lib/contexts/Auth';
 import { GlobalSchedule } from '../../components/schedule/GlobalSchedule';
 import { Users, Calendar, DollarSign } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
-  const { user: _user } = useAuth();
   const { supabase } = useSupabase();
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -17,12 +15,12 @@ export const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadStats();
-  }, []);
+  }, [loadStats]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const [
         usersRes,
         reservationsRes,
@@ -48,7 +46,7 @@ export const AdminDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
   if (loading) {
     return (

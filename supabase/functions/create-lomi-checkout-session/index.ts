@@ -24,11 +24,13 @@ serve(async (req: Request) => {
       amount, // Base amount (e.g., 8000 for 8000 XOF) - used for direct amount checkout.
       currencyCode, // 3-letter ISO currency code (e.g., "XOF").
       reservationId, // Your internal reservation ID (UUID or string).
+      courtId, // Court ID to get product_id from (NEW)
+      useDynamicPricing = false, // Override to force dynamic pricing (NEW)
 
       // --- Optional Fields (with defaults or null if not provided) ---
       userEmail = null, // Customer's email, pre-fills lomi.checkout.
       userName = null, // Customer's name, pre-fills lomi.checkout.
-      userPhone = null, // Customer's phone number.
+      // userPhone = null, // Customer's phone number.
       successUrlPath = "/payment/success", // Relative path for success redirect (e.g., /payment/success).
       cancelUrlPath = "/payment/cancel", // Relative path for cancel redirect (e.g., /payment/cancel).
       allowedProviders = null, // Array of allowed payment providers (e.g., ["WAVE", "ORANGE_MONEY"]).
@@ -41,7 +43,7 @@ serve(async (req: Request) => {
       // See lomi. API docs: https://api.lomi.africa/v1/docs#tag/CheckoutSessions/operation/CheckoutSessionsController_create
       title = null, // Title displayed on lomi. checkout page - will be auto-generated if null.
       public_description = null, // Description on lomi. checkout page - will be auto-generated if null.
-      product_id = "b4f5cba6-2604-4407-a758-b504eba23d73", // Product ID (UUID) to associate with the payment - enables product-based checkout.
+      // product_id will be determined from court or dynamic pricing
       subscription_id = null, // Subscription ID (UUID) to associate.
       plan_id = null, // Plan ID (UUID) to associate.
       metadata = null, // Custom key-value pairs (values must be strings) - will be auto-generated if null.
@@ -73,11 +75,49 @@ serve(async (req: Request) => {
       );
     }
 
-    // Validate that either amount or product_id is provided
-    if (!amount && !product_id) {
-      console.error("Either amount or product_id must be provided");
+    // --- Determine Pricing Mode ---
+    let finalProductId = null;
+    const finalAmount = amount;
+    let useDynamic = useDynamicPricing;
+
+    // If courtId provided, check pricing settings and get product_id
+    if (courtId && !useDynamicPricing) {
+      try {
+        // Simple fetch to get court product_id and pricing settings
+        const courtResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/courts?id=eq.${courtId}&select=lomi_product_id`, {
+          headers: {
+            'apikey': Deno.env.get('SUPABASE_ANON_KEY') || '',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
+          },
+        });
+        
+        const settingsResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/pricing_settings?select=use_dynamic_pricing`, {
+          headers: {
+            'apikey': Deno.env.get('SUPABASE_ANON_KEY') || '',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
+          },
+        });
+
+        const courtData = await courtResponse.json();
+        const settingsData = await settingsResponse.json();
+
+        // Check global dynamic pricing setting
+        if (settingsData && settingsData[0]?.use_dynamic_pricing) {
+          useDynamic = true;
+        } else if (courtData && courtData[0]?.lomi_product_id) {
+          finalProductId = courtData[0].lomi_product_id;
+        }
+      } catch (error) {
+        console.warn("Failed to fetch pricing settings, falling back to amount-based:", error);
+        useDynamic = true;
+      }
+    }
+
+    // Final validation - ensure we have either amount or product_id
+    if (!finalAmount && !finalProductId) {
+      console.error("Either amount or product_id must be available");
       return new Response(
-        JSON.stringify({ error: "Either amount or product_id must be provided" }),
+        JSON.stringify({ error: "Either amount or product_id must be available" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 400,
@@ -123,15 +163,17 @@ serve(async (req: Request) => {
     // --- Prepare lomi. Payload ---
     
     // Determine if we're using product-based or amount-based checkout
-    const isProductBased = !!product_id;
+    const isProductBased = !!finalProductId && !useDynamic;
     console.log("Is product-based checkout:", isProductBased);
-    console.log("Product ID being used:", product_id);
+    console.log("Product ID being used:", finalProductId);
+    console.log("Using dynamic pricing:", useDynamic);
 
     // Generate default metadata if not provided
     const defaultMetadata = {
       reservation_id: reservationId,
       source: "padel_app",
       is_product_based: String(isProductBased),
+      court_id: courtId || "unknown",
     };
     const finalMetadata = metadata || defaultMetadata;
 
@@ -158,14 +200,14 @@ serve(async (req: Request) => {
     const payload: LomiPayload = isProductBased
       ? {
           ...baseLomiPayload,
-          product_id: product_id,
+          product_id: finalProductId,
           title: finalTitle,
           public_description: finalDescription,
         }
       : {
           ...baseLomiPayload,
-          // Amount-based checkout: Use unit price, let lomi. handle quantity multiplication
-          amount: amount,
+          // Amount-based checkout: Use the amount directly
+          amount: finalAmount,
           title: finalTitle,
           public_description: finalDescription,
         };

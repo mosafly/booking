@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { CoachType } from '../../types/coach';
+import { CoachType, CreateCoachProfileData, CoachProfile } from '../../types/coach';
 
 interface CoachProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
-  initialData?: any;
+  onSave: (data: CreateCoachProfileData) => void;
+  initialData?: Partial<CoachProfile>;
 }
 
 export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
