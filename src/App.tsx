@@ -1,59 +1,59 @@
-import React from "react";
+import React from 'react'
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-} from "react-router-dom";
-import { Toaster } from "react-hot-toast";
-import { SupabaseProvider } from "./lib/contexts/Supabase";
-import { AuthProvider, useAuth, UserRole } from "./lib/contexts/Auth";
-import { hasRoleAccess } from "./lib/utils/role-utils";
-import ErrorBoundary from "./components/booking/error-boundary";
-import { Spinner } from './components/dashboard/spinner';
+} from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import { SupabaseProvider } from './lib/contexts/Supabase'
+import { AuthProvider, useAuth, UserRole } from './lib/contexts/Auth'
+import { hasRoleAccess } from './lib/utils/role-utils'
+import ErrorBoundary from './components/booking/error-boundary'
+import { Spinner } from './components/dashboard/spinner'
 
 // Layouts
-import ClientLayout from "./lib/layouts/ClientLayout";
-import AdminLayout from "./lib/layouts/AdminLayout";
+import ClientLayout from './lib/layouts/ClientLayout'
+import AdminLayout from './lib/layouts/AdminLayout'
 
 // Client Pages
-import HomePage from "./pages/client/HomePage";
-import ReservationPage from "./pages/client/ReservationPage";
-import MyReservationsPage from "./pages/client/MyReservationsPage";
-import PaymentSuccessPage from "./pages/client/PaymentSuccessPage";
-import PaymentCancelPage from "./pages/client/PaymentCancelPage";
+import HomePage from './pages/client/HomePage'
+import ReservationPage from './pages/client/ReservationPage'
+import MyReservationsPage from './pages/client/MyReservationsPage'
+import PaymentSuccessPage from './pages/client/PaymentSuccessPage'
+import PaymentCancelPage from './pages/client/PaymentCancelPage'
 
 // Admin Pages
-import AdminDashboard from "./pages/admin/Dashboard";
-import CourtsManagement from "./pages/admin/CourtsManagement";
-import ReservationsManagement from "./pages/admin/ReservationsManagement";
-import FinancialTracking from "./pages/admin/FinancialTracking";
-import ProductsManagement from "./pages/admin/ProductsManagement";
-import { PricingManagement } from "./components/admin/PricingManagement";
-import PosDashboard from "./pages/pos/PosDashboard";
-import PosSuccessPage from "./pages/pos/PosSuccessPage";
-import PosCancelPage from "./pages/pos/PosCancelPage";
+import AdminDashboard from './pages/admin/Dashboard'
+import CourtsManagement from './pages/admin/CourtsManagement'
+import ReservationsManagement from './pages/admin/ReservationsManagement'
+import FinancialTracking from './pages/admin/FinancialTracking'
+import ProductsManagement from './pages/admin/ProductsManagement'
+import { PricingManagement } from './components/admin/PricingManagement'
+import PosDashboard from './pages/pos/PosDashboard'
+import PosSuccessPage from './pages/pos/PosSuccessPage'
+import PosCancelPage from './pages/pos/PosCancelPage'
 
 // Coach Pages
-import { CoachDashboard } from "./pages/coach/CoachDashboard";
+import { CoachDashboard } from './pages/coach/CoachDashboard'
 
 // Gym Booking Page
-import { GymBookingPage } from "./pages/gym/GymBookingPage";
+import { GymBookingPage } from './pages/gym/GymBookingPage'
 
 // Auth Pages
-import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-import LandingPage from "./pages/landing/LandingPage";
+import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
+import LandingPage from './pages/landing/LandingPage'
 
 // Protected Route Component
 const ProtectedRoute = ({
   children,
   requiredRole = null,
 }: {
-  children: React.ReactNode;
-  requiredRole?: UserRole;
+  children: React.ReactNode
+  requiredRole?: UserRole
 }) => {
-  const { user, userRole, isLoading } = useAuth();
+  const { user, userRole, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -62,11 +62,11 @@ const ProtectedRoute = ({
           <Spinner />
         </div>
       </div>
-    );
+    )
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />
   }
 
   if (requiredRole && !userRole) {
@@ -76,16 +76,16 @@ const ProtectedRoute = ({
           <Spinner />
         </div>
       </div>
-    );
+    )
   }
 
   // Check if user has required role access
   if (requiredRole && !hasRoleAccess(userRole, requiredRole)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace />
   }
 
-  return <>{children}</>;
-};
+  return <>{children}</>
+}
 
 function App() {
   return (
@@ -124,10 +124,7 @@ function App() {
                   path="payment/success"
                   element={<PaymentSuccessPage />}
                 />
-                <Route
-                  path="payment/cancel"
-                  element={<PaymentCancelPage />}
-                />
+                <Route path="payment/cancel" element={<PaymentCancelPage />} />
               </Route>
 
               {/* Admin Routes */}
@@ -139,10 +136,16 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route
+                  index
+                  element={<Navigate to="/admin/dashboard" replace />}
+                />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="courts" element={<CourtsManagement />} />
-                <Route path="reservations" element={<ReservationsManagement />} />
+                <Route
+                  path="reservations"
+                  element={<ReservationsManagement />}
+                />
                 <Route path="financial" element={<FinancialTracking />} />
                 <Route path="products" element={<ProductsManagement />} />
                 <Route path="pricing" element={<PricingManagement />} />
@@ -206,7 +209,7 @@ function App() {
         </AuthProvider>
       </SupabaseProvider>
     </ErrorBoundary>
-  );
+  )
 }
 
-export default App;
+export default App

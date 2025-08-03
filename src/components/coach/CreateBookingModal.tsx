@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
-import { CoachType, CreateGymBookingData } from '../../types/coach';
+import React, { useState } from 'react'
+import { X } from 'lucide-react'
+import { CoachType, CreateGymBookingData } from '../../types/coach'
 
 interface CreateBookingModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: CreateGymBookingData) => void;
-  coachType: CoachType;
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: CreateGymBookingData) => void
+  coachType: CoachType
 }
 
 export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
@@ -23,7 +23,7 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
     max_participants: 20,
     price_cents: 0,
     class_type: coachType as CoachType,
-  });
+  })
 
   const classTypes = [
     { value: 'fitness' as CoachType, label: 'Fitness' },
@@ -32,29 +32,27 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
     { value: 'cardio' as CoachType, label: 'Cardio' },
     { value: 'musculation' as CoachType, label: 'Musculation' },
     { value: 'crossfit' as CoachType, label: 'CrossFit' },
-  ];
+  ]
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     const bookingData = {
       ...formData,
       start_time: new Date(formData.start_time).toISOString(),
       end_time: new Date(formData.end_time).toISOString(),
-    };
+    }
 
-    onSave(bookingData);
-  };
+    onSave(bookingData)
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold">
-            Créer un nouveau cours
-          </h2>
+          <h2 className="text-xl font-semibold">Créer un nouveau cours</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
@@ -72,7 +70,9 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
               type="text"
               required
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Ex: Yoga matinal dynamique"
             />
@@ -84,7 +84,9 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Décrivez votre cours..."
@@ -100,7 +102,9 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
                 type="datetime-local"
                 required
                 value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, start_time: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -113,7 +117,9 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
                 type="datetime-local"
                 required
                 value={formData.end_time}
-                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, end_time: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -130,7 +136,12 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
                 min="1"
                 max="50"
                 value={formData.max_participants}
-                onChange={(e) => setFormData({ ...formData, max_participants: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    max_participants: parseInt(e.target.value),
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -145,7 +156,12 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
                 min="0"
                 step="0.01"
                 value={formData.price_cents / 100}
-                onChange={(e) => setFormData({ ...formData, price_cents: Math.round(parseFloat(e.target.value) * 100) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    price_cents: Math.round(parseFloat(e.target.value) * 100),
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -157,7 +173,12 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
             </label>
             <select
               value={formData.class_type}
-              onChange={(e) => setFormData({ ...formData, class_type: e.target.value as CoachType })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  class_type: e.target.value as CoachType,
+                })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
@@ -187,5 +208,5 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
         </form>
       </div>
     </div>
-  );
-};
+  )
+}

@@ -1,25 +1,26 @@
 /// <reference types="https://deno.land/x/deno/cli/tsc/dts/lib.deno.d.ts" />
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { corsHeaders } from '../_shared/cors.ts'
 
 // Environment variables (should be set in Supabase Function settings)
-const LOMI_API_KEY = Deno.env.get("LOMI_API_KEY");
-const LOMI_API_URL = Deno.env.get("LOMI_API_URL") || "https://api.lomi.africa/v1";
-const APP_BASE_URL = Deno.env.get("APP_BASE_URL") || "http://localhost:5173";
+const LOMI_API_KEY = Deno.env.get('LOMI_API_KEY')
+const LOMI_API_URL =
+  Deno.env.get('LOMI_API_URL') || 'https://api.lomi.africa/v1'
+const APP_BASE_URL = Deno.env.get('APP_BASE_URL') || 'http://localhost:5173'
 
 // Default allowed providers
-const DEFAULT_ALLOWED_PROVIDERS = ["WAVE"];
+const DEFAULT_ALLOWED_PROVIDERS = ['WAVE']
 
 serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     // --- Request Body Parameters ---
     // Destructure the expected JSON body from the request.
-    const { 
+    const {
       // --- Required Fields ---
       amount, // Base amount (e.g., 8000 for 8000 XOF) - used for direct amount checkout.
       currencyCode, // 3-letter ISO currency code (e.g., "XOF").
@@ -31,8 +32,8 @@ serve(async (req: Request) => {
       userEmail = null, // Customer's email, pre-fills lomi.checkout.
       userName = null, // Customer's name, pre-fills lomi.checkout.
       // userPhone = null, // Customer's phone number.
-      successUrlPath = "/payment/success", // Relative path for success redirect (e.g., /payment/success).
-      cancelUrlPath = "/payment/cancel", // Relative path for cancel redirect (e.g., /payment/cancel).
+      successUrlPath = '/payment/success', // Relative path for success redirect (e.g., /payment/success).
+      cancelUrlPath = '/payment/cancel', // Relative path for cancel redirect (e.g., /payment/cancel).
       allowedProviders = null, // Array of allowed payment providers (e.g., ["WAVE", "ORANGE_MONEY"]).
 
       // --- Quantity Support ---
@@ -49,137 +50,153 @@ serve(async (req: Request) => {
       metadata = null, // Custom key-value pairs (values must be strings) - will be auto-generated if null.
       expiration_minutes = 30, // How long the checkout link is valid.
       allow_coupon_code = true, // Set to true/false to explicitly allow/disallow coupons.
-    } = await req.json();
+    } = await req.json()
 
     // --- API Key Validation ---
     if (!LOMI_API_KEY) {
-      console.error("LOMI_API_KEY is not set.");
+      console.error('LOMI_API_KEY is not set.')
       return new Response(
-        JSON.stringify({ error: "LOMI API key not configured" }),
+        JSON.stringify({ error: 'LOMI API key not configured' }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500,
         },
-      );
+      )
     }
 
     // --- Input Validation ---
     if (!currencyCode || !reservationId) {
-      console.error("Missing required fields:", { currencyCode, reservationId });
+      console.error('Missing required fields:', { currencyCode, reservationId })
       return new Response(
-        JSON.stringify({ error: "Missing required fields: currencyCode or reservationId" }),
+        JSON.stringify({
+          error: 'Missing required fields: currencyCode or reservationId',
+        }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
         },
-      );
+      )
     }
 
     // --- Determine Pricing Mode ---
-    let finalProductId = null;
-    const finalAmount = amount;
-    let useDynamic = useDynamicPricing;
+    let finalProductId = null
+    const finalAmount = amount
+    let useDynamic = useDynamicPricing
 
     // If courtId provided, check pricing settings and get product_id
     if (courtId && !useDynamicPricing) {
       try {
         // Simple fetch to get court product_id and pricing settings
-        const courtResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/courts?id=eq.${courtId}&select=lomi_product_id`, {
-          headers: {
-            'apikey': Deno.env.get('SUPABASE_ANON_KEY') || '',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
+        const courtResponse = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/rest/v1/courts?id=eq.${courtId}&select=lomi_product_id`,
+          {
+            headers: {
+              apikey: Deno.env.get('SUPABASE_ANON_KEY') || '',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
+            },
           },
-        });
-        
-        const settingsResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/pricing_settings?select=use_dynamic_pricing`, {
-          headers: {
-            'apikey': Deno.env.get('SUPABASE_ANON_KEY') || '',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
-          },
-        });
+        )
 
-        const courtData = await courtResponse.json();
-        const settingsData = await settingsResponse.json();
+        const settingsResponse = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/rest/v1/pricing_settings?select=use_dynamic_pricing`,
+          {
+            headers: {
+              apikey: Deno.env.get('SUPABASE_ANON_KEY') || '',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
+            },
+          },
+        )
+
+        const courtData = await courtResponse.json()
+        const settingsData = await settingsResponse.json()
 
         // Check global dynamic pricing setting
         if (settingsData && settingsData[0]?.use_dynamic_pricing) {
-          useDynamic = true;
+          useDynamic = true
         } else if (courtData && courtData[0]?.lomi_product_id) {
-          finalProductId = courtData[0].lomi_product_id;
+          finalProductId = courtData[0].lomi_product_id
         }
       } catch (error) {
-        console.warn("Failed to fetch pricing settings, falling back to amount-based:", error);
-        useDynamic = true;
+        console.warn(
+          'Failed to fetch pricing settings, falling back to amount-based:',
+          error,
+        )
+        useDynamic = true
       }
     }
 
     // Final validation - ensure we have either amount or product_id
     if (!finalAmount && !finalProductId) {
-      console.error("Either amount or product_id must be available");
+      console.error('Either amount or product_id must be available')
       return new Response(
-        JSON.stringify({ error: "Either amount or product_id must be available" }),
+        JSON.stringify({
+          error: 'Either amount or product_id must be available',
+        }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
         },
-      );
+      )
     }
 
     // Validate quantity
     if (quantity <= 0) {
       return new Response(
-        JSON.stringify({ error: "Quantity must be greater than 0" }),
+        JSON.stringify({ error: 'Quantity must be greater than 0' }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
         },
-      );
+      )
     }
 
     // --- Prepare lomi. Payload ---
 
     // Define payload structure matching lomi. API
     type LomiPayload = {
-      success_url: string;
-      cancel_url: string;
-      allowed_providers: string[];
-      amount?: number;
-      currency_code: string;
-      quantity?: number;
-      title?: string | null;
-      public_description?: string | null;
-      customer_email?: string | null;
-      customer_name?: string | null;
-      customer_phone?: string | null;
-      metadata?: Record<string, string> | null;
-      expiration_minutes?: number | null;
-      product_id?: string | null;
-      subscription_id?: string | null;
-      plan_id?: string | null;
-      allow_coupon_code?: boolean | null;
-      allow_quantity?: boolean | null;
-    };
+      success_url: string
+      cancel_url: string
+      allowed_providers: string[]
+      amount?: number
+      currency_code: string
+      quantity?: number
+      title?: string | null
+      public_description?: string | null
+      customer_email?: string | null
+      customer_name?: string | null
+      customer_phone?: string | null
+      metadata?: Record<string, string> | null
+      expiration_minutes?: number | null
+      product_id?: string | null
+      subscription_id?: string | null
+      plan_id?: string | null
+      allow_coupon_code?: boolean | null
+      allow_quantity?: boolean | null
+    }
 
     // --- Prepare lomi. Payload ---
-    
+
     // Determine if we're using product-based or amount-based checkout
-    const isProductBased = !!finalProductId && !useDynamic;
-    console.log("Is product-based checkout:", isProductBased);
-    console.log("Product ID being used:", finalProductId);
-    console.log("Using dynamic pricing:", useDynamic);
+    const isProductBased = !!finalProductId && !useDynamic
+    console.log('Is product-based checkout:', isProductBased)
+    console.log('Product ID being used:', finalProductId)
+    console.log('Using dynamic pricing:', useDynamic)
 
     // Generate default metadata if not provided
     const defaultMetadata = {
       reservation_id: reservationId,
-      source: "padel_app",
+      source: 'padel_app',
       is_product_based: String(isProductBased),
-      court_id: courtId || "unknown",
-    };
-    const finalMetadata = metadata || defaultMetadata;
+      court_id: courtId || 'unknown',
+    }
+    const finalMetadata = metadata || defaultMetadata
 
     // Generate default title and description if not provided
-    const finalTitle = title || `Padel Reservation ${reservationId} (x${quantity})`;
-    const finalDescription = public_description || `Payment for ${quantity} padel court reservation(s) ${reservationId}`;
+    const finalTitle =
+      title || `Padel Reservation ${reservationId} (x${quantity})`
+    const finalDescription =
+      public_description ||
+      `Payment for ${quantity} padel court reservation(s) ${reservationId}`
 
     // Base payload sent to lomi.
     const baseLomiPayload = {
@@ -190,12 +207,12 @@ serve(async (req: Request) => {
       quantity: quantity,
       customer_email: userEmail,
       customer_name: userName,
-     // customer_phone: userPhone,
+      // customer_phone: userPhone,
       allow_coupon_code: allow_coupon_code,
       allow_quantity: allowQuantity,
       metadata: finalMetadata,
       expiration_minutes: expiration_minutes,
-    };
+    }
 
     const payload: LomiPayload = isProductBased
       ? {
@@ -210,62 +227,62 @@ serve(async (req: Request) => {
           amount: finalAmount,
           title: finalTitle,
           public_description: finalDescription,
-        };
+        }
 
     // Conditionally add optional fields to the payload if they were provided in the request
-    if (subscription_id) payload.subscription_id = subscription_id;
-    if (plan_id) payload.plan_id = plan_id;
+    if (subscription_id) payload.subscription_id = subscription_id
+    if (plan_id) payload.plan_id = plan_id
 
     console.log(
-      "Using",
-      isProductBased ? "product-based" : "amount-based",
-      "checkout",
-    );
-    console.log("Final lomi payload:", JSON.stringify(payload, null, 2));
+      'Using',
+      isProductBased ? 'product-based' : 'amount-based',
+      'checkout',
+    )
+    console.log('Final lomi payload:', JSON.stringify(payload, null, 2))
 
     // --- Call lomi. API ---
     const response = await fetch(`${LOMI_API_URL}/checkout-sessions`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": LOMI_API_KEY,
+        'Content-Type': 'application/json',
+        'X-API-Key': LOMI_API_KEY,
       },
       body: JSON.stringify(payload),
-    });
+    })
 
-    const responseData = await response.json();
+    const responseData = await response.json()
 
     // --- Handle lomi. Response ---
     if (!response.ok || !responseData.data || !responseData.data.url) {
-      console.error("lomi. error:", responseData);
+      console.error('lomi. error:', responseData)
       return new Response(
         JSON.stringify({
-          error: "Failed to create lomi. checkout session",
+          error: 'Failed to create lomi. checkout session',
           details: responseData.error || responseData,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: responseData.error?.status || 500,
         },
-      );
+      )
     }
 
-    // --- Success Response --- 
+    // --- Success Response ---
     // Return the lomi. checkout URL to the client
     return new Response(
       JSON.stringify({ checkout_url: responseData.data.url }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       },
-    );
+    )
   } catch (error) {
     // --- Error Handling ---
-    console.error("!!!!!!!!!! CAUGHT ERROR in main try/catch !!!!!!!!!:", error);
-    console.error("Error details:", error.message, error.stack);
+    console.error('!!!!!!!!!! CAUGHT ERROR in main try/catch !!!!!!!!!:', error)
+    console.error('Error details:', error.message, error.stack)
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
-    });
+    })
   }
-});
+})

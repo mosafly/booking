@@ -1,111 +1,113 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useSupabase } from "@/lib/contexts/Supabase";
-import CourtCard, { Court } from "@/components/booking/court-card";
-import { Search, RefreshCw } from "lucide-react";
-import toast from "react-hot-toast";
-import { Spinner } from '@/components/dashboard/spinner';
-import { useTranslation } from "react-i18next";
+import React, { useState, useEffect, useCallback } from 'react'
+import { useSupabase } from '@/lib/contexts/Supabase'
+import CourtCard, { Court } from '@/components/booking/court-card'
+import { Search, RefreshCw } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { Spinner } from '@/components/dashboard/spinner'
+import { useTranslation } from 'react-i18next'
 
 const HomePage: React.FC = () => {
-  const { supabase } = useSupabase();
-  const { t } = useTranslation();
-  const [courts, setCourts] = useState<Court[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const { supabase } = useSupabase()
+  const { t } = useTranslation()
+  const [courts, setCourts] = useState<Court[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const fetchCourts = useCallback(async () => {
     try {
-      console.log("Fetching courts...");
-      setIsLoading(true);
-      setError(null);
+      console.log('Fetching courts...')
+      setIsLoading(true)
+      setError(null)
 
       // Requête simple sans vérification d'authentification
       const { data, error } = await supabase
-        .from("courts")
-        .select("*")
-        .order("name");
+        .from('courts')
+        .select('*')
+        .order('name')
 
       if (error) {
-        console.error("Supabase error fetching courts:", error);
-        setError(t("homePage.errorLoadingGeneric"));
-        toast.error(t("homePage.errorLoadingToast"));
+        console.error('Supabase error fetching courts:', error)
+        setError(t('homePage.errorLoadingGeneric'))
+        toast.error(t('homePage.errorLoadingToast'))
       } else {
-        console.log("Courts data received:", data?.length || 0, "courts");
-        setCourts(data || []);
+        console.log('Courts data received:', data?.length || 0, 'courts')
+        setCourts(data || [])
       }
     } catch (error) {
-      console.error("Exception while fetching courts:", error);
-      setError(t("homePage.errorLoadingRefresh"));
+      console.error('Exception while fetching courts:', error)
+      setError(t('homePage.errorLoadingRefresh'))
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [supabase, t]);
+  }, [supabase, t])
 
   const handleRefresh = () => {
-    fetchCourts();
-  };
+    fetchCourts()
+  }
 
   useEffect(() => {
     // Log session information for debugging
     const logSessionInfo = async () => {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
-      console.log("Current session:", session);
+      } = await supabase.auth.getSession()
+      console.log('Current session:', session)
 
       if (session?.user) {
         const { data: userProfile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single();
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
 
-        console.log("User role:", userProfile?.role);
+        console.log('User role:', userProfile?.role)
       } else {
-        console.log("No authenticated user");
+        console.log('No authenticated user')
       }
-    };
+    }
 
-    logSessionInfo();
+    logSessionInfo()
 
     // Charger les courts immédiatement
-    fetchCourts();
-  }, [fetchCourts, supabase]);
+    fetchCourts()
+  }, [fetchCourts, supabase])
 
   const filteredCourts = courts.filter(
     (court) =>
       court.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (court.description?.toLowerCase() || "").includes(
+      (court.description?.toLowerCase() || '').includes(
         searchQuery.toLowerCase(),
       ),
-  );
+  )
 
   // Categorize courts
-  const padelCourts = filteredCourts.filter((court) => 
-    court.name.toLowerCase().includes('terrain') || 
-    court.description?.toLowerCase().includes('padel') ||
-    court.description?.toLowerCase().includes('terrain')
-  );
+  const padelCourts = filteredCourts.filter(
+    (court) =>
+      court.name.toLowerCase().includes('terrain') ||
+      court.description?.toLowerCase().includes('padel') ||
+      court.description?.toLowerCase().includes('terrain'),
+  )
 
-  const gymEquipment = filteredCourts.filter((court) => 
-    court.name.toLowerCase().includes('vélo') ||
-    court.name.toLowerCase().includes('velo') ||
-    court.name.toLowerCase().includes('tapis') ||
-    court.name.toLowerCase().includes('elliptique') ||
-    court.description?.toLowerCase().includes('vélo') ||
-    court.description?.toLowerCase().includes('velo') ||
-    court.description?.toLowerCase().includes('tapis') ||
-    court.description?.toLowerCase().includes('elliptique')
-  );
+  const gymEquipment = filteredCourts.filter(
+    (court) =>
+      court.name.toLowerCase().includes('vélo') ||
+      court.name.toLowerCase().includes('velo') ||
+      court.name.toLowerCase().includes('tapis') ||
+      court.name.toLowerCase().includes('elliptique') ||
+      court.description?.toLowerCase().includes('vélo') ||
+      court.description?.toLowerCase().includes('velo') ||
+      court.description?.toLowerCase().includes('tapis') ||
+      court.description?.toLowerCase().includes('elliptique'),
+  )
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {t("homePage.title")}
+          {t('homePage.title')}
         </h1>
-        <p className="text-gray-600">{t("homePage.subtitle")}</p>
+        <p className="text-gray-600">{t('homePage.subtitle')}</p>
       </div>
 
       <div className="flex justify-between items-center mb-6">
@@ -115,7 +117,7 @@ const HomePage: React.FC = () => {
           </div>
           <input
             type="text"
-            placeholder={t("homePage.searchPlaceholder")}
+            placeholder={t('homePage.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="form-input pl-10 w-full"
@@ -125,11 +127,11 @@ const HomePage: React.FC = () => {
         <button
           onClick={handleRefresh}
           className="ml-4 p-2 rounded-md hover:bg-gray-100 transition-colors"
-          title={t("homePage.refreshButtonTitle")}
+          title={t('homePage.refreshButtonTitle')}
           disabled={isLoading}
         >
           <RefreshCw
-            className={`h-5 w-5 text-gray-600 ${isLoading ? "animate-spin" : ""}`}
+            className={`h-5 w-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`}
           />
         </button>
       </div>
@@ -146,24 +148,28 @@ const HomePage: React.FC = () => {
           data-component-name="HomePage"
         >
           <p className="text-red-500 mb-4">{error}</p>
-          {error && (error.includes("auth") || error.includes("credentials") || error.includes("session") || error.includes(t("homePage.errorLoadingGeneric"))) ? (
+          {error &&
+          (error.includes('auth') ||
+            error.includes('credentials') ||
+            error.includes('session') ||
+            error.includes(t('homePage.errorLoadingGeneric'))) ? (
             <div>
               <p className="text-gray-600 mb-4">
-                {t("homePage.errorAuthMessage")}
+                {t('homePage.errorAuthMessage')}
               </p>
               <button
-                onClick={() => (window.location.href = "/login")}
+                onClick={() => (window.location.href = '/login')}
                 className="btn btn-primary mr-3"
               >
-                {t("homePage.loginButton")}
+                {t('homePage.loginButton')}
               </button>
               <button onClick={handleRefresh} className="btn btn-outline mt-2">
-                {t("homePage.retryButton")}
+                {t('homePage.retryButton')}
               </button>
             </div>
           ) : (
             <button onClick={handleRefresh} className="btn btn-primary">
-              {t("homePage.refreshPageButton")}
+              {t('homePage.refreshPageButton')}
             </button>
           )}
         </div>
@@ -171,12 +177,12 @@ const HomePage: React.FC = () => {
         <div className="text-center py-12 bg-white rounded-md shadow-sm">
           <p className="text-gray-500">
             {searchQuery
-              ? t("homePage.noCourtsFoundSearch")
-              : t("homePage.noCourtsAvailable")}
+              ? t('homePage.noCourtsFoundSearch')
+              : t('homePage.noCourtsAvailable')}
           </p>
           {!searchQuery && courts.length === 0 && (
             <button onClick={handleRefresh} className="btn btn-primary mt-4">
-              {t("homePage.refreshCourtsButton")}
+              {t('homePage.refreshCourtsButton')}
             </button>
           )}
         </div>
@@ -221,17 +227,19 @@ const HomePage: React.FC = () => {
           )}
 
           {/* Message si aucune section n'a de contenu après filtrage */}
-          {padelCourts.length === 0 && gymEquipment.length === 0 && filteredCourts.length > 0 && (
-            <div className="text-center py-12 bg-white rounded-md shadow-sm">
-              <p className="text-gray-500">
-                Aucun résultat ne correspond aux critères de recherche
-              </p>
-            </div>
-          )}
+          {padelCourts.length === 0 &&
+            gymEquipment.length === 0 &&
+            filteredCourts.length > 0 && (
+              <div className="text-center py-12 bg-white rounded-md shadow-sm">
+                <p className="text-gray-500">
+                  Aucun résultat ne correspond aux critères de recherche
+                </p>
+              </div>
+            )}
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default HomePage;
+export default HomePage

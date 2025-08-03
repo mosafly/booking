@@ -1,44 +1,44 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Brackets as Racket, Mail, Lock } from "lucide-react";
-import { useAuth } from "@/lib/contexts/Auth";
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Brackets as Racket, Mail, Lock } from 'lucide-react'
+import { useAuth } from '@/lib/contexts/Auth'
 
 const RegisterPage: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const { signUp } = useAuth();
-  const navigate = useNavigate();
+  const { signUp } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
 
     if (password !== confirmPassword) {
-      setError("Passwords don't match");
-      return;
+      setError("Passwords don't match")
+      return
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
+      setError('Password must be at least 6 characters')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
-      await signUp(email, password);
-      navigate("/home");
+      await signUp(email, password)
+      navigate('/home')
     } catch (error) {
-      console.error("Registration error:", error);
-      setError("Failed to create account. Please try again.");
+      console.error('Registration error:', error)
+      setError('Failed to create account. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -51,7 +51,7 @@ const RegisterPage: React.FC = () => {
             Create a new account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{" "}
+            Or{' '}
             <Link
               to="/login"
               className="font-medium text-[var(--primary)] hover:text-[var(--primary-dark)]"
@@ -134,13 +134,13 @@ const RegisterPage: React.FC = () => {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] disabled:opacity-70 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              {isLoading ? "Creating account..." : "Create account"}
+              {isLoading ? 'Creating account...' : 'Create account'}
             </button>
           </div>
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default RegisterPage;
+export default RegisterPage

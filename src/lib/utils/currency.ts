@@ -13,8 +13,8 @@ export const formatFCFA = (amount: number): string => {
     currency: 'XOF',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
-};
+  }).format(amount)
+}
 
 /**
  * Format amount with custom currency
@@ -24,15 +24,15 @@ export const formatFCFA = (amount: number): string => {
  */
 export const formatCurrency = (
   amount: number,
-  currency: string = 'XOF'
+  currency: string = 'XOF',
 ): string => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: currency === 'XOF' ? 0 : 2,
     maximumFractionDigits: currency === 'XOF' ? 0 : 2,
-  }).format(amount);
-};
+  }).format(amount)
+}
 
 /**
  * Convert cents to main currency unit
@@ -40,8 +40,8 @@ export const formatCurrency = (
  * @returns Amount in main currency unit
  */
 export const centsToAmount = (cents: number): number => {
-  return cents / 100;
-};
+  return cents / 100
+}
 
 /**
  * Convert main currency unit to cents
@@ -49,8 +49,8 @@ export const centsToAmount = (cents: number): number => {
  * @returns Amount in cents
  */
 export const amountToCents = (amount: number): number => {
-  return Math.round(amount * 100);
-};
+  return Math.round(amount * 100)
+}
 
 /**
  * Format amount in FCFA without currency symbol
@@ -61,5 +61,5 @@ export const formatFCFAWithoutSymbol = (amount: number): string => {
   return new Intl.NumberFormat('fr-FR', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
-};
+  }).format(amount)
+}

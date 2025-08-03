@@ -1,13 +1,12 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { XCircle, ShoppingCart } from 'lucide-react';
-import { supabase } from '@/lib/supabase/client';
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { XCircle, ShoppingCart } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 export default function PosCancelPage() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
-
-  const saleId = searchParams.get('sale_id');
+  const saleId = searchParams.get('sale_id')
 
   const handleReturnToPos = async () => {
     if (saleId) {
@@ -16,19 +15,19 @@ export default function PosCancelPage() {
         await supabase
           .from('sales')
           .update({ status: 'cancelled' })
-          .eq('id', saleId);
+          .eq('id', saleId)
 
         // Update payment status to cancelled
         await supabase
           .from('payments')
           .update({ status: 'cancelled' })
-          .eq('sale_id', saleId);
+          .eq('sale_id', saleId)
       } catch (error) {
-        console.error('Error cancelling sale:', error);
+        console.error('Error cancelling sale:', error)
       }
     }
-    navigate('/pos');
-  };
+    navigate('/pos')
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -52,7 +51,8 @@ export default function PosCancelPage() {
               </div>
               <div className="mt-2 text-sm text-gray-600">
                 <p>
-                  Vous pouvez retourner au POS pour compléter cette vente ou en créer une nouvelle.
+                  Vous pouvez retourner au POS pour compléter cette vente ou en
+                  créer une nouvelle.
                 </p>
               </div>
             </div>
@@ -76,5 +76,5 @@ export default function PosCancelPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

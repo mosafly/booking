@@ -1,5 +1,4 @@
 {
   "semi": false,
-  "singleQuote": true,
-  "plugins": ["@tailwindcss/postcss"]
+  "singleQuote": true
 }

@@ -1,47 +1,47 @@
-import * as React from "react";
+import * as React from 'react'
 import {
   useFormContext,
   useFormState,
   type FieldPath,
   type FieldValues,
-} from "react-hook-form";
+} from 'react-hook-form'
 
 // Definitions moved from form.tsx
 export type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = {
-  name: TName;
-};
+  name: TName
+}
 
 export const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue,
-);
+)
 
 export type FormItemContextValue = {
-  id: string;
-};
+  id: string
+}
 
 export const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue,
-);
+)
 
 export const useFormField = () => {
-  const fieldContext = React.useContext(FormFieldContext);
-  const itemContext = React.useContext(FormItemContext);
-  const { getFieldState } = useFormContext();
-  const formState = useFormState({ name: fieldContext.name });
-  const fieldState = getFieldState(fieldContext.name, formState);
+  const fieldContext = React.useContext(FormFieldContext)
+  const itemContext = React.useContext(FormItemContext)
+  const { getFieldState } = useFormContext()
+  const formState = useFormState({ name: fieldContext.name })
+  const fieldState = getFieldState(fieldContext.name, formState)
 
   if (!fieldContext) {
-    throw new Error("useFormField should be used within <FormField>");
+    throw new Error('useFormField should be used within <FormField>')
   }
 
   if (!itemContext) {
-    throw new Error("useFormField should be used within <FormItem>");
+    throw new Error('useFormField should be used within <FormItem>')
   }
 
-  const { id } = itemContext;
+  const { id } = itemContext
 
   return {
     id,
@@ -50,5 +50,5 @@ export const useFormField = () => {
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
     ...fieldState,
-  };
-};
+  }
+}

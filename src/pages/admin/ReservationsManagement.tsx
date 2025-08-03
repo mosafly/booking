@@ -1,65 +1,65 @@
-import React, { useState, useEffect } from "react";
-import { useSupabase } from "@/lib/contexts/Supabase";
-import ReservationList from "@/components/booking/reservation-list";
-import { Calendar, Filter } from "lucide-react";
-import { addDays, format, subDays } from "date-fns";
-import toast from "react-hot-toast";
-import { Spinner } from "@/components/dashboard/spinner";
+import React, { useState, useEffect } from 'react'
+import { useSupabase } from '@/lib/contexts/Supabase'
+import ReservationList from '@/components/booking/reservation-list'
+import { Calendar, Filter } from 'lucide-react'
+import { addDays, format, subDays } from 'date-fns'
+import toast from 'react-hot-toast'
+import { Spinner } from '@/components/dashboard/spinner'
 
 interface AdminReservation {
-  id: string;
-  start_time: string;
-  end_time: string;
-  status: "pending" | "confirmed" | "cancelled";
-  court_id: string;
-  court_name: string;
-  user_id: string;
-  user_email?: string;
-  total_price: number;
-  created_at: string;
+  id: string
+  start_time: string
+  end_time: string
+  status: 'pending' | 'confirmed' | 'cancelled'
+  court_id: string
+  court_name: string
+  user_id: string
+  user_email?: string
+  total_price: number
+  created_at: string
 }
 
 const ReservationsManagement: React.FC = () => {
-  const { supabase } = useSupabase();
+  const { supabase } = useSupabase()
 
-  const [reservations, setReservations] = useState<AdminReservation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [reservations, setReservations] = useState<AdminReservation[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [filterStatus, setFilterStatus] = useState<string>('all')
   const [dateRange, setDateRange] = useState({
-    start: format(subDays(new Date(), 7), "yyyy-MM-dd"),
-    end: format(addDays(new Date(), 30), "yyyy-MM-dd"),
-  });
+    start: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
+    end: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
+  })
 
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        setIsLoading(true);
+        setIsLoading(true)
         // 1. Fetch reservations
         const { data: resData, error: resError } = await supabase
-          .from("reservations")
-          .select("*")
-          .gte("start_time", `${dateRange.start}T00:00:00`)
-          .lte("start_time", `${dateRange.end}T23:59:59`)
-          .order("start_time", { ascending: false });
-        if (resError) throw resError;
+          .from('reservations')
+          .select('*')
+          .gte('start_time', `${dateRange.start}T00:00:00`)
+          .lte('start_time', `${dateRange.end}T23:59:59`)
+          .order('start_time', { ascending: false })
+        if (resError) throw resError
 
         // 2. Fetch related courts
         const courtIds = [
           ...new Set(resData!.map((r: { court_id: string }) => r.court_id)),
-        ];
+        ]
         const { data: courtsData } = await supabase
-          .from("courts")
-          .select("id, name")
-          .in("id", courtIds);
+          .from('courts')
+          .select('id, name')
+          .in('id', courtIds)
 
         // 3. Fetch related users
         const userIds = [
           ...new Set(resData!.map((r: { user_id: string }) => r.user_id)),
-        ];
+        ]
         const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("id, email")
-          .in("id", userIds);
+          .from('profiles')
+          .select('id, email')
+          .in('id', userIds)
 
         // 4. Transform to AdminReservation
         const transformed = resData!.map((r: AdminReservation) => ({
@@ -71,79 +71,79 @@ const ReservationsManagement: React.FC = () => {
           court_name:
             courtsData?.find(
               (c: { id: string; name: string }) => c.id === r.court_id,
-            )?.name || "",
+            )?.name || '',
           user_id: r.user_id,
           user_email:
             profilesData?.find(
               (p: { id: string; email: string }) => p.id === r.user_id,
-            )?.email || "",
+            )?.email || '',
           total_price: r.total_price,
           created_at: r.created_at,
-        }));
-        setReservations(transformed);
+        }))
+        setReservations(transformed)
       } catch (err) {
-        console.error("Error fetching reservations:", err);
-        toast.error("Failed to load reservations");
-        setReservations([]);
+        console.error('Error fetching reservations:', err)
+        toast.error('Failed to load reservations')
+        setReservations([])
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    fetchReservations();
-  }, [dateRange, filterStatus, supabase]);
+    }
+    fetchReservations()
+  }, [dateRange, filterStatus, supabase])
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilterStatus(e.target.value);
-  };
+    setFilterStatus(e.target.value)
+  }
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setDateRange((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setDateRange((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleCancelReservation = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("reservations")
-        .update({ status: "cancelled" })
-        .eq("id", id);
+        .from('reservations')
+        .update({ status: 'cancelled' })
+        .eq('id', id)
 
-      if (error) throw error;
+      if (error) throw error
 
       setReservations((prev) =>
         prev.map((res) =>
-          res.id === id ? { ...res, status: "cancelled" } : res,
+          res.id === id ? { ...res, status: 'cancelled' } : res,
         ),
-      );
+      )
 
-      toast.success("Reservation cancelled successfully");
+      toast.success('Reservation cancelled successfully')
     } catch (error) {
-      console.error("Error cancelling reservation:", error);
-      toast.error("Failed to cancel reservation");
+      console.error('Error cancelling reservation:', error)
+      toast.error('Failed to cancel reservation')
     }
-  };
+  }
 
   const handleConfirmReservation = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("reservations")
-        .update({ status: "confirmed" })
-        .eq("id", id);
+        .from('reservations')
+        .update({ status: 'confirmed' })
+        .eq('id', id)
 
-      if (error) throw error;
+      if (error) throw error
 
       setReservations((prev) =>
         prev.map((res) =>
-          res.id === id ? { ...res, status: "confirmed" } : res,
+          res.id === id ? { ...res, status: 'confirmed' } : res,
         ),
-      );
+      )
 
-      toast.success("Reservation confirmed successfully");
+      toast.success('Reservation confirmed successfully')
     } catch (error) {
-      console.error("Error confirming reservation:", error);
-      toast.error("Failed to confirm reservation");
+      console.error('Error confirming reservation:', error)
+      toast.error('Failed to confirm reservation')
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -231,7 +231,7 @@ const ReservationsManagement: React.FC = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ReservationsManagement;
+export default ReservationsManagement

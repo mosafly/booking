@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { CoachType, CreateCoachProfileData, CoachProfile } from '../../types/coach';
+import React, { useState, useEffect } from 'react'
+import { X } from 'lucide-react'
+import {
+  CoachType,
+  CreateCoachProfileData,
+  CoachProfile,
+} from '../../types/coach'
 
 interface CoachProfileModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: CreateCoachProfileData) => void;
-  initialData?: Partial<CoachProfile>;
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: CreateCoachProfileData) => void
+  initialData?: Partial<CoachProfile>
 }
 
 export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
@@ -22,7 +26,7 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
     bio: '',
     phone: '',
     avatar_url: '',
-  });
+  })
 
   useEffect(() => {
     if (initialData) {
@@ -33,16 +37,16 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
         bio: initialData.bio || '',
         phone: initialData.phone || '',
         avatar_url: initialData.avatar_url || '',
-      });
+      })
     }
-  }, [initialData]);
+  }, [initialData])
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-  };
+    e.preventDefault()
+    onSave(formData)
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -68,7 +72,9 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
               type="text"
               required
               value={formData.first_name}
-              onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, first_name: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -81,7 +87,9 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
               type="text"
               required
               value={formData.last_name}
-              onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, last_name: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -93,7 +101,12 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
             <select
               required
               value={formData.coach_type}
-              onChange={(e) => setFormData({ ...formData, coach_type: e.target.value as CoachType })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  coach_type: e.target.value as CoachType,
+                })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="fitness">Fitness</option>
@@ -110,7 +123,9 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
             <input
               type="tel"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -121,7 +136,9 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
             </label>
             <textarea
               value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, bio: e.target.value })
+              }
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Décrivez votre expérience et votre approche..."
@@ -135,7 +152,9 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
             <input
               type="url"
               value={formData.avatar_url}
-              onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, avatar_url: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="https://example.com/avatar.jpg"
             />
@@ -159,5 +178,5 @@ export const CoachProfileModal: React.FC<CoachProfileModalProps> = ({
         </form>
       </div>
     </div>
-  );
-};
+  )
+}

@@ -1,55 +1,57 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSupabase } from '@/lib/contexts/Supabase';
-import { GymBooking } from '@/types/coach';
-import { format, startOfDay, endOfDay } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import toast from 'react-hot-toast';
-import { Calendar, Clock, Users, DollarSign, User, MapPin } from 'lucide-react';
-import { useAuth } from '@/lib/contexts/Auth';
+import React, { useState, useEffect, useCallback } from 'react'
+import { useSupabase } from '@/lib/contexts/Supabase'
+import { GymBooking } from '@/types/coach'
+import { format, startOfDay, endOfDay } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import toast from 'react-hot-toast'
+import { Calendar, Clock, Users, DollarSign, User, MapPin } from 'lucide-react'
+import { useAuth } from '@/lib/contexts/Auth'
 
 export const GymBookingPage: React.FC = () => {
-  const { user } = useAuth();
-  const { supabase } = useSupabase();
-  const [bookings, setBookings] = useState<GymBooking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { user } = useAuth()
+  const { supabase } = useSupabase()
+  const [bookings, setBookings] = useState<GymBooking[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedDate, setSelectedDate] = useState(new Date())
 
   const loadBookings = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoading(true)
 
-      const startDate = startOfDay(selectedDate);
-      const endDate = endOfDay(selectedDate);
+      const startDate = startOfDay(selectedDate)
+      const endDate = endOfDay(selectedDate)
 
       const { data: bookingsData, error } = await supabase
         .from('gym_bookings')
-        .select(`
+        .select(
+          `
           *,
           coach:coach_profiles!coach_id(*)
-        `)
+        `,
+        )
         .gte('start_time', startDate.toISOString())
         .lte('start_time', endDate.toISOString())
         .eq('status', 'scheduled')
-        .order('start_time', { ascending: true });
+        .order('start_time', { ascending: true })
 
-      if (error) throw error;
-      setBookings(bookingsData || []);
+      if (error) throw error
+      setBookings(bookingsData || [])
     } catch (error) {
-      console.error('Error loading bookings:', error);
-      toast.error('Erreur lors du chargement des cours');
+      console.error('Error loading bookings:', error)
+      toast.error('Erreur lors du chargement des cours')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [selectedDate, supabase]);
+  }, [selectedDate, supabase])
 
   useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
+    loadBookings()
+  }, [loadBookings])
 
   const handleJoinClass = async (bookingId: string) => {
     if (!user) {
-      toast.error('Veuillez vous connecter pour réserver');
-      return;
+      toast.error('Veuillez vous connecter pour réserver')
+      return
     }
 
     try {
@@ -59,11 +61,11 @@ export const GymBookingPage: React.FC = () => {
         .select('*')
         .eq('booking_id', bookingId)
         .eq('user_id', user.id)
-        .single();
+        .single()
 
       if (existing) {
-        toast.error('Vous êtes déjà inscrit à ce cours');
-        return;
+        toast.error('Vous êtes déjà inscrit à ce cours')
+        return
       }
 
       // Check availability
@@ -71,11 +73,14 @@ export const GymBookingPage: React.FC = () => {
         .from('gym_bookings')
         .select('current_participants, max_participants')
         .eq('id', bookingId)
-        .single();
+        .single()
 
-      if (!booking || booking.current_participants >= booking.max_participants) {
-        toast.error('Ce cours est complet');
-        return;
+      if (
+        !booking ||
+        booking.current_participants >= booking.max_participants
+      ) {
+        toast.error('Ce cours est complet')
+        return
       }
 
       // Join the class
@@ -84,9 +89,9 @@ export const GymBookingPage: React.FC = () => {
         .insert({
           booking_id: bookingId,
           user_id: user.id,
-        });
+        })
 
-      if (participantError) throw participantError;
+      if (participantError) throw participantError
 
       // Update participant count
       const { error: updateError } = await supabase
@@ -94,90 +99,96 @@ export const GymBookingPage: React.FC = () => {
         .update({
           current_participants: booking.current_participants + 1,
         })
-        .eq('id', bookingId);
+        .eq('id', bookingId)
 
-      if (updateError) throw updateError;
+      if (updateError) throw updateError
 
-      toast.success('Inscription réussie!');
-      loadBookings();
+      toast.success('Inscription réussie!')
+      loadBookings()
     } catch (error) {
-      console.error('Error joining class:', error);
-      toast.error('Erreur lors de l\'inscription');
+      console.error('Error joining class:', error)
+      toast.error("Erreur lors de l'inscription")
     }
-  };
+  }
 
   const handleLeaveClass = async (bookingId: string) => {
-    if (!user) return;
+    if (!user) return
 
     try {
       const { data: booking } = await supabase
         .from('gym_bookings')
         .select('current_participants')
         .eq('id', bookingId)
-        .single();
+        .single()
 
       const { error: deleteError } = await supabase
         .from('gym_booking_participants')
         .delete()
         .eq('booking_id', bookingId)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
 
-      if (deleteError) throw deleteError;
+      if (deleteError) throw deleteError
 
       // Update participant count
       const { error: updateError } = await supabase
         .from('gym_bookings')
         .update({
-          current_participants: Math.max(0, (booking?.current_participants || 1) - 1),
+          current_participants: Math.max(
+            0,
+            (booking?.current_participants || 1) - 1,
+          ),
         })
-        .eq('id', bookingId);
+        .eq('id', bookingId)
 
-      if (updateError) throw updateError;
+      if (updateError) throw updateError
 
-      toast.success('Réservation annulée');
-      loadBookings();
+      toast.success('Réservation annulée')
+      loadBookings()
     } catch (error) {
-      console.error('Error leaving class:', error);
-      toast.error('Erreur lors de l\'annulation');
+      console.error('Error leaving class:', error)
+      toast.error("Erreur lors de l'annulation")
     }
-  };
+  }
 
-  const checkUserBooking = useCallback(async (bookingId: string): Promise<boolean> => {
-    if (!user) return false;
+  const checkUserBooking = useCallback(
+    async (bookingId: string): Promise<boolean> => {
+      if (!user) return false
 
-    const { data } = await supabase
-      .from('gym_booking_participants')
-      .select('*')
-      .eq('booking_id', bookingId)
-      .eq('user_id', user.id)
-      .single();
+      const { data } = await supabase
+        .from('gym_booking_participants')
+        .select('*')
+        .eq('booking_id', bookingId)
+        .eq('user_id', user.id)
+        .single()
 
-    return !!data;
-  }, [user, supabase]);
+      return !!data
+    },
+    [user, supabase],
+  )
 
-  const [userBookings, setUserBookings] = useState<Set<string>>(new Set());
+  const [userBookings, setUserBookings] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (user && bookings.length > 0) {
       const loadUserBookings = async () => {
         const bookingIds = await Promise.all(
           bookings.map(async (booking) => {
-            const isBooked = await checkUserBooking(booking.id);
-            return isBooked ? booking.id : null;
-          })
-        );
-        setUserBookings(new Set(bookingIds.filter(Boolean) as string[]));
-      };
-      loadUserBookings();
+            const isBooked = await checkUserBooking(booking.id)
+            return isBooked ? booking.id : null
+          }),
+        )
+        setUserBookings(new Set(bookingIds.filter(Boolean) as string[]))
+      }
+      loadUserBookings()
     }
-  }, [user, bookings, checkUserBooking]);
+  }, [user, bookings, checkUserBooking])
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -188,7 +199,8 @@ export const GymBookingPage: React.FC = () => {
             Réservation de la Salle de Sport
           </h1>
           <p className="text-gray-600">
-            Réservez votre place dans les cours collectifs organisés par nos coachs
+            Réservez votre place dans les cours collectifs organisés par nos
+            coachs
           </p>
         </div>
 
@@ -207,7 +219,8 @@ export const GymBookingPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
-              Cours disponibles le {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
+              Cours disponibles le{' '}
+              {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
             </h2>
           </div>
 
@@ -215,12 +228,15 @@ export const GymBookingPage: React.FC = () => {
             {bookings.length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Aucun cours disponible pour cette date</p>
+                <p className="text-gray-500">
+                  Aucun cours disponible pour cette date
+                </p>
               </div>
             ) : (
               bookings.map((booking) => {
-                const isBooked = userBookings.has(booking.id);
-                const isFull = booking.current_participants >= booking.max_participants;
+                const isBooked = userBookings.has(booking.id)
+                const isFull =
+                  booking.current_participants >= booking.max_participants
 
                 return (
                   <div key={booking.id} className="px-6 py-6">
@@ -230,31 +246,44 @@ export const GymBookingPage: React.FC = () => {
                           <h3 className="text-lg font-semibold text-gray-900 mr-3">
                             {booking.title}
                           </h3>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${booking.class_type === 'fitness' ? 'bg-green-100 text-green-800' :
-                            booking.class_type === 'yoga' ? 'bg-purple-100 text-purple-800' :
-                              booking.class_type === 'danse' ? 'bg-pink-100 text-pink-800' :
-                                'bg-blue-100 text-blue-800'
-                            }`}>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              booking.class_type === 'fitness'
+                                ? 'bg-green-100 text-green-800'
+                                : booking.class_type === 'yoga'
+                                  ? 'bg-purple-100 text-purple-800'
+                                  : booking.class_type === 'danse'
+                                    ? 'bg-pink-100 text-pink-800'
+                                    : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
                             {booking.class_type}
                           </span>
                         </div>
 
                         {booking.description && (
-                          <p className="text-gray-600 mb-3">{booking.description}</p>
+                          <p className="text-gray-600 mb-3">
+                            {booking.description}
+                          </p>
                         )}
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                           <div className="flex items-center">
                             <User className="w-4 h-4 mr-1" />
-                            {booking.coach?.first_name} {booking.coach?.last_name}
+                            {booking.coach?.first_name}{' '}
+                            {booking.coach?.last_name}
                           </div>
                           <div className="flex items-center">
                             <Clock className="w-4 h-4 mr-1" />
-                            {format(new Date(booking.start_time), 'HH:mm')} - {format(new Date(booking.end_time), 'HH:mm')}
+                            {format(
+                              new Date(booking.start_time),
+                              'HH:mm',
+                            )} - {format(new Date(booking.end_time), 'HH:mm')}
                           </div>
                           <div className="flex items-center">
                             <Users className="w-4 h-4 mr-1" />
-                            {booking.current_participants}/{booking.max_participants}
+                            {booking.current_participants}/
+                            {booking.max_participants}
                           </div>
                           <div className="flex items-center">
                             <DollarSign className="w-4 h-4 mr-1" />
@@ -280,10 +309,11 @@ export const GymBookingPage: React.FC = () => {
                           <button
                             onClick={() => handleJoinClass(booking.id)}
                             disabled={isFull}
-                            className={`px-4 py-2 text-sm rounded-md transition-colors ${isFull
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
-                              }`}
+                            className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                              isFull
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
                           >
                             {isFull ? 'Complet' : 'Réserver'}
                           </button>
@@ -291,12 +321,12 @@ export const GymBookingPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                );
+                )
               })
             )}
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

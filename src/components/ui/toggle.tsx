@@ -1,9 +1,9 @@
-import * as React from "react";
-import * as TogglePrimitive from "@radix-ui/react-toggle";
-import { type VariantProps } from "class-variance-authority";
-import { toggleVariants } from "./toggle.variants";
+import * as React from 'react'
+import * as TogglePrimitive from '@radix-ui/react-toggle'
+import { type VariantProps } from 'class-variance-authority'
+import { toggleVariants } from './toggle.variants'
 
-import { cn } from "@/lib/actions/utils";
+import { cn } from '@/lib/actions/utils'
 
 function Toggle({
   className,
@@ -18,7 +18,7 @@ function Toggle({
       className={cn(toggleVariants({ variant, size, className }))}
       {...props}
     />
-  );
+  )
 }
 
-export { Toggle };
+export { Toggle }

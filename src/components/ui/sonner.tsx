@@ -1,23 +1,23 @@
-import { Toaster as Sonner, ToasterProps } from "sonner";
-import * as React from "react";
+import { Toaster as Sonner, ToasterProps } from 'sonner'
+import * as React from 'react'
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const theme = "system";
+  const theme = 'system'
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme as ToasterProps['theme']}
       className="toaster group"
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
+          '--normal-bg': 'var(--popover)',
+          '--normal-text': 'var(--popover-foreground)',
+          '--normal-border': 'var(--border)',
         } as React.CSSProperties
       }
       {...props}
     />
-  );
-};
+  )
+}
 
-export { Toaster };
+export { Toaster }

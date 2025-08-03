@@ -1,100 +1,128 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/lib/contexts/Auth';
-import { useSupabase } from '@/lib/contexts/Supabase';
-import { CoachProfile, GymBooking, CoachDashboardStats, CreateGymBookingData, CreateCoachProfileData } from '@/types/coach';
-import { format, isAfter } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import toast from 'react-hot-toast';
-import { Calendar, Clock, Users, DollarSign, Plus, Edit, Trash2 } from 'lucide-react';
-import { CreateBookingModal } from '@/components/coach/CreateBookingModal';
-import { CoachProfileModal } from '@/components/coach/CoachProfileModal';
-import { GlobalSchedule } from '@/components/schedule/GlobalSchedule';
+import React, { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '@/lib/contexts/Auth'
+import { useSupabase } from '@/lib/contexts/Supabase'
+import {
+  CoachProfile,
+  GymBooking,
+  CoachDashboardStats,
+  CreateGymBookingData,
+  CreateCoachProfileData,
+} from '@/types/coach'
+import { format, isAfter } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import toast from 'react-hot-toast'
+import {
+  Calendar,
+  Clock,
+  Users,
+  DollarSign,
+  Plus,
+  Edit,
+  Trash2,
+} from 'lucide-react'
+import { CreateBookingModal } from '@/components/coach/CreateBookingModal'
+import { CoachProfileModal } from '@/components/coach/CoachProfileModal'
+import { GlobalSchedule } from '@/components/schedule/GlobalSchedule'
 
 export const CoachDashboard: React.FC = () => {
-  const { user } = useAuth();
-  const { supabase } = useSupabase();
-  const [coachProfile, setCoachProfile] = useState<CoachProfile | null>(null);
-  const [bookings, setBookings] = useState<GymBooking[]>([]);
+  const { user } = useAuth()
+  const { supabase } = useSupabase()
+  const [coachProfile, setCoachProfile] = useState<CoachProfile | null>(null)
+  const [bookings, setBookings] = useState<GymBooking[]>([])
   const [stats, setStats] = useState<CoachDashboardStats>({
     total_classes: 0,
     upcoming_classes: 0,
     total_participants: 0,
     total_revenue: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
+  })
+  const [loading, setLoading] = useState(true)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
 
-  const loadBookings = useCallback(async (coachId: string) => {
-    try {
-      const { data: bookingsData, error } = await supabase
-        .from('gym_bookings')
-        .select(`
+  const loadBookings = useCallback(
+    async (coachId: string) => {
+      try {
+        const { data: bookingsData, error } = await supabase
+          .from('gym_bookings')
+          .select(
+            `
           *,
           coach:coach_profiles!coach_id(*)
-        `)
-        .eq('coach_id', coachId)
-        .order('start_time', { ascending: true });
+        `,
+          )
+          .eq('coach_id', coachId)
+          .order('start_time', { ascending: true })
 
-      if (error) throw error;
+        if (error) throw error
 
-      setBookings(bookingsData || []);
-      calculateStats(bookingsData || []);
-    } catch (error) {
-      console.error('Error loading bookings:', error);
-      toast.error('Erreur lors du chargement des réservations');
-    }
-  }, [supabase]);
+        setBookings(bookingsData || [])
+        calculateStats(bookingsData || [])
+      } catch (error) {
+        console.error('Error loading bookings:', error)
+        toast.error('Erreur lors du chargement des réservations')
+      }
+    },
+    [supabase],
+  )
 
   const loadCoachData = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoading(true)
 
       // Load coach profile
       const { data: profileData, error: profileError } = await supabase
         .from('coach_profiles')
         .select('*')
         .eq('user_id', user?.id)
-        .single();
+        .single()
 
       if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
+        throw profileError
       }
 
       if (profileData) {
-        setCoachProfile(profileData);
-        await loadBookings(profileData.id);
+        setCoachProfile(profileData)
+        await loadBookings(profileData.id)
       }
     } catch (error) {
-      console.error('Error loading coach data:', error);
-      toast.error('Erreur lors du chargement des données');
+      console.error('Error loading coach data:', error)
+      toast.error('Erreur lors du chargement des données')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [user, supabase, loadBookings]);
+  }, [user, supabase, loadBookings])
 
   useEffect(() => {
     if (user) {
-      loadCoachData();
+      loadCoachData()
     }
-  }, [user, loadCoachData]);
+  }, [user, loadCoachData])
 
   const calculateStats = (bookings: GymBooking[]) => {
-    const now = new Date();
-    const upcoming = bookings.filter(b => isAfter(new Date(b.start_time), now));
+    const now = new Date()
+    const upcoming = bookings.filter((b) =>
+      isAfter(new Date(b.start_time), now),
+    )
 
     const stats: CoachDashboardStats = {
       total_classes: bookings.length,
       upcoming_classes: upcoming.length,
-      total_participants: bookings.reduce((sum, b) => sum + b.current_participants, 0),
-      total_revenue: bookings.reduce((sum, b) => sum + (b.price_cents * b.current_participants), 0) / 100,
-    };
+      total_participants: bookings.reduce(
+        (sum, b) => sum + b.current_participants,
+        0,
+      ),
+      total_revenue:
+        bookings.reduce(
+          (sum, b) => sum + b.price_cents * b.current_participants,
+          0,
+        ) / 100,
+    }
 
-    setStats(stats);
-  };
+    setStats(stats)
+  }
 
   const handleCreateBooking = async (bookingData: CreateGymBookingData) => {
-    if (!coachProfile) return;
+    if (!coachProfile) return
 
     try {
       const formattedData = {
@@ -106,47 +134,48 @@ export const CoachDashboard: React.FC = () => {
         end_time: new Date(bookingData.end_time).toISOString(),
         max_participants: bookingData.max_participants || 10,
         price_cents: bookingData.price_cents || 0,
-      };
+      }
 
-      console.log('Creating booking with data:', formattedData);
+      console.log('Creating booking with data:', formattedData)
 
       const { error } = await supabase
         .from('gym_bookings')
-        .insert(formattedData);
+        .insert(formattedData)
 
       if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+        console.error('Supabase error:', error)
+        throw error
       }
 
-      toast.success('Cours créé avec succès!');
-      setShowCreateModal(false);
-      loadBookings(coachProfile.id);
+      toast.success('Cours créé avec succès!')
+      setShowCreateModal(false)
+      loadBookings(coachProfile.id)
     } catch (error: unknown) {
-      console.error('Error creating booking:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      toast.error(`Erreur: ${errorMessage}`);
+      console.error('Error creating booking:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Erreur inconnue'
+      toast.error(`Erreur: ${errorMessage}`)
     }
-  };
+  }
 
   const handleDeleteBooking = async (bookingId: string) => {
     try {
       const { error } = await supabase
         .from('gym_bookings')
         .delete()
-        .eq('id', bookingId);
+        .eq('id', bookingId)
 
-      if (error) throw error;
+      if (error) throw error
 
-      toast.success('Cours supprimé');
+      toast.success('Cours supprimé')
       if (coachProfile) {
-        loadBookings(coachProfile.id);
+        loadBookings(coachProfile.id)
       }
     } catch (error) {
-      console.error('Error deleting booking:', error);
-      toast.error('Erreur lors de la suppression');
+      console.error('Error deleting booking:', error)
+      toast.error('Erreur lors de la suppression')
     }
-  };
+  }
 
   const handleCreateProfile = async (profileData: CreateCoachProfileData) => {
     try {
@@ -157,25 +186,25 @@ export const CoachDashboard: React.FC = () => {
           ...profileData,
         })
         .select()
-        .single();
+        .single()
 
-      if (error) throw error;
+      if (error) throw error
 
-      setCoachProfile(data);
-      toast.success('Profil coach créé avec succès!');
-      setShowProfileModal(false);
+      setCoachProfile(data)
+      toast.success('Profil coach créé avec succès!')
+      setShowProfileModal(false)
     } catch (error) {
-      console.error('Error creating profile:', error);
-      toast.error('Erreur lors de la création du profil');
+      console.error('Error creating profile:', error)
+      toast.error('Erreur lors de la création du profil')
     }
-  };
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    );
+    )
   }
 
   if (!coachProfile) {
@@ -204,7 +233,7 @@ export const CoachDashboard: React.FC = () => {
           onSave={handleCreateProfile}
         />
       </div>
-    );
+    )
   }
 
   return (
@@ -217,7 +246,8 @@ export const CoachDashboard: React.FC = () => {
                 Dashboard Coach
               </h1>
               <p className="text-gray-600 mt-1">
-                {coachProfile.first_name} {coachProfile.last_name} - {coachProfile.coach_type}
+                {coachProfile.first_name} {coachProfile.last_name} -{' '}
+                {coachProfile.coach_type}
               </p>
             </div>
             <div className="flex gap-4">
@@ -248,7 +278,9 @@ export const CoachDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total cours</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total_classes}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total_classes}
+                </p>
               </div>
             </div>
           </div>
@@ -259,8 +291,12 @@ export const CoachDashboard: React.FC = () => {
                 <Clock className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Prochains cours</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.upcoming_classes}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Prochains cours
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.upcoming_classes}
+                </p>
               </div>
             </div>
           </div>
@@ -271,8 +307,12 @@ export const CoachDashboard: React.FC = () => {
                 <Users className="w-6 h-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Participants</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total_participants}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Participants
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total_participants}
+                </p>
               </div>
             </div>
           </div>
@@ -283,8 +323,12 @@ export const CoachDashboard: React.FC = () => {
                 <DollarSign className="w-6 h-6 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Revenu total</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total_revenue}€</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Revenu total
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total_revenue}€
+                </p>
               </div>
             </div>
           </div>
@@ -303,23 +347,38 @@ export const CoachDashboard: React.FC = () => {
               </div>
             ) : (
               bookings.map((booking) => (
-                <div key={booking.id} className="px-6 py-4 flex items-center justify-between">
+                <div
+                  key={booking.id}
+                  className="px-6 py-4 flex items-center justify-between"
+                >
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium text-gray-900">{booking.title}</h3>
-                    <p className="text-sm text-gray-500">{booking.description}</p>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {booking.title}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {booking.description}
+                    </p>
                     <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
                       <span className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {format(new Date(booking.start_time), 'dd MMM yyyy', { locale: fr })}
+                        {format(new Date(booking.start_time), 'dd MMM yyyy', {
+                          locale: fr,
+                        })}
                       </span>
                       <span className="flex items-center">
                         <Clock className="w-4 h-4 mr-1" />
-                        {format(new Date(booking.start_time), 'HH:mm', { locale: fr })} -
-                        {format(new Date(booking.end_time), 'HH:mm', { locale: fr })}
+                        {format(new Date(booking.start_time), 'HH:mm', {
+                          locale: fr,
+                        })}{' '}
+                        -
+                        {format(new Date(booking.end_time), 'HH:mm', {
+                          locale: fr,
+                        })}
                       </span>
                       <span className="flex items-center">
                         <Users className="w-4 h-4 mr-1" />
-                        {booking.current_participants}/{booking.max_participants}
+                        {booking.current_participants}/
+                        {booking.max_participants}
                       </span>
                     </div>
                   </div>
@@ -337,12 +396,8 @@ export const CoachDashboard: React.FC = () => {
 
         {/* Planning Global */}
         <div className="mt-8">
-          <GlobalSchedule
-            viewMode="coach"
-            coachId={coachProfile?.id}
-          />
+          <GlobalSchedule viewMode="coach" coachId={coachProfile?.id} />
         </div>
-
       </div>
 
       <CreateBookingModal
@@ -359,5 +414,5 @@ export const CoachDashboard: React.FC = () => {
         initialData={coachProfile}
       />
     </div>
-  );
-};
+  )
+}

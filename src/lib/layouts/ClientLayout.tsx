@@ -1,34 +1,34 @@
-import React, { useEffect } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { Brackets as Racket, Calendar, LogOut } from "lucide-react";
-import { useAuth } from "@/lib/contexts/Auth";
-import toast from "react-hot-toast";
-import { useTranslation } from 'react-i18next';
-import { LanguageSwitcher } from '@/components/dashboard/language-switcher';
-import { Spinner } from '@/components/dashboard/spinner';
+import React, { useEffect } from 'react'
+import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Brackets as Racket, Calendar, LogOut } from 'lucide-react'
+import { useAuth } from '@/lib/contexts/Auth'
+import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
+import { LanguageSwitcher } from '@/components/dashboard/language-switcher'
+import { Spinner } from '@/components/dashboard/spinner'
 
 const ClientLayout: React.FC = () => {
-  const { signOut, user, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { signOut, user, isLoading } = useAuth()
+  const navigate = useNavigate()
+  const { t } = useTranslation()
 
   useEffect(() => {
     // Handle any auth-related errors that might occur
     if (!isLoading && !user) {
-      console.log("No user in ClientLayout, redirecting to login");
-      navigate("/login");
+      console.log('No user in ClientLayout, redirecting to login')
+      navigate('/login')
     }
-  }, [isLoading, user, navigate]);
+  }, [isLoading, user, navigate])
 
   const handleSignOut = async () => {
     try {
-      await signOut();
-      navigate("/login");
+      await signOut()
+      navigate('/login')
     } catch (error) {
-      console.error("Error during sign out:", error);
-      toast.error("Failed to sign out properly");
+      console.error('Error during sign out:', error)
+      toast.error('Failed to sign out properly')
     }
-  };
+  }
 
   // Show a mini loading indicator if auth state is still loading
   if (isLoading) {
@@ -39,7 +39,7 @@ const ClientLayout: React.FC = () => {
           <p className="mt-2">{t('loadingAccount')}</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -78,9 +78,10 @@ const ClientLayout: React.FC = () => {
               <NavLink
                 to="/home"
                 className={({ isActive }) =>
-                  `flex items-center px-2 py-1 border-b-2 text-sm font-medium ${isActive
-                    ? "border-[var(--primary)] text-[var(--primary)]"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  `flex items-center px-2 py-1 border-b-2 text-sm font-medium ${
+                    isActive
+                      ? 'border-[var(--primary)] text-[var(--primary)]'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`
                 }
               >
@@ -91,9 +92,10 @@ const ClientLayout: React.FC = () => {
               <NavLink
                 to="/home/my-reservations"
                 className={({ isActive }) =>
-                  `flex items-center px-2 py-1 border-b-2 text-sm font-medium ${isActive
-                    ? "border-[var(--primary)] text-[var(--primary)]"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  `flex items-center px-2 py-1 border-b-2 text-sm font-medium ${
+                    isActive
+                      ? 'border-[var(--primary)] text-[var(--primary)]'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`
                 }
               >
@@ -118,7 +120,7 @@ const ClientLayout: React.FC = () => {
         </div>
       </footer>
     </div>
-  );
-};
+  )
+}
 
-export default ClientLayout;
+export default ClientLayout

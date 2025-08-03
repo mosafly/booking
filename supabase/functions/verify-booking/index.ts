@@ -1,112 +1,109 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { corsHeaders } from '../_shared/cors.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // Environment variables
-const supabaseUrl = Deno.env.get("SUPABASE_URL");
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const supabaseUrl = Deno.env.get('SUPABASE_URL')
+const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
 serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     // Validate environment variables
     if (!supabaseUrl || !supabaseServiceRoleKey) {
-      console.error("Missing required environment variables");
+      console.error('Missing required environment variables')
       return new Response(
-        JSON.stringify({ error: "Missing required environment variables" }),
+        JSON.stringify({ error: 'Missing required environment variables' }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500,
-        }
-      );
+        },
+      )
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
 
     // Handle both GET (for QR code scanning) and POST (for manual verification)
-    let verificationId: string;
-    let reservationId: string;
-    let verifiedBy = "system";
+    let verificationId: string
+    let reservationId: string
+    let verifiedBy = 'system'
 
-    if (req.method === "GET") {
-      const url = new URL(req.url);
-      verificationId = url.searchParams.get("id") || "";
-      reservationId = url.searchParams.get("reservation") || "";
-      verifiedBy = url.searchParams.get("verified_by") || "qr_scan";
-    } else if (req.method === "POST") {
-      const body = await req.json();
-      verificationId = body.verification_id || "";
-      reservationId = body.reservation_id || "";
-      verifiedBy = body.verified_by || "manual";
+    if (req.method === 'GET') {
+      const url = new URL(req.url)
+      verificationId = url.searchParams.get('id') || ''
+      reservationId = url.searchParams.get('reservation') || ''
+      verifiedBy = url.searchParams.get('verified_by') || 'qr_scan'
+    } else if (req.method === 'POST') {
+      const body = await req.json()
+      verificationId = body.verification_id || ''
+      reservationId = body.reservation_id || ''
+      verifiedBy = body.verified_by || 'manual'
     } else {
-      return new Response(
-        JSON.stringify({ error: "Method not allowed" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 405,
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 405,
+      })
     }
 
     if (!verificationId || !reservationId) {
       return new Response(
-        JSON.stringify({ 
-          error: "Missing verification ID or reservation ID",
-          success: false 
+        JSON.stringify({
+          error: 'Missing verification ID or reservation ID',
+          success: false,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
-        }
-      );
+        },
+      )
     }
 
     // Verify the booking
-    console.log(`verify-booking: Verifying reservation ${reservationId} with verification ID ${verificationId}`);
-    
-    const { data: verificationResult, error: verificationError } = await supabase.rpc(
-      "verify_booking_qr",
-      {
+    console.log(
+      `verify-booking: Verifying reservation ${reservationId} with verification ID ${verificationId}`,
+    )
+
+    const { data: verificationResult, error: verificationError } =
+      await supabase.rpc('verify_booking_qr', {
         p_verification_id: verificationId,
         p_reservation_id: reservationId,
         p_verified_by: verifiedBy,
-      }
-    );
+      })
 
     if (verificationError) {
-      console.error("verify-booking: Database error:", verificationError);
+      console.error('verify-booking: Database error:', verificationError)
       return new Response(
-        JSON.stringify({ 
-          error: "Database error during verification",
-          success: false 
+        JSON.stringify({
+          error: 'Database error during verification',
+          success: false,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500,
-        }
-      );
+        },
+      )
     }
 
     if (!verificationResult || verificationResult.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          error: "No verification result returned",
-          success: false 
+        JSON.stringify({
+          error: 'No verification result returned',
+          success: false,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500,
-        }
-      );
+        },
+      )
     }
 
-    const result = verificationResult[0];
+    const result = verificationResult[0]
 
     // For GET requests (QR code scanning), return HTML page
-    if (req.method === "GET") {
+    if (req.method === 'GET') {
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="fr">
@@ -167,8 +164,9 @@ serve(async (req: Request) => {
         </head>
         <body>
           <div class="container">
-            ${result.success 
-              ? `
+            ${
+              result.success
+                ? `
                 <div class="icon ${result.already_used ? 'warning' : 'success'}">
                   ${result.already_used ? '⚠️' : '✅'}
                 </div>
@@ -180,26 +178,31 @@ serve(async (req: Request) => {
                 <div class="details">
                   <h3>Détails de la réservation</h3>
                   <p><strong>Court :</strong> ${result.court_name}</p>
-                  <p><strong>Date :</strong> ${new Date(result.start_time).toLocaleDateString('fr-FR', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  <p><strong>Date :</strong> ${new Date(
+                    result.start_time,
+                  ).toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
                   })}</p>
-                  <p><strong>Heure :</strong> ${new Date(result.start_time).toLocaleTimeString('fr-FR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  <p><strong>Heure :</strong> ${new Date(
+                    result.start_time,
+                  ).toLocaleTimeString('fr-FR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
                   })}</p>
                   <p><strong>Prix :</strong> ${result.total_price} XOF</p>
                   <p><strong>Email :</strong> ${result.user_email}</p>
                 </div>
                 
-                ${!result.already_used 
-                  ? '<p class="success">Accès autorisé au court !</p>' 
-                  : '<p class="warning">Ce QR code a déjà été utilisé.</p>'
+                ${
+                  !result.already_used
+                    ? '<p class="success">Accès autorisé au court !</p>'
+                    : '<p class="warning">Ce QR code a déjà été utilisé.</p>'
                 }
               `
-              : `
+                : `
                 <div class="icon error">❌</div>
                 <h1 class="error">Vérification échouée</h1>
                 <p>${result.message}</p>
@@ -211,12 +214,12 @@ serve(async (req: Request) => {
           </div>
         </body>
         </html>
-      `;
+      `
 
       return new Response(htmlContent, {
-        headers: { ...corsHeaders, "Content-Type": "text/html" },
+        headers: { ...corsHeaders, 'Content-Type': 'text/html' },
         status: 200,
-      });
+      })
     }
 
     // For POST requests, return JSON
@@ -225,34 +228,36 @@ serve(async (req: Request) => {
         success: result.success,
         message: result.message,
         already_used: result.already_used,
-        reservation_details: result.success ? {
-          reservation_id: result.reservation_id,
-          court_name: result.court_name,
-          start_time: result.start_time,
-          user_email: result.user_email,
-          total_price: result.total_price,
-        } : null,
+        reservation_details: result.success
+          ? {
+              reservation_id: result.reservation_id,
+              court_name: result.court_name,
+              start_time: result.start_time,
+              user_email: result.user_email,
+              total_price: result.total_price,
+            }
+          : null,
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
-      }
-    );
-
+      },
+    )
   } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : "An unknown error occurred";
-    console.error("verify-booking: Unexpected error:", e);
-    
+    const errorMessage =
+      e instanceof Error ? e.message : 'An unknown error occurred'
+    console.error('verify-booking: Unexpected error:', e)
+
     return new Response(
-      JSON.stringify({ 
-        error: "Internal server error", 
+      JSON.stringify({
+        error: 'Internal server error',
         details: errorMessage,
-        success: false 
+        success: false,
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    )
   }
-});
+})

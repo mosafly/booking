@@ -1,54 +1,55 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, ShoppingCart } from 'lucide-react';
-import { supabase } from '@/lib/supabase/client';
-
+import React, { useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { CheckCircle, ShoppingCart } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 type SaleItem = {
-  id: string;
-  name: string;
-  quantity: number;
-  price_cents: number;
-  total_price_cents: number;
-};
+  id: string
+  name: string
+  quantity: number
+  price_cents: number
+  total_price_cents: number
+}
 
 type Sale = {
-  id: string;
-  total_cents: number;
-  created_at: string;
-  sale_items: SaleItem[];
-};
+  id: string
+  total_cents: number
+  created_at: string
+  sale_items: SaleItem[]
+}
 
 export default function PosSuccessPage() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
-  const [sale, setSale] = React.useState<Sale | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [sale, setSale] = React.useState<Sale | null>(null)
+  const [loading, setLoading] = React.useState(true)
 
-  const saleId = searchParams.get('sale_id');
+  const saleId = searchParams.get('sale_id')
 
   useEffect(() => {
     if (!saleId) {
-      navigate('/pos');
-      return;
+      navigate('/pos')
+      return
     }
 
     const fetchSaleDetails = async () => {
       try {
         const { data, error } = await supabase
           .from('sales')
-          .select(`
+          .select(
+            `
             *,
             sale_items(
               *,
               products(name)
             )
-          `)
+          `,
+          )
           .eq('id', saleId)
-          .single();
+          .single()
 
-        if (error) throw error;
+        if (error) throw error
 
         // Transform the data to match our types
         const saleData: Sale = {
@@ -61,34 +62,34 @@ export default function PosSuccessPage() {
             name: item.products.name,
             quantity: item.quantity,
             price_cents: item.unit_price_cents,
-            total_price_cents: item.total_price_cents
-          }))
-        };
+            total_price_cents: item.total_price_cents,
+          })),
+        }
 
-        setSale(saleData);
+        setSale(saleData)
       } catch (error) {
-        console.error('Error fetching sale details:', error);
+        console.error('Error fetching sale details:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchSaleDetails();
-  }, [saleId, navigate]);
+    fetchSaleDetails()
+  }, [saleId, navigate])
 
   const formatFCFA = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'XOF',
-    }).format(amount);
-  };
+    }).format(amount)
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600"></div>
       </div>
-    );
+    )
   }
 
   if (!sale) {
@@ -104,7 +105,7 @@ export default function PosSuccessPage() {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -132,19 +133,28 @@ export default function PosSuccessPage() {
             </div>
             <div className="flex justify-between items-center mt-2">
               <span className="text-gray-600">Total:</span>
-              <span className="font-bold text-lg">{formatFCFA(sale.total_cents)}</span>
+              <span className="font-bold text-lg">
+                {formatFCFA(sale.total_cents)}
+              </span>
             </div>
           </div>
 
           <div className="space-y-4 mb-6">
             <h3 className="font-semibold text-gray-900">Détails de la vente</h3>
             {sale.sale_items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+              <div
+                key={item.id}
+                className="flex justify-between items-center py-2 border-b border-gray-100"
+              >
                 <div>
                   <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-gray-600">{item.quantity} × {formatFCFA(item.price_cents)}</p>
+                  <p className="text-sm text-gray-600">
+                    {item.quantity} × {formatFCFA(item.price_cents)}
+                  </p>
                 </div>
-                <p className="font-medium">{formatFCFA(item.total_price_cents)}</p>
+                <p className="font-medium">
+                  {formatFCFA(item.total_price_cents)}
+                </p>
               </div>
             ))}
           </div>
@@ -167,5 +177,5 @@ export default function PosSuccessPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

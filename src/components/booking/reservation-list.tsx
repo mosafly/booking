@@ -1,27 +1,27 @@
-import React from "react";
-import { format } from "date-fns";
-import { enUS, fr } from "date-fns/locale";
-import { Calendar, Clock, DollarSign } from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import React from 'react'
+import { format } from 'date-fns'
+import { enUS, fr } from 'date-fns/locale'
+import { Calendar, Clock, DollarSign } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export type Reservation = {
-  id: string;
-  court_id: string;
-  court_name: string;
-  user_id: string;
-  user_email?: string;
-  start_time: string;
-  end_time: string;
-  total_price: number;
-  status: "pending" | "confirmed" | "cancelled";
-  created_at: string;
-};
+  id: string
+  court_id: string
+  court_name: string
+  user_id: string
+  user_email?: string
+  start_time: string
+  end_time: string
+  total_price: number
+  status: 'pending' | 'confirmed' | 'cancelled'
+  created_at: string
+}
 
 interface ReservationListProps {
-  reservations: Reservation[];
-  onCancel?: (id: string) => void;
-  isAdmin?: boolean;
-  onConfirm?: (id: string) => void;
+  reservations: Reservation[]
+  onCancel?: (id: string) => void
+  isAdmin?: boolean
+  onConfirm?: (id: string) => void
 }
 
 const ReservationList: React.FC<ReservationListProps> = ({
@@ -30,39 +30,51 @@ const ReservationList: React.FC<ReservationListProps> = ({
   isAdmin,
   onConfirm,
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation()
 
-  const currentLocale = i18n.language === 'fr' ? fr : enUS;
+  const currentLocale = i18n.language === 'fr' ? fr : enUS
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "P", { locale: currentLocale });
-  };
+    return format(new Date(dateString), 'P', { locale: currentLocale })
+  }
 
   const formatTime = (dateString: string) => {
-    return format(new Date(dateString), "p", { locale: currentLocale });
-  };
+    return format(new Date(dateString), 'p', { locale: currentLocale })
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-CI', {
       style: 'currency',
       currency: 'XOF',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return <span className="badge badge-success">{t('reservationList.statusConfirmed')}</span>;
-      case "pending":
-        return <span className="badge badge-warning">{t('reservationList.statusPending')}</span>;
-      case "cancelled":
-        return <span className="badge badge-danger">{t('reservationList.statusCancelled')}</span>;
+      case 'confirmed':
+        return (
+          <span className="badge badge-success">
+            {t('reservationList.statusConfirmed')}
+          </span>
+        )
+      case 'pending':
+        return (
+          <span className="badge badge-warning">
+            {t('reservationList.statusPending')}
+          </span>
+        )
+      case 'cancelled':
+        return (
+          <span className="badge badge-danger">
+            {t('reservationList.statusCancelled')}
+          </span>
+        )
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
@@ -94,7 +106,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
                   <div className="mt-1 flex items-center text-sm text-gray-700">
                     <Clock size={16} className="mr-1" />
                     <span>
-                      {formatTime(reservation.start_time)} -{" "}
+                      {formatTime(reservation.start_time)} -{' '}
                       {formatTime(reservation.end_time)}
                     </span>
                   </div>
@@ -111,7 +123,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
 
                   <div className="flex space-x-2">
                     {isAdmin &&
-                      reservation.status === "pending" &&
+                      reservation.status === 'pending' &&
                       onConfirm && (
                         <button
                           onClick={() => onConfirm(reservation.id)}
@@ -121,8 +133,8 @@ const ReservationList: React.FC<ReservationListProps> = ({
                         </button>
                       )}
 
-                    {(reservation.status === "pending" ||
-                      (isAdmin && reservation.status === "confirmed")) &&
+                    {(reservation.status === 'pending' ||
+                      (isAdmin && reservation.status === 'confirmed')) &&
                       onCancel && (
                         <button
                           onClick={() => onCancel(reservation.id)}
@@ -139,7 +151,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
         ))
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ReservationList;
+export default ReservationList

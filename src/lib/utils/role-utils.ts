@@ -2,7 +2,7 @@
  * Role-based access control utilities
  */
 
-export type UserRole = 'client' | 'admin' | 'super_admin' | 'coach';
+export type UserRole = 'client' | 'admin' | 'super_admin' | 'coach'
 
 /**
  * Check if user has admin access (admin or super_admin)
@@ -10,17 +10,19 @@ export type UserRole = 'client' | 'admin' | 'super_admin' | 'coach';
  * @returns Whether user has admin access
  */
 export const hasAdminAccess = (role: UserRole | null | undefined): boolean => {
-  return role === 'admin' || role === 'super_admin';
-};
+  return role === 'admin' || role === 'super_admin'
+}
 
 /**
  * Check if user has super admin access
  * @param role User role
  * @returns Whether user has super admin access
  */
-export const hasSuperAdminAccess = (role: UserRole | null | undefined): boolean => {
-  return role === 'super_admin';
-};
+export const hasSuperAdminAccess = (
+  role: UserRole | null | undefined,
+): boolean => {
+  return role === 'super_admin'
+}
 
 /**
  * Check if user has coach access
@@ -28,8 +30,8 @@ export const hasSuperAdminAccess = (role: UserRole | null | undefined): boolean 
  * @returns Whether user has coach access
  */
 export const hasCoachAccess = (role: UserRole | null | undefined): boolean => {
-  return role === 'coach' || hasAdminAccess(role);
-};
+  return role === 'coach' || hasAdminAccess(role)
+}
 
 /**
  * Check if user has role access for a specific route
@@ -39,26 +41,32 @@ export const hasCoachAccess = (role: UserRole | null | undefined): boolean => {
  */
 export const hasRoleAccess = (
   role: UserRole | null | undefined,
-  requiredRole: UserRole
+  requiredRole: UserRole,
 ): boolean => {
-  if (!role) return false;
-  
+  if (!role) return false
+
   // Super admin has access to everything
-  if (role === 'super_admin') return true;
-  
+  if (role === 'super_admin') return true
+
   // Admin has access to admin and client routes
-  if (role === 'admin' && (requiredRole === 'admin' || requiredRole === 'client')) {
-    return true;
+  if (
+    role === 'admin' &&
+    (requiredRole === 'admin' || requiredRole === 'client')
+  ) {
+    return true
   }
-  
+
   // Coach has access to coach and client routes
-  if (role === 'coach' && (requiredRole === 'coach' || requiredRole === 'client')) {
-    return true;
+  if (
+    role === 'coach' &&
+    (requiredRole === 'coach' || requiredRole === 'client')
+  ) {
+    return true
   }
-  
+
   // Exact role match
-  return role === requiredRole;
-};
+  return role === requiredRole
+}
 
 /**
  * Get role hierarchy level (higher number = more permissions)
@@ -67,13 +75,18 @@ export const hasRoleAccess = (
  */
 export const getRoleLevel = (role: UserRole | null | undefined): number => {
   switch (role) {
-    case 'super_admin': return 4;
-    case 'admin': return 3;
-    case 'coach': return 2;
-    case 'client': return 1;
-    default: return 0;
+    case 'super_admin':
+      return 4
+    case 'admin':
+      return 3
+    case 'coach':
+      return 2
+    case 'client':
+      return 1
+    default:
+      return 0
   }
-};
+}
 
 /**
  * Check if user can perform action on target user
@@ -83,43 +96,52 @@ export const getRoleLevel = (role: UserRole | null | undefined): number => {
  */
 export const canManageUser = (
   userRole: UserRole | null | undefined,
-  targetRole: UserRole | null | undefined
+  targetRole: UserRole | null | undefined,
 ): boolean => {
-  const userLevel = getRoleLevel(userRole);
-  const targetLevel = getRoleLevel(targetRole);
-  
-  return userLevel > targetLevel;
-};
+  const userLevel = getRoleLevel(userRole)
+  const targetLevel = getRoleLevel(targetRole)
+
+  return userLevel > targetLevel
+}
 
 /**
  * Get available roles for assignment based on current user's role
  * @param currentRole Current user's role
  * @returns Array of roles that can be assigned
  */
-export const getAssignableRoles = (currentRole: UserRole | null | undefined): UserRole[] => {
+export const getAssignableRoles = (
+  currentRole: UserRole | null | undefined,
+): UserRole[] => {
   switch (currentRole) {
     case 'super_admin':
-      return ['client', 'coach', 'admin', 'super_admin'];
+      return ['client', 'coach', 'admin', 'super_admin']
     case 'admin':
-      return ['client', 'coach', 'admin'];
+      return ['client', 'coach', 'admin']
     case 'coach':
-      return ['client'];
+      return ['client']
     default:
-      return [];
+      return []
   }
-};
+}
 
 /**
  * Get role display name
  * @param role User role
  * @returns Human-readable role name
  */
-export const getRoleDisplayName = (role: UserRole | null | undefined): string => {
+export const getRoleDisplayName = (
+  role: UserRole | null | undefined,
+): string => {
   switch (role) {
-    case 'super_admin': return 'Super Administrateur';
-    case 'admin': return 'Administrateur';
-    case 'coach': return 'Coach';
-    case 'client': return 'Client';
-    default: return 'Utilisateur';
+    case 'super_admin':
+      return 'Super Administrateur'
+    case 'admin':
+      return 'Administrateur'
+    case 'coach':
+      return 'Coach'
+    case 'client':
+      return 'Client'
+    default:
+      return 'Utilisateur'
   }
-};
+}

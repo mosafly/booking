@@ -1,53 +1,53 @@
-import React, { useState } from "react";
-import { useTranslation } from 'react-i18next';
+import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export type CourtFormData = {
-  name: string;
-  description: string;
-  price_per_hour: number;
-  image_url: string;
-  status: "available" | "reserved" | "maintenance";
-};
+  name: string
+  description: string
+  price_per_hour: number
+  image_url: string
+  status: 'available' | 'reserved' | 'maintenance'
+}
 
 interface CourtFormProps {
-  initialData?: CourtFormData;
-  onSubmit: (data: CourtFormData) => void;
-  isSubmitting: boolean;
+  initialData?: CourtFormData
+  onSubmit: (data: CourtFormData) => void
+  isSubmitting: boolean
 }
 
 const defaultFormData: CourtFormData = {
-  name: "",
-  description: "",
+  name: '',
+  description: '',
   price_per_hour: 0,
-  image_url: "",
-  status: "available",
-};
+  image_url: '',
+  status: 'available',
+}
 
 const CourtForm: React.FC<CourtFormProps> = ({
   initialData = defaultFormData,
   onSubmit,
   isSubmitting,
 }) => {
-  const [formData, setFormData] = useState<CourtFormData>(initialData);
-  const { t } = useTranslation();
+  const [formData, setFormData] = useState<CourtFormData>(initialData)
+  const { t } = useTranslation()
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
 
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "price_per_hour" ? parseFloat(value) : value,
-    }));
-  };
+      [name]: name === 'price_per_hour' ? parseFloat(value) : value,
+    }))
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+    e.preventDefault()
+    onSubmit(formData)
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,7 +127,9 @@ const CourtForm: React.FC<CourtFormProps> = ({
         >
           <option value="available">{t('courtForm.statusAvailable')}</option>
           <option value="reserved">{t('courtForm.statusReserved')}</option>
-          <option value="maintenance">{t('courtForm.statusMaintenance')}</option>
+          <option value="maintenance">
+            {t('courtForm.statusMaintenance')}
+          </option>
         </select>
       </div>
 
@@ -137,11 +139,13 @@ const CourtForm: React.FC<CourtFormProps> = ({
           disabled={isSubmitting}
           className="btn btn-primary"
         >
-          {isSubmitting ? t('courtForm.savingButton') : t('courtForm.saveButton')}
+          {isSubmitting
+            ? t('courtForm.savingButton')
+            : t('courtForm.saveButton')}
         </button>
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default CourtForm;
+export default CourtForm
