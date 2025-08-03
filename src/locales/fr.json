@@ -134,6 +134,44 @@
     "backButton": "Retour aux terrains",
     "retryButton": "Réessayer"
   },
+  "purchaseModal": {
+    "title": "Finaliser votre réservation",
+    "description": "Veuillez fournir vos informations pour finaliser la réservation",
+    "summary": "Résumé de la réservation",
+    "court": "Terrain",
+    "date": "Date",
+    "time": "Heure",
+    "total": "Total",
+    "contactInfo": "Informations de contact",
+    "labels": {
+      "name": "Nom complet",
+      "email": "Adresse email",
+      "phone": "Numéro de téléphone"
+    },
+    "placeholders": {
+      "name": "Entrez votre nom complet",
+      "email": "Entrez votre adresse email"
+    },
+    "paymentMethod": "Mode de paiement",
+    "payOnline": "Payer en ligne",
+    "payOnlineDesc": "Paiement sécurisé via Lomi",
+    "payOnSpot": "Payer sur place",
+    "payOnSpotDesc": "Payer à votre arrivée",
+    "errors": {
+      "nameRequired": "Le nom est requis",
+      "emailRequired": "L'email est requis",
+      "emailInvalid": "Veuillez entrer un email valide",
+      "phoneInvalid": "Veuillez entrer un numéro de téléphone valide",
+      "paymentMethodRequired": "Veuillez sélectionner un mode de paiement",
+      "submitError": "Une erreur est survenue"
+    },
+    "buttons": {
+      "cancel": "Annuler",
+      "processing": "Traitement...",
+      "payNow": "Payer maintenant",
+      "reserve": "Réserver maintenant"
+    }
+  },
   "landingPage": {
     "nav": {
       "home": "Accueil",

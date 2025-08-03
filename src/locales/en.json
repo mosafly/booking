@@ -134,6 +134,44 @@
     "backButton": "Back to courts",
     "retryButton": "Try again"
   },
+  "purchaseModal": {
+    "title": "Complete Your Reservation",
+    "description": "Please provide your details to complete the reservation",
+    "summary": "Reservation Summary",
+    "court": "Court",
+    "date": "Date",
+    "time": "Time",
+    "total": "Total",
+    "contactInfo": "Contact Information",
+    "labels": {
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number"
+    },
+    "placeholders": {
+      "name": "Enter your full name",
+      "email": "Enter your email address"
+    },
+    "paymentMethod": "Payment Method",
+    "payOnline": "Pay Online",
+    "payOnlineDesc": "Secure payment via Lomi",
+    "payOnSpot": "Pay at Venue",
+    "payOnSpotDesc": "Pay when you arrive",
+    "errors": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email",
+      "phoneInvalid": "Please enter a valid phone number",
+      "paymentMethodRequired": "Please select a payment method",
+      "submitError": "An error occurred"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "processing": "Processing...",
+      "payNow": "Pay Now",
+      "reserve": "Reserve Now"
+    }
+  },
   "landingPage": {
     "nav": {
       "home": "Home",

@@ -144,10 +144,9 @@ const AdminLayout: React.FC = () => {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center px-4 py-3 text-sm font-medium rounded-md ${
-          isActive
-            ? 'bg-[var(--primary)] text-white'
-            : 'text-gray-700 hover:bg-gray-100'
+        `flex items-center px-4 py-3 text-sm font-medium rounded-sm ${isActive
+          ? 'bg-[var(--primary)] text-white'
+          : 'text-gray-700 hover:bg-gray-100'
         }`
       }
       onClick={() => setSidebarOpen(false)}
@@ -169,9 +168,8 @@ const AdminLayout: React.FC = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:static lg:inset-auto transition-transform duration-300 ease-in-out`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 lg:static lg:inset-auto transition-transform duration-300 ease-in-out`}
       >
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
@@ -278,7 +276,7 @@ const AdminLayout: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={() => setViewDropdownOpen(!viewDropdownOpen)}
-                    className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {getViewIcon(currentView)}
                     <span>Vue: {getViewLabel(currentView)}</span>
@@ -289,37 +287,34 @@ const AdminLayout: React.FC = () => {
                   </button>
 
                   {viewDropdownOpen && (
-                    <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-sm shadow-lg z-50">
                       <div className="py-1">
                         <button
                           onClick={() => handleViewChange('admin')}
-                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
-                            currentView === 'admin'
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${currentView === 'admin'
                               ? 'bg-blue-50 text-blue-700'
                               : 'text-gray-700'
-                          }`}
+                            }`}
                         >
                           <Settings size={16} />
                           <span>Administration</span>
                         </button>
                         <button
                           onClick={() => handleViewChange('coach')}
-                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
-                            currentView === 'coach'
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${currentView === 'coach'
                               ? 'bg-blue-50 text-blue-700'
                               : 'text-gray-700'
-                          }`}
+                            }`}
                         >
                           <Users size={16} />
                           <span>Coach</span>
                         </button>
                         <button
                           onClick={() => handleViewChange('client')}
-                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
-                            currentView === 'client'
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${currentView === 'client'
                               ? 'bg-blue-50 text-blue-700'
                               : 'text-gray-700'
-                          }`}
+                            }`}
                         >
                           <User size={16} />
                           <span>Client</span>

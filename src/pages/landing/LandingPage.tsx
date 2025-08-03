@@ -165,7 +165,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <div className="text-center p-8 bg-gradient-to-br from-lime-50 to-green-50 rounded-2xl shadow-lg hover:shadow-xl transition-all">
+            <div className="text-center p-8 bg-gradient-to-br from-lime-50 to-green-50 rounded-sm shadow-lg hover:shadow-xl transition-all">
               <div className="w-20 h-20 bg-gradient-to-br from-lime-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Award className="w-10 h-10 text-white" />
               </div>
@@ -177,7 +177,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="text-center p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-lg hover:shadow-xl transition-all">
+            <div className="text-center p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-sm shadow-lg hover:shadow-xl transition-all">
               <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Clock className="w-10 h-10 text-white" />
               </div>
@@ -189,7 +189,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="text-center p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-lg hover:shadow-xl transition-all">
+            <div className="text-center p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-sm shadow-lg hover:shadow-xl transition-all">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Users className="w-10 h-10 text-white" />
               </div>
@@ -251,7 +251,7 @@ const LandingPage: React.FC = () => {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
+                className="bg-white rounded-sm shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
               >
                 <img
                   src={`/images/courts/court-${i}.jpg`}
@@ -305,7 +305,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="p-8 bg-gradient-to-br from-lime-50 to-green-50 rounded-2xl shadow-lg">
+            <div className="p-8 bg-gradient-to-br from-lime-50 to-green-50 rounded-sm shadow-lg">
               <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
                 <Users className="w-8 h-8 text-white" />
               </div>
@@ -317,7 +317,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-lg">
+            <div className="p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-sm shadow-lg">
               <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-6">
                 <Award className="w-8 h-8 text-white" />
               </div>
@@ -329,7 +329,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-lg">
+            <div className="p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-sm shadow-lg">
               <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mb-6">
                 <Clock className="w-8 h-8 text-white" />
               </div>
@@ -496,7 +496,7 @@ const LandingPage: React.FC = () => {
                 }}
                 className="text-white hover:text-lime-300 transition-colors text-sm font-medium px-4 py-2 border border-white/20 rounded-full hover:border-lime-300"
               >
-                {i18n.language === 'en' ? 'Français' : 'English'}
+                {i18n.language === 'en' ? 'English' : 'Français'}
               </button>
             </div>
             <p className="text-gray-500">{t('landingPage.footer.copyright')}</p>

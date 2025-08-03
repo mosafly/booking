@@ -70,7 +70,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-md shadow-md animate-fade-in">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-sm shadow-md animate-fade-in">
         <div className="text-center">
           <div className="flex justify-center">
             <Racket className="h-12 w-12 text-[var(--primary)]" />
@@ -90,13 +90,13 @@ const RegisterPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
+          <div className="bg-red-50 text-red-500 p-3 rounded-sm text-sm">
             {error}
           </div>
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="rounded-sm shadow-sm -space-y-px">
             <div className="relative">
               <label htmlFor="admin-pin" className="sr-only">
                 Admin PIN
@@ -179,7 +179,7 @@ const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] disabled:opacity-70 disabled:cursor-not-allowed transition-colors duration-200"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-sm text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] disabled:opacity-70 disabled:cursor-not-allowed transition-colors duration-200"
             >
               {isLoading ? 'Creating admin account...' : 'Create admin account'}
             </button>

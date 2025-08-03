@@ -154,7 +154,7 @@ const ReservationsManagement: React.FC = () => {
         <p className="text-gray-600">View and manage all court reservations</p>
       </div>
 
-      <div className="bg-white rounded-md shadow-sm p-6">
+      <div className="bg-white rounded-sm shadow-sm p-6">
         <div className="flex flex-col md:flex-row md:items-end space-y-4 md:space-y-0 md:space-x-4">
           <div className="flex-1">
             <label
@@ -220,7 +220,7 @@ const ReservationsManagement: React.FC = () => {
           <Spinner />
         </div>
       ) : (
-        <div className="bg-white rounded-md shadow-sm p-6">
+        <div className="bg-white rounded-sm shadow-sm p-6">
           <h2 className="text-lg font-bold mb-4">Reservation List</h2>
           <ReservationList
             reservations={reservations}

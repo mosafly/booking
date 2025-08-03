@@ -58,7 +58,7 @@
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-all duration-200;
+    @apply px-4 py-2 rounded-sm font-medium transition-all duration-200;
   }
 
   .btn-primary {
@@ -82,11 +82,11 @@
   }
 
   .card {
-    @apply bg-white rounded-md shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg;
+    @apply bg-white rounded-sm shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg;
   }
 
   .form-input {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent;
+    @apply w-full px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent;
   }
 
   .form-label {
@@ -98,7 +98,7 @@
   }
 
   .badge {
-    @apply px-2 py-1 text-xs font-medium rounded-md;
+    @apply px-2 py-1 text-xs font-medium rounded-sm;
   }
 
   .badge-primary {

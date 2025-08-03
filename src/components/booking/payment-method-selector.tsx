@@ -33,7 +33,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         <button
           onClick={() => handlePaymentMethodSelect('online')}
           disabled={isProcessing}
-          className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+          className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
           <CreditCard size={20} />
           <span>{t('paymentMethodSelector.payOnline')}</span>
@@ -41,7 +41,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         <button
           onClick={() => handlePaymentMethodSelect('on_spot')}
           disabled={isProcessing}
-          className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+          className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
           <Wallet size={20} />
           <span>{t('paymentMethodSelector.payOnSpot')}</span>

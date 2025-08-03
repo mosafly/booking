@@ -9,7 +9,7 @@ const PaymentCancelPage: React.FC = () => {
   const reservationId = searchParams.get('reservation_id')
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-md shadow-md text-center">
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-sm shadow-md text-center">
       <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
       <h1 className="text-2xl font-bold mb-2">
         {t('paymentCancelPage.title', 'Payment Cancelled or Failed')}
@@ -28,13 +28,13 @@ const PaymentCancelPage: React.FC = () => {
       )}
       <Link
         to="/home"
-        className="inline-block mr-2 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+        className="inline-block mr-2 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-sm shadow-md transition duration-300"
       >
         {t('paymentCancelPage.backButton', 'Back to Courts')}
       </Link>
       <Link
         to={`/home/reservation/${reservationId}`}
-        className="inline-block py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+        className="inline-block py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-sm shadow-md transition duration-300"
       >
         {t('paymentCancelPage.retryButton', 'Try Again')}
       </Link>

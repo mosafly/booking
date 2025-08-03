@@ -9,7 +9,7 @@ const PaymentSuccessPage: React.FC = () => {
   const reservationId = searchParams.get('reservation_id')
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-md shadow-md text-center">
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-sm shadow-md text-center">
       <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
       <h1 className="text-2xl font-bold mb-2">
         {t('paymentSuccessPage.title', 'Payment Successful!')}
@@ -28,7 +28,7 @@ const PaymentSuccessPage: React.FC = () => {
       )}
       <Link
         to="/home/my-reservations"
-        className="inline-block py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+        className="inline-block py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-sm shadow-md transition duration-300"
       >
         {t('paymentSuccessPage.button', 'View My Reservations')}
       </Link>

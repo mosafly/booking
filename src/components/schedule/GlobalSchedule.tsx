@@ -236,7 +236,7 @@ courts:court_id(name),
         <div className="flex gap-2">
           <button
             onClick={() => setViewType(viewType === 'day' ? 'week' : 'day')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700"
           >
             {viewType === 'day' ? 'Vue Semaine' : 'Vue Jour'}
           </button>

@@ -198,7 +198,7 @@ const Dashboard: React.FC = () => {
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="bg-white rounded-md shadow-sm p-6 border border-gray-200"
+            className="bg-white rounded-sm shadow-sm p-6 border border-gray-200"
           >
             <div className="flex items-center mb-2">
               <div className="text-[var(--primary)]">{stat.icon}</div>
@@ -213,12 +213,12 @@ const Dashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-md shadow-sm p-6 border border-gray-200">
+        <div className="bg-white rounded-sm shadow-sm p-6 border border-gray-200">
           <h3 className="text-lg font-bold mb-4">Actions Rapides</h3>
           <div className="space-y-3">
             <a
               href="/admin/products"
-              className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors"
             >
               <Package className="h-4 w-4 mr-2" />
               Gestion Produits
@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-md shadow-sm p-6">
+      <div className="bg-white rounded-sm shadow-sm p-6">
         <h2 className="text-lg font-bold mb-4">Revenue Trend (Last 7 Days)</h2>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -266,7 +266,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-md shadow-sm p-6">
+        <div className="bg-white rounded-sm shadow-sm p-6">
           <h2 className="text-lg font-bold mb-4">Today's Schedule</h2>
           <div className="space-y-3">
             {reservationsData && reservationsData.length > 0 ? (
@@ -293,7 +293,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-md shadow-sm p-6">
+        <div className="bg-white rounded-sm shadow-sm p-6">
           <h2 className="text-lg font-bold mb-4">Court Status</h2>
           <div className="space-y-3">
             {courtsData && courtsData.length > 0 ? (
@@ -304,13 +304,12 @@ const Dashboard: React.FC = () => {
                 >
                   <p className="font-medium">{court.name}</p>
                   <span
-                    className={`badge ${
-                      court.status === 'available'
+                    className={`badge ${court.status === 'available'
                         ? 'badge-success'
                         : court.status === 'maintenance'
                           ? 'badge-danger'
                           : 'badge-accent'
-                    }`}
+                      }`}
                   >
                     {court.status.charAt(0).toUpperCase() +
                       court.status.slice(1)}

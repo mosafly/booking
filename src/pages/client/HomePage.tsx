@@ -243,7 +243,7 @@ const HomePage: React.FC = () => {
 
         <button
           onClick={handleRefresh}
-          className="ml-4 p-2 rounded-md hover:bg-gray-100 transition-colors"
+          className="ml-4 p-2 rounded-sm hover:bg-gray-100 transition-colors"
           title={t('homePage.refreshButtonTitle')}
           disabled={isLoading}
         >
@@ -261,7 +261,7 @@ const HomePage: React.FC = () => {
         </div>
       ) : error ? (
         <div
-          className="text-center py-12 bg-white rounded-md shadow-sm p-6"
+          className="text-center py-12 bg-white rounded-sm shadow-sm p-6"
           data-component-name="HomePage"
         >
           <p className="text-red-500 mb-4">{error}</p>
@@ -270,7 +270,7 @@ const HomePage: React.FC = () => {
           </button>
         </div>
       ) : filteredCourts.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-md shadow-sm">
+        <div className="text-center py-12 bg-white rounded-sm shadow-sm">
           <p className="text-gray-500">
             {searchQuery
               ? t('homePage.noCourtsFoundSearch')
@@ -332,7 +332,7 @@ const HomePage: React.FC = () => {
           {padelCourts.length === 0 &&
             gymEquipment.length === 0 &&
             filteredCourts.length > 0 && (
-              <div className="text-center py-12 bg-white rounded-md shadow-sm">
+              <div className="text-center py-12 bg-white rounded-sm shadow-sm">
                 <p className="text-gray-500">
                   {t(
                     'homePage.noMatchingResults',
