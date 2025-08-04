@@ -1,12 +1,32 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle, Home, Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import {
+  getPendingReservation,
+  clearPendingReservation,
+  addStoredReservation,
+} from '@/lib/utils/reservation-storage'
 
 const PaymentSuccessPage: React.FC = () => {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const reservationId = searchParams.get('reservation_id')
+
+  useEffect(() => {
+    // This effect handles confirming the reservation in localStorage for guest users
+    const pendingReservation = getPendingReservation()
+
+    if (pendingReservation && pendingReservation.id === reservationId) {
+      // The payment was for the reservation we have in storage.
+      // Move it from 'pending' to the main list of reservations with status 'confirmed'.
+      addStoredReservation({
+        ...pendingReservation,
+        status: 'confirmed',
+      })
+      clearPendingReservation() // Clean up the pending reservation
+    }
+  }, [reservationId])
 
   return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-md shadow-lg text-center">

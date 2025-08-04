@@ -69,6 +69,14 @@ BEGIN
         payment_date = NOW(),
         lomi_event_payload = p_lomi_event_payload,
         updated_at = NOW()
+    ON CONFLICT (reservation_id) DO UPDATE SET
+        amount = p_amount_paid,
+        currency = p_currency_paid,
+        provider_payment_id = COALESCE(p_lomi_payment_id, p_lomi_checkout_session_id, 'N/A'),
+        status = 'completed',
+        payment_date = NOW(),
+        lomi_event_payload = p_lomi_event_payload,
+        updated_at = NOW()
     RETURNING id INTO v_payment_id;
 
     RAISE LOG 'Recorded lomi. payment. Padel Payment ID: %, lomi. Payment/Checkout ID: % for Reservation ID: %', 

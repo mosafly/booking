@@ -23,43 +23,29 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 const LOMI_WEBHOOK_SECRET = process.env.LOMI_WEBHOOK_SECRET
 
 // --- Helper: Verify lomi. Webhook Signature ---
-async function verifyLomiWebhook(rawBody, signatureHeader) {
+async function verifyLomiWebhook(rawBody, signatureHeader, webhookSecret) {
   if (!signatureHeader) {
-    throw new Error('Missing lomi. signature header (X-lomi.-Signature).')
+    throw new Error('Missing lomi. signature header (X-lomi-Signature).')
   }
-  if (!LOMI_WEBHOOK_SECRET) {
+  if (!webhookSecret) {
     console.error('LOMI_WEBHOOK_SECRET is not set. Cannot verify webhook.')
-    // In a real scenario, you might want to restrict this error based on NODE_ENV
-    throw new Error('Webhook secret not configured.')
+    throw new Error('Webhook secret not configured internally.')
   }
 
   const expectedSignature = crypto
-    .createHmac('sha256', LOMI_WEBHOOK_SECRET)
-    .update(rawBody) // rawBody should be a string or Buffer
+    .createHmac('sha256', webhookSecret)
+    .update(rawBody)
     .digest('hex')
 
-  try {
-    const sigBuffer = Buffer.from(signatureHeader)
-    const expectedSigBuffer = Buffer.from(expectedSignature)
-    if (
-      sigBuffer.length !== expectedSigBuffer.length ||
-      !crypto.timingSafeEqual(sigBuffer, expectedSigBuffer)
-    ) {
-      throw new Error('lomi. webhook signature mismatch.')
-    }
-  } catch (e) {
-    console.error('Error during signature comparison:', e.message)
-    throw new Error(
-      'lomi. webhook signature verification failed due to comparison error or invalid signature format.',
-    )
+  const sigBuffer = Buffer.from(signatureHeader)
+  const expectedSigBuffer = Buffer.from(expectedSignature)
+  if (
+    sigBuffer.length !== expectedSigBuffer.length ||
+    !crypto.timingSafeEqual(sigBuffer, expectedSigBuffer)
+  ) {
+    throw new Error('lomi. webhook signature mismatch.')
   }
-
-  try {
-    return JSON.parse(rawBody.toString('utf8'))
-  } catch (e) {
-    console.error('Failed to parse JSON from verified webhook body:', e.message)
-    throw new Error('Verified webhook body is not valid JSON.')
-  }
+  return JSON.parse(rawBody.toString('utf8'))
 }
 
 // Configure Vercel to handle raw body for signature verification
@@ -80,19 +66,60 @@ async function getRawBody(req) {
 
 // --- Vercel Function Handler ---
 export default async function handler(req, res) {
+  console.log(
+    '🚀 Padel Webhook: Received request at',
+    new Date().toISOString(),
+  )
+  console.log('📧 Request headers:', req.headers)
+
+  // --- Environment Variables (moved inside function) ---
+  const supabaseUrl = process.env.SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const lomiWebhookSecret = process.env.LOMI_WEBHOOK_SECRET
+
+  console.log('🔧 Environment check:')
+  console.log(`  - SUPABASE_URL: ${supabaseUrl ? '✅ Set' : '❌ Missing'}`)
+  console.log(
+    `  - SUPABASE_SERVICE_ROLE_KEY: ${supabaseServiceKey ? '✅ Set' : '❌ Missing'
+    }`,
+  )
+  console.log(
+    `  - LOMI_WEBHOOK_SECRET: ${lomiWebhookSecret ? '✅ Set' : '❌ Missing'}`,
+  )
+
+  // Check for required environment variables
+  if (!supabaseUrl || !supabaseServiceKey || !lomiWebhookSecret) {
+    console.error(
+      'Padel Webhook: Missing critical environment variables. Check SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LOMI_WEBHOOK_SECRET.',
+    )
+    return res.status(500).json({
+      error: 'Missing required environment variables',
+    })
+  }
+
+  // Initialize Supabase client inside the function
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
-    res.setHeader('Content-Type', 'application/json')
     return res.status(405).json({ error: 'Method Not Allowed' })
   }
 
-  // Get raw body for signature verification
-  const rawBody = await getRawBody(req)
-  const signature = req.headers['x-lomi-signature'] // lomi. sends this header
-
-  let eventPayload
+  let rawBody
   try {
-    eventPayload = await verifyLomiWebhook(rawBody, signature)
+    rawBody = await getRawBody(req)
+  } catch (err) {
+    console.error('Padel App: Error reading request body:', err)
+    return res.status(500).json({ error: 'Failed to read request body' })
+  }
+
+  const signature = req.headers['x-lomi-signature']
+  let eventPayload
+
+  try {
+    eventPayload = await verifyLomiWebhook(rawBody, signature, lomiWebhookSecret)
     console.log(
       'Padel App: lomi. webhook event verified:',
       eventPayload?.event || 'Event type missing',
@@ -102,7 +129,6 @@ export default async function handler(req, res) {
       'Padel App: lomi. signature verification failed:',
       err.message,
     )
-    res.setHeader('Content-Type', 'application/json')
     return res
       .status(400)
       .json({ error: `Webhook verification failed: ${err.message}` })

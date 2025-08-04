@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.reservations (
 -- PAYMENTS table
 CREATE TABLE IF NOT EXISTS public.payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  reservation_id UUID REFERENCES public.reservations(id) ON DELETE CASCADE,
+  reservation_id UUID UNIQUE REFERENCES public.reservations(id) ON DELETE CASCADE, -- Enforce one payment per reservation
   sale_id UUID, -- Will add foreign key constraint after sales table is created
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, -- Made nullable for anonymous payments
   amount DECIMAL(10, 2) NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
 );
 
 -- INDEXES for PAYMENTS table
-CREATE INDEX IF NOT EXISTS payments_reservation_id_idx ON public.payments(reservation_id);
+-- A UNIQUE index on reservation_id is automatically created by the UNIQUE constraint above.
 CREATE INDEX IF NOT EXISTS payments_sale_id_idx ON public.payments(sale_id);
 CREATE INDEX IF NOT EXISTS payments_user_id_idx ON public.payments(user_id);
 CREATE INDEX IF NOT EXISTS payments_status_idx ON public.payments(status);
@@ -147,7 +147,7 @@ $$ LANGUAGE plpgsql
 SET search_path = public;
 
 CREATE TRIGGER update_reservation_status_on_payment_trigger
-AFTER UPDATE ON public.payments
+AFTER INSERT OR UPDATE ON public.payments
 FOR EACH ROW
 EXECUTE FUNCTION public.update_reservation_status_on_payment();
 
