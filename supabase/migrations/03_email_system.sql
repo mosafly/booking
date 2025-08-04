@@ -38,7 +38,7 @@ BEGIN
         public.profiles p ON r.user_id = p.id
     LEFT JOIN 
         auth.users u ON p.id = u.id
-    JOIN 
+    LEFT JOIN 
         public.courts c ON r.court_id = c.id
     LEFT JOIN LATERAL (
         SELECT p.currency 
