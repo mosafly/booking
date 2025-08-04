@@ -136,7 +136,13 @@ EXECUTE FUNCTION public.update_payments_updated_at();
 CREATE OR REPLACE FUNCTION public.update_reservation_status_on_payment()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.status = 'completed' AND OLD.status != 'completed' THEN
+  -- Handle INSERT (new payment record)
+  IF TG_OP = 'INSERT' AND NEW.status = 'completed' THEN
+    UPDATE public.reservations
+    SET status = 'confirmed'
+    WHERE id = NEW.reservation_id;
+  -- Handle UPDATE (existing payment record updated)
+  ELSIF TG_OP = 'UPDATE' AND NEW.status = 'completed' AND (OLD.status IS NULL OR OLD.status != 'completed') THEN
     UPDATE public.reservations
     SET status = 'confirmed'
     WHERE id = NEW.reservation_id;

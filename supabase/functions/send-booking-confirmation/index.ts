@@ -131,6 +131,9 @@ serve(async (req: Request) => {
     }
 
     // --- 3. Set Status to In Progress ---
+    console.log(
+      `send-booking-confirmation: Setting reservation ${reservationIdFromRequest} to DISPATCH_IN_PROGRESS`,
+    )
     await updateEmailDispatchStatus(
       supabase,
       reservationIdFromRequest,
@@ -139,7 +142,7 @@ serve(async (req: Request) => {
 
     if (!bookingData.user_email || !bookingData.court_name) {
       console.error(
-        `Missing essential booking data for ${reservationIdFromRequest}`,
+        `send-booking-confirmation: Missing essential booking data for ${reservationIdFromRequest}`,
       )
       await updateEmailDispatchStatus(
         supabase,
@@ -165,7 +168,7 @@ serve(async (req: Request) => {
 
     if (storeError) {
       console.error(
-        `Failed to store verification ID for ${reservationIdFromRequest}:`,
+        `send-booking-confirmation: Failed to store verification ID for ${reservationIdFromRequest}:`,
         storeError,
       )
       await updateEmailDispatchStatus(
@@ -195,19 +198,20 @@ serve(async (req: Request) => {
       qrCodeImageBytes = new Uint8Array(await qrResponse.arrayBuffer())
     } catch (qrError) {
       console.error(
-        `Failed to generate QR for ${reservationIdFromRequest}:`,
+        `send-booking-confirmation: Failed to generate QR for ${reservationIdFromRequest}:`,
         qrError,
       )
+      const errorMessage = qrError instanceof Error ? qrError.message : 'Unknown QR generation error'
       await updateEmailDispatchStatus(
         supabase,
         reservationIdFromRequest,
         'DISPATCH_FAILED',
-        `QR generation failed: ${qrError.message}`,
+        `QR generation failed: ${errorMessage}`,
       )
       return new Response(
         JSON.stringify({
           error: 'Failed to generate QR code',
-          details: qrError instanceof Error ? qrError.message : 'Unknown error',
+          details: errorMessage,
         }),
         {
           status: 500,
@@ -418,24 +422,21 @@ serve(async (req: Request) => {
     })
 
     if (emailError) {
+      const resendErrorMsg = emailError instanceof Error ? emailError.message : JSON.stringify(emailError)
       console.error(
-        `Resend error for reservation ${reservationIdFromRequest}:`,
-        emailError,
+        `send-booking-confirmation: Resend error for reservation ${reservationIdFromRequest}:`,
+        resendErrorMsg,
       )
-      const errorMessage =
-        emailError instanceof Error
-          ? emailError.message
-          : JSON.stringify(emailError)
       await updateEmailDispatchStatus(
         supabase,
         reservationIdFromRequest,
         'DISPATCH_FAILED',
-        `Resend API error: ${errorMessage}`,
+        `Resend API error: ${resendErrorMsg}`,
       )
       return new Response(
         JSON.stringify({
           error: 'Failed to send email',
-          details: errorMessage,
+          details: resendErrorMsg,
         }),
         {
           status: 500,
@@ -452,7 +453,7 @@ serve(async (req: Request) => {
     )
 
     console.log(
-      `Email sent successfully for reservation ${reservationIdFromRequest}. Email ID: ${emailData?.id}`,
+      `send-booking-confirmation: Email sent successfully for reservation ${reservationIdFromRequest}. Email ID: ${emailData?.id}`,
     )
 
     return new Response(
@@ -467,22 +468,28 @@ serve(async (req: Request) => {
       },
     )
   } catch (e: unknown) {
-    const errorMessage =
-      e instanceof Error ? e.message : 'An unknown error occurred'
+    const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred'
     console.error(
-      `Unexpected error for ${reservationIdFromRequest || 'unknown'}:`,
+      `send-booking-confirmation: Unexpected error for ${reservationIdFromRequest || 'unknown'}:`,
       e,
     )
 
     if (reservationIdFromRequest) {
       // Fallback to update status on unexpected error
-      const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
-      await updateEmailDispatchStatus(
-        supabase,
-        reservationIdFromRequest,
-        'DISPATCH_FAILED',
-        `Unexpected error: ${errorMessage}`,
-      )
+      try {
+        const supabaseForErrorFallback = createClient(supabaseUrl!, supabaseServiceRoleKey!)
+        await updateEmailDispatchStatus(
+          supabaseForErrorFallback,
+          reservationIdFromRequest,
+          'DISPATCH_FAILED',
+          `Unexpected error: ${errorMessage}`,
+        )
+      } catch (updateError) {
+        console.error(
+          `send-booking-confirmation: Failed to update error status for ${reservationIdFromRequest}:`,
+          updateError,
+        )
+      }
     }
 
     return new Response(

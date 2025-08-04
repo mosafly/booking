@@ -105,21 +105,31 @@ serve(async (req: Request) => {
 
         if (courtError) throw courtError
 
-        const { data: settingsData, error: settingsError } = await supabase
-          .from('pricing_settings')
-          .select('use_dynamic_pricing')
-          .single()
-
-        if (settingsError) throw settingsError
-
-        if (settingsData?.use_dynamic_pricing) {
-          useDynamic = true
-        } else if (courtData?.lomi_product_id) {
+        // PRIORITY: If court has a product_id, use product-based pricing
+        if (courtData?.lomi_product_id && courtData.lomi_product_id.trim() !== '') {
           finalProductId = courtData.lomi_product_id
+          useDynamic = false
+          console.log(`Court ${courtId} has product_id: ${finalProductId}, using product-based pricing`)
+        } else {
+          // No product_id for this court, check global settings
+          const { data: settingsData, error: settingsError } = await supabase
+            .from('pricing_settings')
+            .select('use_dynamic_pricing')
+            .single()
+
+          if (settingsError) throw settingsError
+
+          if (settingsData?.use_dynamic_pricing) {
+            useDynamic = true
+            console.log('No product_id found for court, using dynamic pricing per global settings')
+          } else {
+            console.log('No product_id found for court and dynamic pricing disabled, falling back to amount-based')
+            useDynamic = true
+          }
         }
       } catch (error) {
         console.warn(
-          'Failed to fetch pricing settings, falling back to amount-based:',
+          'Failed to fetch court/pricing data, falling back to amount-based:',
           error,
         )
         useDynamic = true

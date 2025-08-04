@@ -9,7 +9,11 @@ RETURNS TABLE (
     court_name TEXT,
     start_time TIMESTAMPTZ,
     total_price NUMERIC,
-    currency TEXT -- Assuming currency is on the reservation or can be derived.
+    currency TEXT, -- Assuming currency is on the reservation or can be derived.
+    email_dispatch_status TEXT,
+    email_dispatch_attempts INTEGER,
+    email_last_dispatch_attempt_at TIMESTAMPTZ,
+    email_dispatch_error TEXT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -23,8 +27,11 @@ BEGIN
         c.name AS court_name,
         r.start_time,
         r.total_price,
-        pay.currency -- Taking currency from the related payment record, as it's most accurate for the transaction.
-                     -- Assumes a payment record is created before this function is called.
+        pay.currency, -- Taking currency from the related payment record, as it's most accurate for the transaction.
+        r.email_dispatch_status,
+        r.email_dispatch_attempts,
+        r.email_last_dispatch_attempt_at,
+        r.email_dispatch_error
     FROM 
         public.reservations r
     LEFT JOIN 
