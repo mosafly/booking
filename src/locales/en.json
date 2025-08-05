@@ -204,10 +204,12 @@
     "nav": {
       "home": "Home",
       "about": "About",
-      "courts": "Our Courts",
+      "courts": "Courts",
       "services": "Services",
+      "gym": "Gym",
+      "bar": "Bar & Relax",
       "contact": "Contact",
-      "reserve": "Book Now"
+      "reserve": "Reserve"
     },
     "hero": {
       "welcome": "Welcome to",
@@ -243,7 +245,7 @@
     },
     "courts": {
       "title": "Our Padel Courts",
-      "subtitle": "Discover our 4 modern padel courts, perfectly maintained and equipped with the latest technologies.",
+      "subtitle": "Discover our 2 modern padel courts, perfectly maintained and equipped with the latest technologies.",
       "courtTitle": "Court",
       "courtDescription": "Professional court with LED lighting, synthetic surface and tempered glass walls.",
       "premium": "Premium",
@@ -281,6 +283,38 @@
       "saturday": "Saturday",
       "sunday": "Sunday",
       "bookFirst": "Book your first court"
+    },
+    "gym": {
+      "title": "Fitness Room",
+      "subtitle": "A modern and equipped gym to complement your training and stay in shape.",
+      "equipment": {
+        "title": "Modern Equipment",
+        "description": "Strength training machines, cardio equipment and professional accessories for all your needs."
+      },
+      "personal": {
+        "title": "Personal Coaching",
+        "description": "Personalized follow-up with our certified coaches to achieve your goals."
+      },
+      "hours": {
+        "title": "Flexible Hours",
+        "description": "Access 7 days a week from 6am to 11pm to fit your schedule."
+      }
+    },
+    "bar": {
+      "title": "Bar & Relaxation",
+      "subtitle": "A friendly space to relax before or after your session with bar, foosball and ping-pong.",
+      "bar": {
+        "title": "Lounge Bar",
+        "description": "Enjoy refreshing drinks, smoothies and snacks in a relaxed atmosphere."
+      },
+      "foosball": {
+        "title": "Foosball",
+        "description": "Challenge your friends on our professional foosball table for fun moments."
+      },
+      "pingpong": {
+        "title": "Ping-Pong",
+        "description": "Ping-pong tables available for friendly matches or competitions."
+      }
     },
     "footer": {
       "description": "The first padel club in Riviera Faya, Abidjan",

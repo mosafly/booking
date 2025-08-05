@@ -82,6 +82,18 @@ const LandingPage: React.FC = () => {
                 {t('landingPage.nav.services')}
               </button>
               <button
+                onClick={() => scrollToSection('gym')}
+                className="text-gray-700 hover:text-lime-600 transition-colors font-medium"
+              >
+                {t('landingPage.nav.gym')}
+              </button>
+              <button
+                onClick={() => scrollToSection('bar')}
+                className="text-gray-700 hover:text-lime-600 transition-colors font-medium"
+              >
+                {t('landingPage.nav.bar')}
+              </button>
+              <button
                 onClick={() => scrollToSection('contact')}
                 className="text-gray-700 hover:text-lime-600 transition-colors font-medium"
               >
@@ -205,7 +217,7 @@ const LandingPage: React.FC = () => {
           {/* Stats Section */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="p-6">
-              <div className="text-4xl font-bold text-lime-600 mb-2">4</div>
+              <div className="text-4xl font-bold text-lime-600 mb-2">2</div>
               <div className="text-gray-600 font-medium">
                 {t('landingPage.about.stats.courts')}
               </div>
@@ -247,8 +259,8 @@ const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
+            {[1, 2].map((i) => (
               <div
                 key={i}
                 className="bg-white rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
@@ -344,6 +356,127 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Gym Section */}
+      <section id="gym" className="py-20 bg-gradient-to-br from-orange-50 to-red-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              {t('landingPage.gym.title')}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {t('landingPage.gym.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <img
+                src="/images/gym/salle-sport.jpg"
+                alt="Salle de sport"
+                className="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+                }}
+              />
+            </div>
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-orange-600 rounded-md flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold">💪</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">{t('landingPage.gym.equipment.title')}</h3>
+                  <p className="text-gray-600">{t('landingPage.gym.equipment.description')}</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-orange-600 rounded-md flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold">🏋️</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">{t('landingPage.gym.personal.title')}</h3>
+                  <p className="text-gray-600">{t('landingPage.gym.personal.description')}</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-orange-600 rounded-md flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold">🕐</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">{t('landingPage.gym.hours.title')}</h3>
+                  <p className="text-gray-600">{t('landingPage.gym.hours.description')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bar & Relaxation Section */}
+      <section id="bar" className="py-20 bg-gradient-to-br from-amber-50 to-yellow-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              {t('landingPage.bar.title')}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {t('landingPage.bar.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="w-16 h-16 bg-amber-600 rounded-md flex items-center justify-center mb-4">
+                <span className="text-white text-2xl">🍹</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{t('landingPage.bar.bar.title')}</h3>
+              <p className="text-gray-600">{t('landingPage.bar.bar.description')}</p>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="w-16 h-16 bg-green-600 rounded-md flex items-center justify-center mb-4">
+                <span className="text-white text-2xl">⚽</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{t('landingPage.bar.foosball.title')}</h3>
+              <p className="text-gray-600">{t('landingPage.bar.foosball.description')}</p>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="w-16 h-16 bg-blue-600 rounded-md flex items-center justify-center mb-4">
+                <span className="text-white text-2xl">🏓</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{t('landingPage.bar.pingpong.title')}</h3>
+              <p className="text-gray-600">{t('landingPage.bar.pingpong.description')}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Map Section */}
+      <section id="find-us" className="py-20 bg-gradient-to-br from-green-50 to-lime-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-lime-700">Nous trouver</h2>
+            <p className="text-lg text-gray-700 mb-8">Cliquez sur la carte pour ouvrir l'itinéraire Google Maps vers Riviera Faya, Abidjan.</p>
+          </div>
+          <div className="rounded-lg overflow-hidden shadow-xl border-2 border-lime-200">
+            <a href="https://maps.google.com/?geocode=FRjuUQAdXHPD_w%3D%3D;FXbsUQAdsfnD_ymZMkL8ZO3BDzHh9e6gh7tL0Q%3D%3D&daddr=Riviera%20Faya,%20Abidjan&saddr=5.3693685,-3.9681648&dirflg=d&ftid=0xfc1ed64fc423299:0xd14bbb87a0eef5e1&lucs=,94224825,94227247,94227248,94231188,47071704,47069508,94218641,94282134,94203019,47084304&g_st=ic" target="_blank" rel="noopener noreferrer">
+              <iframe
+                title="Carte Padel Palmeraie"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3970.528215956954!2d-3.9681648!3d5.3693685!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfc1ed64fc423299%3A0xd14bbb87a0eef5e1!2sRiviera%20Faya%2C%20Abidjan!5e0!3m2!1sfr!2sci!4v1691244778000!5m2!1sfr!2sci"
+                width="100%"
+                height="400"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Contact Section */}
       <section
         id="contact"
@@ -370,37 +503,54 @@ const LandingPage: React.FC = () => {
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="font-semibold">
-                      {t('landingPage.contact.location')}
+                    <div className="font-semibold flex items-center space-x-2">
+                      <span>{t('landingPage.contact.location')}</span>
+                      <a href="https://maps.google.com/?geocode=FRjuUQAdXHPD_w%3D%3D;FXbsUQAdsfnD_ymZMkL8ZO3BDzHh9e6gh7tL0Q%3D%3D&daddr=Riviera%20Faya,%20Abidjan&saddr=5.3693685,-3.9681648&dirflg=d&ftid=0xfc1ed64fc423299:0xd14bbb87a0eef5e1&lucs=,94224825,94227247,94227248,94231188,47071704,47069508,94218641,94282134,94203019,47084304&g_st=ic" target="_blank" rel="noopener noreferrer" className="ml-2 text-lime-200 underline hover:text-lime-400 transition-colors text-sm">Voir sur Google Maps</a>
                     </div>
                     <div className="opacity-90">
                       {t('landingPage.contact.locationSub')}
                     </div>
                   </div>
                 </div>
+                {/* WhatsApp */}
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-white/20 rounded-md flex items-center justify-center mr-4">
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="font-semibold">
-                      {t('landingPage.contact.phone')}
-                    </div>
+                    <a href="https://wa.me/22585663073" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-lime-300 transition-colors block">
+                      +225 85 66 30 73
+                    </a>
                     <div className="opacity-90">
-                      {t('landingPage.contact.phoneSub')}
+                      Réservations & Informations
                     </div>
                   </div>
                 </div>
+                {/* Email */}
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-white/20 rounded-md flex items-center justify-center mr-4">
                     <Mail className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="font-semibold">
-                      {t('landingPage.contact.email')}
-                    </div>
+                    <a href="mailto:contact@padelpalmeraie.com" className="font-semibold hover:text-lime-300 transition-colors block">
+                      contact@padelpalmeraie.com
+                    </a>
                     <div className="opacity-90">
-                      {t('landingPage.contact.emailSub')}
+                      Email principal
+                    </div>
+                  </div>
+                </div>
+                {/* Instagram */}
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-md flex items-center justify-center mr-4">
+                    <Instagram className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <a href="https://instagram.com/padel_palmeraie" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-lime-300 transition-colors block">
+                      @padel_palmeraie
+                    </a>
+                    <div className="opacity-90">
+                      Instagram
                     </div>
                   </div>
                 </div>
@@ -499,6 +649,26 @@ const LandingPage: React.FC = () => {
                 {i18n.language === 'en' ? 'English' : 'Français'}
               </button>
             </div>
+
+            {/* Contact Row */}
+            <div className="flex flex-wrap justify-center items-center gap-6 mb-4 text-base">
+              {/* Email */}
+              <a href="mailto:contact@padelpalmeraie.com" className="flex items-center space-x-2 hover:text-lime-300 transition-colors">
+                <svg width="20" height="20" fill="currentColor" className="inline-block"><path d="M2.5 4.5A2.5 2.5 0 0 1 5 2h10a2.5 2.5 0 0 1 2.5 2.5v11A2.5 2.5 0 0 1 15 16H5a2.5 2.5 0 0 1-2.5-2.5v-11Zm1.75.5 6.25 5.25L17.75 5v-.5a.75.75 0 0 0-.75-.75H5a.75.75 0 0 0-.75.75V5Zm13 1.06-5.93 4.98a1.25 1.25 0 0 1-1.64 0L3.5 6.56V13.5c0 .414.336.75.75.75h10a.75.75 0 0 0 .75-.75V6.56Z"/></svg>
+                <span>contact@padelpalmeraie.com</span>
+              </a>
+              {/* Instagram */}
+              <a href="https://instagram.com/padel_palmeraie" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-lime-300 transition-colors">
+                <svg width="20" height="20" fill="currentColor" className="inline-block"><path d="M7.5 2h5A5.5 5.5 0 0 1 18 7.5v5A5.5 5.5 0 0 1 12.5 18h-5A5.5 5.5 0 0 1 2 12.5v-5A5.5 5.5 0 0 1 7.5 2Zm0 1.5A4 4 0 0 0 3.5 7.5v5A4 4 0 0 0 7.5 16.5h5a4 4 0 0 0 4-4v-5a4 4 0 0 0-4-4h-5ZM10 6.5A3.5 3.5 0 1 1 6.5 10 3.5 3.5 0 0 1 10 6.5Zm0 1.5A2 2 0 1 0 12 10a2 2 0 0 0-2-2Zm4.25-.75a.75.75 0 1 1-.75.75.75.75 0 0 1 .75-.75Z"/></svg>
+                <span>@padel_palmeraie</span>
+              </a>
+              {/* WhatsApp */}
+              <a href="https://wa.me/22585663073" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-lime-300 transition-colors">
+                <svg width="20" height="20" fill="currentColor" className="inline-block"><path d="M16.7 3.3A9.4 9.4 0 0 0 10 1.2 9.4 9.4 0 0 0 3.3 3.3 9.4 9.4 0 0 0 1.2 10c0 1.7.5 3.3 1.4 4.7L1 19l4.3-1.1A9.4 9.4 0 0 0 10 18.8c1.7 0 3.3-.5 4.7-1.4A9.4 9.4 0 0 0 18.8 10c0-2.5-1-4.8-2.8-6.7ZM10 17c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.6.7.7-2.5-.2-.3A7.5 7.5 0 1 1 17 10a7.5 7.5 0 0 1-7 7Zm4.2-5.4c-.2-.1-1.3-.6-1.5-.7-.2-.1-.4-.1-.6.1-.2.2-.7.7-.9.9-.2.2-.3.2-.5.1-.7-.3-1.3-.7-1.8-1.3-.5-.5-.9-1.1-1.2-1.7-.1-.2 0-.3.1-.5.1-.1.2-.3.3-.5.1-.1.1-.2.2-.4.1-.2 0-.4 0-.6 0-.2-.7-1.7-.9-2.3-.2-.6-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2 0 1.3.9 2.6 1 2.7.2.3 1.8 2.8 4.4 3.7.6.2 1 .3 1.4.2.4-.1 1.3-.5 1.5-1 .2-.5.2-.9.2-1 0-.1-.2-.1-.4-.2Z"/></svg>
+                <span>+225 85 66 30 73</span>
+              </a>
+            </div>
+
             <p className="text-gray-500">{t('landingPage.footer.copyright')}</p>
           </div>
         </div>

@@ -206,6 +206,8 @@
       "about": "À propos",
       "courts": "Nos Terrains",
       "services": "Services",
+      "gym": "Salle de Sport",
+      "bar": "Bar & Détente",
       "contact": "Contact",
       "reserve": "Réserver"
     },
@@ -243,7 +245,7 @@
     },
     "courts": {
       "title": "Nos Terrains de Padel",
-      "subtitle": "Découvrez nos 4 terrains de padel modernes, parfaitement entretenus et équipés des dernières technologies.",
+      "subtitle": "Découvrez nos 2 terrains de padel modernes, parfaitement entretenus et équipés des dernières technologies.",
       "courtTitle": "Terrain",
       "courtDescription": "Terrain professionnel avec éclairage LED, revêtement synthétique et murs en verre trempé.",
       "premium": "Premium",
@@ -281,6 +283,38 @@
       "saturday": "Samedi",
       "sunday": "Dimanche",
       "bookFirst": "Réservez votre premier terrain"
+    },
+    "gym": {
+      "title": "Salle de Sport",
+      "subtitle": "Une salle de sport moderne et équipée pour compléter votre entraînement et rester en forme.",
+      "equipment": {
+        "title": "Équipement Moderne",
+        "description": "Machines de musculation, cardio training et accessoires professionnels pour tous vos besoins."
+      },
+      "personal": {
+        "title": "Coaching Personnel",
+        "description": "Suivi personnalisé avec nos coachs diplômés pour atteindre vos objectifs."
+      },
+      "hours": {
+        "title": "Horaires Flexibles",
+        "description": "Accès 7j/7 de 6h à 23h pour s'adapter à votre emploi du temps."
+      }
+    },
+    "bar": {
+      "title": "Bar & Détente",
+      "subtitle": "Un espace convivial pour se détendre avant ou après votre séance avec bar, babyfoot et ping-pong.",
+      "bar": {
+        "title": "Bar Lounge",
+        "description": "Profitez de boissons rafraîchissantes, smoothies et collations dans une ambiance détendue."
+      },
+      "foosball": {
+        "title": "Babyfoot",
+        "description": "Défiez vos amis sur notre table de babyfoot professionnelle pour des moments de fun."
+      },
+      "pingpong": {
+        "title": "Ping-Pong",
+        "description": "Tables de ping-pong disponibles pour des parties amicales ou des compétitions."
+      }
     },
     "footer": {
       "description": "Le club de padel premium de Riviera Faya, Abidjan",
