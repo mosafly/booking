@@ -289,11 +289,11 @@
       "subtitle": "Une salle de sport moderne et équipée pour compléter votre entraînement et rester en forme.",
       "equipment": {
         "title": "Équipement Moderne",
-        "description": "Machines de musculation, cardio training et accessoires professionnels pour tous vos besoins."
+        "description": "Vélos elliptiques, tapis de course, vélos et accessoires fitness pour tous les niveaux."
       },
       "personal": {
-        "title": "Coaching Personnel",
-        "description": "Suivi personnalisé avec nos coachs diplômés pour atteindre vos objectifs."
+        "title": "Cours collectifs",
+        "description": "Cours de fitness en groupe animés par nos coachs diplômés, accessibles à tous."
       },
       "hours": {
         "title": "Horaires Flexibles",
@@ -318,7 +318,7 @@
     },
     "footer": {
       "description": "Le club de padel premium de Riviera Faya, Abidjan",
-      "copyright": "© 2025 Padel Palmeraie. Tous droits réservés."
+      "copyright": " 2025 Padel Palmeraie. Tous droits réservés."
     }
   }
 }
