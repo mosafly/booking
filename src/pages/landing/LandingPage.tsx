@@ -518,8 +518,8 @@ const LandingPage: React.FC = () => {
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <a href="https://wa.me/22585663073" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-lime-300 transition-colors block">
-                      +225 85 66 30 73
+                    <a href="https://wa.me/2250585663073" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-lime-300 transition-colors block">
+                      +225 05 85 66 30 73
                     </a>
                     <div className="opacity-90">
                       Réservations & Informations
@@ -663,9 +663,9 @@ const LandingPage: React.FC = () => {
                 <span>@padel_palmeraie</span>
               </a>
               {/* WhatsApp */}
-              <a href="https://wa.me/22585663073" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-lime-300 transition-colors">
+              <a href="https://wa.me/2250585663073" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-lime-300 transition-colors">
                 <svg width="20" height="20" fill="currentColor" className="inline-block"><path d="M16.7 3.3A9.4 9.4 0 0 0 10 1.2 9.4 9.4 0 0 0 3.3 3.3 9.4 9.4 0 0 0 1.2 10c0 1.7.5 3.3 1.4 4.7L1 19l4.3-1.1A9.4 9.4 0 0 0 10 18.8c1.7 0 3.3-.5 4.7-1.4A9.4 9.4 0 0 0 18.8 10c0-2.5-1-4.8-2.8-6.7ZM10 17c-1.5 0-3-.4-4.3-1.2l-.3-.2-2.6.7.7-2.5-.2-.3A7.5 7.5 0 1 1 17 10a7.5 7.5 0 0 1-7 7Zm4.2-5.4c-.2-.1-1.3-.6-1.5-.7-.2-.1-.4-.1-.6.1-.2.2-.7.7-.9.9-.2.2-.3.2-.5.1-.7-.3-1.3-.7-1.8-1.3-.5-.5-.9-1.1-1.2-1.7-.1-.2 0-.3.1-.5.1-.1.2-.3.3-.5.1-.1.1-.2.2-.4.1-.2 0-.4 0-.6 0-.2-.7-1.7-.9-2.3-.2-.6-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2 0 1.3.9 2.6 1 2.7.2.3 1.8 2.8 4.4 3.7.6.2 1 .3 1.4.2.4-.1 1.3-.5 1.5-1 .2-.5.2-.9.2-1 0-.1-.2-.1-.4-.2Z"/></svg>
-                <span>+225 85 66 30 73</span>
+                <span>+225 05 85 66 30 73</span>
               </a>
             </div>
 
