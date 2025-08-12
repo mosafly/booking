@@ -25,6 +25,13 @@ const PaymentSuccessPage: React.FC = () => {
         status: 'confirmed',
       })
       clearPendingReservation() // Clean up the pending reservation
+
+      // Track Google Ads conversion
+      if ((window as any).gtag) {
+        ;(window as any).gtag('event', 'conversion', {
+          send_to: 'AW-17422060448/LGGiCMC89fwaEKCXvvNA'
+        })
+      }
     }
   }, [reservationId])
 

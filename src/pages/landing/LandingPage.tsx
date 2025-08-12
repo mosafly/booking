@@ -14,14 +14,15 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { createConversionClickHandler } from '@/lib/utils/conversion-tracking'
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
 
-  const handleGetStarted = () => {
+  const handleGetStarted = createConversionClickHandler(() => {
     navigate('/home/reservation')
-  }
+  })
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)

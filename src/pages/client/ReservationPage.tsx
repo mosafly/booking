@@ -18,6 +18,7 @@ import {
   addStoredReservation,
   setPendingReservation,
 } from '@/lib/utils/reservation-storage'
+import { createConversionClickHandler } from '@/lib/utils/conversion-tracking'
 
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams()
@@ -464,7 +465,7 @@ const ReservationPage: React.FC = () => {
           {selectedStartTime && selectedEndTime && (
             <div className="mt-4 md:mt-6">
               <button
-                onClick={() => setShowPurchaseModal(true)}
+                onClick={createConversionClickHandler(() => setShowPurchaseModal(true))}
                 className="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-medium py-3 md:py-4 px-6 rounded-md transition-colors text-sm md:text-base"
               >
                 {t('reservationPage.proceedToPayment')}
