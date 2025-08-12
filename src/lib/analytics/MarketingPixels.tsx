@@ -9,23 +9,12 @@ const FB_PIXEL_ID = import.meta.env.VITE_FB_PIXEL_ID as string | undefined
 
 function injectGoogleAdsOnce() {
   if (!GADS_ID) return
-  // Avoid duplicate injection
-  if (document.getElementById('gads-gtag')) return
-
-  const script = document.createElement('script')
-  script.async = true
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GADS_ID)}`
-  script.id = 'gads-gtag'
-  document.head.appendChild(script)
-
-  // Init dataLayer and gtag
-  ;(window as any).dataLayer = (window as any).dataLayer || []
-  function gtag(...args: any[]) {
-    ;(window as any).dataLayer.push(args)
-  }
-  ;(window as any).gtag = gtag
-  gtag('js', new Date())
-  gtag('config', GADS_ID)
+  // Skip injection since gtag is now in index.html
+  // Just ensure gtag is available and configured
+  if (!(window as any).gtag) return
+  
+  // Configure with our ID (in case index.html uses a different one)
+  ;(window as any).gtag('config', GADS_ID)
 }
 
 function injectFacebookPixelOnce() {
