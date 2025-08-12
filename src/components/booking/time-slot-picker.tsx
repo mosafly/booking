@@ -41,14 +41,15 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     const isPast =
       isSameDay(date, new Date()) && isBefore(slot.startTime, new Date())
 
-    // Check if slot conflicts with existing reservations
-    const hasConflict = !availableSlots.some(
+    // Check if this slot fully fits within any available interval
+    const fitsInAvailable = availableSlots.some(
       (availableSlot) =>
         isSameDay(availableSlot.startTime, slot.startTime) &&
-        availableSlot.startTime.getTime() === slot.startTime.getTime(),
+        slot.startTime.getTime() >= availableSlot.startTime.getTime() &&
+        slot.endTime.getTime() <= availableSlot.endTime.getTime(),
     )
 
-    return !isPast && !hasConflict
+    return !isPast && fitsInAvailable
   })
 
   // Group slots by start time and duration

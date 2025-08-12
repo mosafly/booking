@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { addDays, format, startOfDay } from 'date-fns'
+import { addDays, format, startOfDay, endOfDay } from 'date-fns'
 import { useSupabase } from '@/lib/contexts/Supabase'
 import { useAuth } from '@/lib/contexts/Auth'
 import { Court } from '@/components/booking/court-card'
@@ -80,29 +80,89 @@ const ReservationPage: React.FC = () => {
       if (!courtId) return
 
       try {
-        // In a real app, this would query the database for existing reservations
-        // and filter out time slots that are already booked
+        // Compute business hours window for the selected day: 08:00 - 22:00
+        const dayOpen = new Date(selectedDate)
+        dayOpen.setHours(8, 0, 0, 0)
+        const dayClose = new Date(selectedDate)
+        dayClose.setHours(22, 0, 0, 0)
 
-        // For the demo, we'll simulate some booked slots
-        // const startDate = selectedDate; // Removed
-        // const endDate = addDays(selectedDate, 1); // Removed
+        const dayStartISO = startOfDay(selectedDate).toISOString()
+        const dayEndISO = endOfDay(selectedDate).toISOString()
 
-        // Generate available slots based on equipment type
-        const allSlots = []
-        for (let hour = 8; hour < 22; hour++) {
-          for (let minutes = 0; minutes < 60; minutes += 30) {
-            const startTime = new Date(selectedDate)
-            startTime.setHours(hour, minutes, 0, 0)
+        // Fetch overlapping reservations (exclude cancelled)
+        const reservationsPromise = supabase
+          .from('reservations')
+          .select('start_time, end_time, status')
+          .eq('court_id', courtId)
+          .neq('status', 'cancelled')
+          .lt('start_time', dayEndISO)
+          .gt('end_time', dayStartISO)
 
-            const endTime = new Date(startTime)
-            endTime.setHours(hour, minutes + 30, 0, 0)
+        // Fetch overlapping court unavailabilities
+        const unavailabilityPromise = supabase
+          .from('court_unavailabilities')
+          .select('start_time, end_time')
+          .eq('court_id', courtId)
+          .lt('start_time', dayEndISO)
+          .gt('end_time', dayStartISO)
 
-            allSlots.push({ startTime, endTime })
+        const [{ data: resvData, error: resvError }, { data: unavailData, error: unavailError }] =
+          await Promise.all([reservationsPromise, unavailabilityPromise])
+
+        if (resvError) throw resvError
+        if (unavailError) throw unavailError
+
+        type Interval = { start: Date; end: Date }
+
+        // Build busy intervals (merge reservations and unavailability)
+        const busy: Interval[] = []
+        ;(resvData || []).forEach((r: any) => {
+          const start = new Date(r.start_time)
+          const end = new Date(r.end_time)
+          // Clamp to business window
+          const s = start < dayOpen ? new Date(dayOpen) : start
+          const e = end > dayClose ? new Date(dayClose) : end
+          if (s < e) busy.push({ start: s, end: e })
+        })
+        ;(unavailData || []).forEach((u: any) => {
+          const start = new Date(u.start_time)
+          const end = new Date(u.end_time)
+          const s = start < dayOpen ? new Date(dayOpen) : start
+          const e = end > dayClose ? new Date(dayClose) : end
+          if (s < e) busy.push({ start: s, end: e })
+        })
+
+        // Merge overlapping busy intervals
+        busy.sort((a, b) => a.start.getTime() - b.start.getTime())
+        const merged: Interval[] = []
+        for (const interval of busy) {
+          if (merged.length === 0) {
+            merged.push({ ...interval })
+          } else {
+            const last = merged[merged.length - 1]
+            if (interval.start <= last.end) {
+              // overlap
+              if (interval.end > last.end) last.end = interval.end
+            } else {
+              merged.push({ ...interval })
+            }
           }
         }
 
-        // In a real app, we'd filter out booked slots here
-        setAvailableSlots(allSlots)
+        // Subtract merged busy from business window to get available intervals
+        const available: { startTime: Date; endTime: Date }[] = []
+        let cursor = new Date(dayOpen)
+        for (const b of merged) {
+          if (cursor < b.start) {
+            available.push({ startTime: new Date(cursor), endTime: new Date(b.start) })
+          }
+          if (cursor < b.end) cursor = new Date(b.end)
+        }
+        if (cursor < dayClose) {
+          available.push({ startTime: new Date(cursor), endTime: new Date(dayClose) })
+        }
+
+        setAvailableSlots(available)
       } catch (error) {
         console.error('Error fetching available slots:', error)
         toast.error(t('reservationPage.errorLoadingSlots'))

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
   User,
   Users,
   Settings,
+  Ban,
 } from 'lucide-react'
 import { useAuth } from '@/lib/contexts/Auth'
 import { hasAdminAccess } from '@/lib/utils/role-utils'
@@ -28,6 +29,7 @@ const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [currentView, setCurrentView] = useState<ViewMode>('admin')
   const [viewDropdownOpen, setViewDropdownOpen] = useState(false)
+  const viewDropdownRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     // Handle any auth-related errors that might occur
@@ -57,18 +59,18 @@ const AdminLayout: React.FC = () => {
     }
   }, [])
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (ignore clicks inside the dropdown/button)
   useEffect(() => {
-    const handleClickOutside = () => {
-      if (viewDropdownOpen) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!viewDropdownOpen) return
+      const target = e.target as Node
+      const container = viewDropdownRef.current
+      if (container && !container.contains(target)) {
         setViewDropdownOpen(false)
       }
     }
 
-    if (viewDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
+    document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
@@ -211,6 +213,11 @@ const AdminLayout: React.FC = () => {
               label="Reservations"
             />
             <NavItem
+              to="/admin/unavailability"
+              icon={<Ban size={20} />}
+              label="Unavailability"
+            />
+            <NavItem
               to="/admin/financial"
               icon={<DollarSign size={20} />}
               label="Financial"
@@ -275,7 +282,7 @@ const AdminLayout: React.FC = () => {
             <div className="flex-1 flex items-center justify-between">
               {/* View Selector for Admin/Super Admin */}
               {(userRole === 'admin' || userRole === 'super_admin') && (
-                <div className="relative">
+                <div className="relative" ref={viewDropdownRef}>
                   <button
                     onClick={() => setViewDropdownOpen(!viewDropdownOpen)}
                     className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"

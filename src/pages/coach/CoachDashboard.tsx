@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/lib/contexts/Auth'
 import { useSupabase } from '@/lib/contexts/Supabase'
+import { useNavigate } from 'react-router-dom'
 import {
   CoachProfile,
   GymBooking,
@@ -17,6 +18,9 @@ import {
   Users,
   DollarSign,
   Plus,
+  Settings,
+  ChevronDown,
+  User as UserIcon,
   Edit,
   Trash2,
 } from 'lucide-react'
@@ -25,8 +29,9 @@ import { CoachProfileModal } from '@/components/coach/CoachProfileModal'
 import { GlobalSchedule } from '@/components/schedule/GlobalSchedule'
 
 export const CoachDashboard: React.FC = () => {
-  const { user } = useAuth()
+  const { user, userRole } = useAuth()
   const { supabase } = useSupabase()
+  const navigate = useNavigate()
   const [coachProfile, setCoachProfile] = useState<CoachProfile | null>(null)
   const [bookings, setBookings] = useState<GymBooking[]>([])
   const [stats, setStats] = useState<CoachDashboardStats>({
@@ -38,6 +43,69 @@ export const CoachDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
+
+  // View selector state (for admins/super_admins)
+  type ViewMode = 'admin' | 'coach' | 'client'
+  const [currentView, setCurrentView] = useState<ViewMode>('coach')
+  const [viewDropdownOpen, setViewDropdownOpen] = useState(false)
+  const viewDropdownRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const path = window.location.pathname
+    if (path.startsWith('/admin')) setCurrentView('admin')
+    else if (path.startsWith('/coach')) setCurrentView('coach')
+    else setCurrentView('client')
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!viewDropdownOpen) return
+      const container = viewDropdownRef.current
+      if (container && !container.contains(e.target as Node)) {
+        setViewDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [viewDropdownOpen])
+
+  const handleViewChange = (view: ViewMode) => {
+    setCurrentView(view)
+    setViewDropdownOpen(false)
+    switch (view) {
+      case 'admin':
+        navigate('/admin/dashboard')
+        break
+      case 'coach':
+        navigate('/coach')
+        break
+      case 'client':
+        navigate('/home')
+        break
+    }
+  }
+
+  const getViewIcon = (view: ViewMode) => {
+    switch (view) {
+      case 'admin':
+        return <Settings size={16} />
+      case 'coach':
+        return <Users size={16} />
+      case 'client':
+        return <UserIcon size={16} />
+    }
+  }
+
+  const getViewLabel = (view: ViewMode) => {
+    switch (view) {
+      case 'admin':
+        return 'Administration'
+      case 'coach':
+        return 'Coach'
+      case 'client':
+        return 'Client'
+    }
+  }
 
   const loadBookings = useCallback(
     async (coachId: string) => {
@@ -250,7 +318,55 @@ export const CoachDashboard: React.FC = () => {
                 {coachProfile.coach_type}
               </p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
+              {(userRole === 'admin' || userRole === 'super_admin') && (
+                <div className="relative" ref={viewDropdownRef}>
+                  <button
+                    onClick={() => setViewDropdownOpen(!viewDropdownOpen)}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {getViewIcon(currentView)}
+                    <span>Vue: {getViewLabel(currentView)}</span>
+                    <ChevronDown
+                      size={16}
+                      className={`transform transition-transform ${viewDropdownOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {viewDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="py-1">
+                        <button
+                          onClick={() => handleViewChange('admin')}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
+                            currentView === 'admin' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                          }`}
+                        >
+                          <Settings size={16} />
+                          <span>Administration</span>
+                        </button>
+                        <button
+                          onClick={() => handleViewChange('coach')}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
+                            currentView === 'coach' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                          }`}
+                        >
+                          <Users size={16} />
+                          <span>Coach</span>
+                        </button>
+                        <button
+                          onClick={() => handleViewChange('client')}
+                          className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-100 ${
+                            currentView === 'client' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                          }`}
+                        >
+                          <UserIcon size={16} />
+                          <span>Client</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <button
                 onClick={() => setShowProfileModal(true)}
                 className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
