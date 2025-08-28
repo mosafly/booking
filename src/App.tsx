@@ -33,6 +33,9 @@ import ProductsManagement from './pages/admin/ProductsManagement'
 import { PricingManagement } from './components/admin/PricingManagement'
 import { VerificationPage } from './pages/admin/VerificationPage'
 import UnavailabilityManagement from './pages/admin/UnavailabilityManagement'
+import CMSPages from './pages/admin/CMSPages'
+import CMSPageEditor from './pages/admin/CMSPageEditor'
+import MediaManager from './pages/admin/MediaManager'
 
 // Coach Pages
 import { CoachDashboard } from './pages/coach/CoachDashboard'
@@ -227,6 +230,9 @@ function App() {
                   path="verify/:verificationId"
                   element={<VerificationPage />}
                 />
+                <Route path="cms" element={<CMSPages />} />
+                <Route path="cms/:slug" element={<CMSPageEditor />} />
+                <Route path="media" element={<MediaManager />} />
               </Route>
 
               {/* Coach Routes */}

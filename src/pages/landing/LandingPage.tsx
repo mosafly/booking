@@ -15,10 +15,74 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { createConversionClickHandler } from '@/lib/utils/conversion-tracking'
+import { useSupabase } from '@/lib/contexts/Supabase'
+import { useEffect, useMemo, useState } from 'react'
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const { supabase } = useSupabase()
+
+  // CMS hero content (overrides translations if present)
+  const [hero, setHero] = useState<{ title?: string; subtitle?: string; image?: string } | null>(null)
+
+  // Courts from DB (use image_url from storage)
+  const [courts, setCourts] = useState<Array<{ id: string; name: string; description: string | null; image_url: string | null }>>([])
+
+  useEffect(() => {
+    // Load CMS sections for landing page (hero only for now)
+    const loadCMS = async () => {
+      try {
+        const { data: page, error: pageErr } = await supabase
+          .from('cms_pages')
+          .select('id')
+          .eq('slug', 'landing')
+          .eq('enabled', true)
+          .maybeSingle()
+        if (pageErr || !page) return
+        const { data: sections } = await supabase
+          .from('cms_sections')
+          .select('key, type, locale, content')
+          .eq('page_id', page.id)
+          .eq('locale', i18n.language || 'fr')
+          .order('sort_order', { ascending: true })
+        const heroSec = (sections || []).find((s: any) => s.key === 'hero' || s.type === 'hero')
+        if (heroSec?.content && typeof heroSec.content === 'object') {
+          setHero({
+            title: heroSec.content.title || undefined,
+            subtitle: heroSec.content.subtitle || undefined,
+            image: heroSec.content.image || undefined,
+          })
+        }
+      } catch (e) {
+        // silent fallback to static content
+      }
+    }
+
+    // Load courts
+    const loadCourts = async () => {
+      try {
+        const { data } = await supabase
+          .from('courts')
+          .select('id, name, description, image_url, status')
+          .order('created_at', { ascending: true })
+        setCourts((data || []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          image_url: c.image_url,
+        })))
+      } catch (e) {
+        // keep fallback
+      }
+    }
+
+    loadCMS()
+    loadCourts()
+  }, [supabase, i18n.language])
+
+  const heroTitle = useMemo(() => hero?.title ?? t('landingPage.hero.title'), [hero, t])
+  const heroSubtitle = useMemo(() => hero?.subtitle ?? t('landingPage.hero.subtitle'), [hero, t])
 
   const handleGetStarted = createConversionClickHandler(() => {
     navigate('/home/reservation')
@@ -118,7 +182,7 @@ const LandingPage: React.FC = () => {
       >
         <div className="absolute inset-0">
           <img
-            src="/hero.png"
+            src={hero?.image || '/hero.png'}
             alt="Padel Palmeraie - Terrain de padel moderne"
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -134,11 +198,11 @@ const LandingPage: React.FC = () => {
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
             {t('landingPage.hero.welcome')} <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-green-400">
-              {t('landingPage.hero.title')}
+              {heroTitle}
             </span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 max-w-3xl mx-auto opacity-90 leading-relaxed px-2">
-            {t('landingPage.hero.subtitle')}
+            {heroSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center px-4">
             <button
@@ -261,14 +325,14 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
-            {[1, 2].map((i) => (
+            {(courts.length > 0 ? courts : [1, 2]).map((c: any, idx: number) => (
               <div
-                key={i}
+                key={typeof c === 'number' ? `fallback-${c}` : c.id}
                 className="bg-white rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-2"
               >
                 <img
-                  src={`/images/courts/court-${i}.jpg`}
-                  alt={`Terrain ${i}`}
+                  src={typeof c === 'number' ? `/images/courts/court-${c}.jpg` : c.image_url || '/images/courts/court-1.jpg'}
+                  alt={`Terrain ${typeof c === 'number' ? c : c.name || idx + 1}`}
                   className="w-full h-40 md:h-48 object-cover"
                   onError={(e) => {
                     // Fallback vers une image Unsplash si locale non disponible
@@ -278,10 +342,16 @@ const LandingPage: React.FC = () => {
                 />
                 <div className="p-4 md:p-6">
                   <h3 className="text-lg md:text-xl font-semibold mb-2 md:mb-3 text-gray-800">
-                    {t('landingPage.courts.courtTitle')} {i}
+                    {typeof c === 'number' ? (
+                      <>
+                        {t('landingPage.courts.courtTitle')} {c}
+                      </>
+                    ) : (
+                      c.name || `${t('landingPage.courts.courtTitle')} ${idx + 1}`
+                    )}
                   </h3>
                   <p className="text-gray-600 mb-3 md:mb-4 text-sm leading-relaxed">
-                    {t('landingPage.courts.courtDescription')}
+                    {typeof c === 'number' ? t('landingPage.courts.courtDescription') : (c.description || t('landingPage.courts.courtDescription'))}
                   </p>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center text-lime-600 font-semibold">

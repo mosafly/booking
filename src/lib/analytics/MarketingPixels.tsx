@@ -3,9 +3,11 @@ import { useLocation } from 'react-router-dom'
 
 // Reads IDs from Vite env:
 // - VITE_GADS_ID: Google Ads ID (e.g. AW-XXXXXXXXX)
-// - VITE_FB_PIXEL_ID: Facebook Pixel ID (e.g. 1234567890)
+// - VITE_FB_PIXEL_ID or VITE_META_PIXEL_ID: Facebook/Meta Pixel ID (e.g. 1234567890)
 const GADS_ID = import.meta.env.VITE_GADS_ID as string | undefined
-const FB_PIXEL_ID = import.meta.env.VITE_FB_PIXEL_ID as string | undefined
+const FB_PIXEL_ID = (import.meta.env.VITE_FB_PIXEL_ID || import.meta.env.VITE_META_PIXEL_ID) as
+  | string
+  | undefined
 
 function injectGoogleAdsOnce() {
   if (!GADS_ID) return
@@ -70,6 +72,7 @@ export function MarketingPixels() {
           page_path: location.pathname + location.search,
         })
       }
+      // @ts-ignore fbq is injected by Meta Pixel script
       if ((window as any).fbq) {
         ;(window as any).fbq('track', 'PageView')
       }
@@ -79,4 +82,12 @@ export function MarketingPixels() {
   }, [location.pathname, location.search])
 
   return null
+}
+
+// Helper pour tracker des événements custom (ex: InitiateCheckout)
+export function trackPixelEvent(event: string, parameters?: any) {
+  // @ts-ignore fbq is injected by Meta Pixel script
+  if (FB_PIXEL_ID && (window as any).fbq) {
+    ;(window as any).fbq('track', event, parameters)
+  }
 }
