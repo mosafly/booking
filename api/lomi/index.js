@@ -227,6 +227,39 @@ export default async function handler(req, res) {
         `Padel App: Payment for reservation ${reservationId} recorded successfully.`,
       )
 
+      // ---- Track Meta Conversions API Purchase ----
+      try {
+        console.log(`Padel App: Sending Purchase event to Meta CAPI for reservation ${reservationId}`)
+        const capiUrl = `${supabaseUrl}/functions/v1/meta-capi`
+        const capiResponse = await fetch(capiUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${supabaseServiceKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event_name: 'Purchase',
+            event_id: `purchase_${reservationId}_${Date.now()}`,
+            event_source_url: 'https://www.padelpalmeraie.com', // Remplacez par votre URL Vercel
+            custom_data: {
+              value: amount,
+              currency: currency,
+              content_category: 'padel_booking',
+            },
+            external_id: reservationId,
+            // Ajoutez email/phone si disponibles depuis la réservation
+          }),
+        })
+
+        if (!capiResponse.ok) {
+          console.warn(`Padel App: Meta CAPI call failed for ${reservationId}:`, capiResponse.statusText)
+        } else {
+          console.log(`Padel App: Meta CAPI Purchase tracked for ${reservationId}`)
+        }
+      } catch (capiError) {
+        console.warn(`Padel App: Exception calling Meta CAPI for ${reservationId}:`, capiError)
+      }
+
       // ---- Send Booking Confirmation Email via Supabase Function ----
       try {
         console.log(

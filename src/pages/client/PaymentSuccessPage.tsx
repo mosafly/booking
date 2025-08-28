@@ -7,6 +7,7 @@ import {
   clearPendingReservation,
   addStoredReservation,
 } from '@/lib/utils/reservation-storage'
+import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
 
 const PaymentSuccessPage: React.FC = () => {
   const { t } = useTranslation()
@@ -32,6 +33,16 @@ const PaymentSuccessPage: React.FC = () => {
           send_to: 'AW-17422060448/LGGiCMC89fwaEKCXvvNA'
         })
       }
+
+      // Track Meta Pixel Purchase
+      const value = pendingReservation.total
+      trackPixelEvent('Purchase', {
+        value: value,
+        currency: 'XOF',
+        content_category: 'padel_booking',
+        content_name: pendingReservation.court,
+        transaction_id: reservationId,
+      })
     }
   }, [reservationId])
 

@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { createConversionClickHandler } from '@/lib/utils/conversion-tracking'
 import { useSupabase } from '@/lib/contexts/Supabase'
 import { useEffect, useMemo, useState } from 'react'
+import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate()
@@ -589,7 +590,7 @@ const LandingPage: React.FC = () => {
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <a href="https://wa.me/2250585663073" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-lime-300 transition-colors block">
+                    <a href="https://wa.me/2250585663073" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-lime-300 transition-colors block" onClick={() => trackPixelEvent('Lead', { content_category: 'contact', content_name: 'whatsapp' })}>
                       +225 05 85 66 30 73
                     </a>
                     <div className="opacity-90">
@@ -603,7 +604,7 @@ const LandingPage: React.FC = () => {
                     <Mail className="w-6 h-6" />
                   </div>
                   <div>
-                    <a href="mailto:contact@padelpalmeraie.com" className="font-semibold hover:text-lime-300 transition-colors block">
+                    <a href="mailto:contact@padelpalmeraie.com" className="font-semibold hover:text-lime-300 transition-colors block" onClick={() => trackPixelEvent('Lead', { content_category: 'contact', content_name: 'email' })}>
                       contact@padelpalmeraie.com
                     </a>
                     <div className="opacity-90">
@@ -617,7 +618,7 @@ const LandingPage: React.FC = () => {
                     <Instagram className="w-6 h-6" />
                   </div>
                   <div>
-                    <a href="https://instagram.com/padel_palmeraie" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-lime-300 transition-colors block">
+                    <a href="https://instagram.com/padel_palmeraie" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-lime-300 transition-colors block" onClick={() => trackPixelEvent('Lead', { content_category: 'contact', content_name: 'instagram' })}>
                       @padel_palmeraie
                     </a>
                     <div className="opacity-90">

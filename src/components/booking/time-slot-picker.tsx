@@ -10,6 +10,7 @@ import {
   EquipmentType,
   TimeSlot,
 } from '@/lib/utils/reservation-rules'
+import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
 
 interface TimeSlotPickerProps {
   date: Date
@@ -72,6 +73,15 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
   const handleSlotSelection = (startTime: Date, endTime: Date) => {
     onSelectTimeSlot(startTime, endTime)
+
+    // Track InitiateCheckout for Pixel
+    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60)
+    trackPixelEvent('InitiateCheckout', {
+      value: durationMinutes * 10, // Placeholder: ajustez selon votre tarification (ex: 10 XOF/minute)
+      currency: 'XOF',
+      content_category: 'padel_booking',
+      content_name: court.name || 'Court',
+    })
   }
 
   return (

@@ -19,6 +19,7 @@ import {
   setPendingReservation,
 } from '@/lib/utils/reservation-storage'
 import { createConversionClickHandler } from '@/lib/utils/conversion-tracking'
+import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
 
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams()
@@ -63,6 +64,12 @@ const ReservationPage: React.FC = () => {
         }
 
         setCourt(courtData)
+
+        // Track ViewContent for Pixel
+        trackPixelEvent('ViewContent', {
+          content_name: courtData.name,
+          content_category: 'padel_court',
+        })
       } catch (error) {
         console.error('Error fetching court:', error)
         toast.error(t('reservationPage.errorLoadingCourt'))
