@@ -153,7 +153,7 @@ export default async function handler(req, res) {
       JSON.stringify(eventPayload, null, 2),
     )
 
-    const reservationId = eventData.metadata?.reservation_id
+    let reservationId = eventData.metadata?.reservation_id
     const lomiPaymentId = eventData.transaction_id || eventData.id
     let lomiCheckoutSessionId
     if (
@@ -167,16 +167,8 @@ export default async function handler(req, res) {
     const amount = eventData.amount || eventData.gross_amount
     const currency = eventData.currency_code
 
-    if (!reservationId) {
-      console.error(
-        'Padel App Webhook Error: Missing reservation_id in lomi. webhook metadata.',
-        { lomiEventData: eventData },
-      )
-      return res.status(400).json({
-        error:
-          'Missing reservation_id in lomi. webhook metadata for processing.',
-      })
-    }
+    // Note: after refactor, reservation may be created only after successful payment
+    // so reservation_id can be missing here. We'll create it if payment succeeded.
     if (amount === undefined || !currency) {
       console.error(
         'Padel App Webhook Error: Missing amount or currency from lomi. event data.',
@@ -199,8 +191,62 @@ export default async function handler(req, res) {
 
     if (isSuccessEvent) {
       console.log(
-        `Padel App: Processing successful payment for reservation ${reservationId}`,
+        `Padel App: Processing successful payment${reservationId ? ` for reservation ${reservationId}` : ''}`,
       )
+
+      // If no reservation yet, create it using metadata from checkout
+      if (!reservationId) {
+        try {
+          const meta = eventData.metadata || {}
+          const courtIdMeta = meta.court_id
+          const slotStartIso = meta.slot_start_iso
+          const slotEndIso = meta.slot_end_iso
+          const userName = meta.user_name || null
+          const userEmail = meta.user_email || null
+          const userPhone = meta.user_phone || null
+
+          if (!courtIdMeta || !slotStartIso || !slotEndIso) {
+            console.error('Missing metadata to create reservation:', {
+              courtIdMeta,
+              slotStartIso,
+              slotEndIso,
+            })
+            return res.status(400).json({
+              error:
+                'Missing required metadata (court_id, slot_start_iso, slot_end_iso) to create reservation.',
+            })
+          }
+
+          const { data: newReservation, error: reservationInsertError } =
+            await supabase
+              .from('reservations')
+              .insert([
+                {
+                  court_id: courtIdMeta,
+                  start_time: slotStartIso,
+                  end_time: slotEndIso,
+                  total_price: amount,
+                  status: 'confirmed',
+                  user_name: userName,
+                  user_email: userEmail,
+                  user_phone: userPhone,
+                },
+              ])
+              .select()
+              .single()
+
+          if (reservationInsertError) {
+            console.error('Failed to create reservation after payment:', reservationInsertError)
+            return res.status(500).json({ error: 'Failed to create reservation after payment.' })
+          }
+
+          reservationId = newReservation.id
+          console.log('Created reservation after payment with id:', reservationId)
+        } catch (createErr) {
+          console.error('Exception while creating reservation after payment:', createErr)
+          return res.status(500).json({ error: 'Exception creating reservation after payment.' })
+        }
+      }
       // Call RPC to record payment and update reservation
       const { error: rpcError } = await supabase.rpc(
         'record_padel_lomi_payment',

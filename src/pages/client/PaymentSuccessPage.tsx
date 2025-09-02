@@ -2,67 +2,40 @@ import React, { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle, Home, Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import {
-  getPendingReservation,
-  clearPendingReservation,
-  addStoredReservation,
-} from '@/lib/utils/reservation-storage'
-import { pixelTrack } from '@/lib/analytics/meta'
+import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
 
 const PaymentSuccessPage: React.FC = () => {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
-  const reservationId = searchParams.get('reservation_id')
+  const reservationId = searchParams.get('reservation_id') || undefined
   const urlEventId = searchParams.get('event_id') || undefined
+  const amountParam = searchParams.get('amount') || undefined
+  const currencyParam = searchParams.get('currency') || undefined
 
   useEffect(() => {
-    // This effect handles confirming the reservation in localStorage for guest users
-    const pendingReservation = getPendingReservation()
-
-    if (pendingReservation && pendingReservation.id === reservationId) {
-      // The payment was for the reservation we have in storage.
-      // Move it from 'pending' to the main list of reservations with status 'confirmed'.
-      addStoredReservation({
-        ...pendingReservation,
-        status: 'confirmed',
+    // Track Google Ads conversion (fire-and-forget)
+    if ((window as any).gtag) {
+      ;(window as any).gtag('event', 'conversion', {
+        send_to: 'AW-17422060448/LGGiCMC89fwaEKCXvvNA',
       })
-      clearPendingReservation() // Clean up the pending reservation
+    }
 
-      // Track Google Ads conversion
-      if ((window as any).gtag) {
-        ;(window as any).gtag('event', 'conversion', {
-          send_to: 'AW-17422060448/LGGiCMC89fwaEKCXvvNA'
-        })
-      }
-
-      // Determine Meta event_id for deduplication: URL first, then localStorage fallback
-      let eventId = urlEventId
-      try {
-        if (!eventId && reservationId) {
-          eventId = localStorage.getItem(`pp_event_id_${reservationId}`) || undefined
-        }
-      } catch {}
-
-      // Track Meta Pixel Purchase with event_id (for dedup with CAPI)
-      const value = pendingReservation.total
-      pixelTrack(
+    // Track Meta Pixel Purchase with event_id (dedup with CAPI)
+    const value = amountParam ? Number(amountParam) : undefined
+    const currency = currencyParam || 'XOF'
+    if (urlEventId && value) {
+      trackPixelEvent(
         'Purchase',
         {
           value,
-          currency: 'XOF',
+          currency,
           content_category: 'padel_booking',
-          content_name: pendingReservation.court,
           transaction_id: reservationId,
         },
-        eventId,
+        urlEventId,
       )
-
-      // Cleanup stored event id after use
-      try {
-        if (reservationId) localStorage.removeItem(`pp_event_id_${reservationId}`)
-      } catch {}
     }
-  }, [reservationId, urlEventId])
+  }, [reservationId, urlEventId, amountParam, currencyParam])
 
   return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-md shadow-lg text-center">

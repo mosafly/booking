@@ -14,10 +14,6 @@ import toast from 'react-hot-toast'
 import { Spinner } from '@/components/dashboard/spinner'
 import { useTranslation } from 'react-i18next'
 import { formatFCFA } from '@/lib/utils/currency'
-import {
-  addStoredReservation,
-  setPendingReservation,
-} from '@/lib/utils/reservation-storage'
 import { createConversionClickHandler } from '@/lib/utils/conversion-tracking'
 import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
 import { getEventId, capiTrack, trackInitiateCheckout } from '@/lib/analytics/meta'
@@ -229,55 +225,7 @@ const ReservationPage: React.FC = () => {
         (selectedEndTime.getTime() - selectedStartTime.getTime()) / (1000 * 60)
       const totalPrice = calculatePrice(court.price_per_hour, durationMinutes)
 
-      // Create the reservation with user data
-      const reservationData = {
-        court_id: court.id,
-        start_time: selectedStartTime.toISOString(),
-        end_time: selectedEndTime.toISOString(),
-        total_price: totalPrice,
-        status: 'pending',
-        user_name: userDetails.name,
-        user_email: userDetails.email,
-        user_phone: userDetails.phone,
-        // Include user_id if user is logged in (for admin users)
-        ...(user ? { user_id: user.id } : {}),
-      }
-
-      const { data: reservation, error: reservationError } = await supabase
-        .from('reservations')
-        .insert([reservationData])
-        .select()
-        .single()
-
-      if (reservationError) throw reservationError
-
-      // Create payment record
-      const basePaymentData = {
-        reservation_id: reservation.id,
-        amount: totalPrice,
-        currency: 'XOF',
-        payment_method: paymentMethod,
-        status: 'pending',
-        payment_date: new Date().toISOString(),
-        // Include user_id if user is logged in (for admin users)
-        ...(user ? { user_id: user.id } : {}),
-      }
-
-      const paymentData =
-        paymentMethod === 'online'
-          ? { ...basePaymentData, payment_provider: 'lomi' }
-          : basePaymentData
-
-      const { error: paymentError } = await supabase
-        .from('payments')
-        .insert([paymentData])
-        .select()
-        .single()
-
-      if (paymentError) {
-        console.error('Error creating payment record:', paymentError)
-        // Continue with reservation even if payment record fails
-      }
+      // Do NOT create reservation/payment on client anymore. This will be done by the webhook after successful payment.
 
       if (paymentMethod === 'online') {
         // Handle online payment
@@ -285,11 +233,8 @@ const ReservationPage: React.FC = () => {
           "Calling Supabase function 'create-lomi-checkout-session'...",
         )
 
-        // Generate a Meta event_id (prefixed) and store it for backup/dedup
+        // Generate a Meta event_id (prefixed) for dedup
         const eventId = `pp-${getEventId()}`
-        try {
-          localStorage.setItem(`pp_event_id_${reservation.id}`, eventId)
-        } catch {}
 
         // Send Meta Pixel + CAPI InitiateCheckout with the generated eventId
         try {
@@ -318,11 +263,13 @@ const ReservationPage: React.FC = () => {
             body: {
               amount: totalPrice,
               currencyCode: 'XOF',
-              reservationId: reservation.id,
+              reservationId: null, // no reservation yet; will be created after payment
               courtId: court.id,
               userEmail: userDetails.email,
               userName: userDetails.name,
               userPhone: userDetails.phone,
+              slotStartIso: selectedStartTime.toISOString(),
+              slotEndIso: selectedEndTime.toISOString(),
               eventId, // forward event id so backend can attach to lomi metadata/urls
             },
           })
@@ -344,16 +291,7 @@ const ReservationPage: React.FC = () => {
 
         console.log('lomi. checkout URL received:', functionData.checkout_url)
 
-        // Store reservation data in localStorage for post-payment tracking
-        setPendingReservation({
-          id: reservation.id,
-          court: court.name,
-          date: format(selectedDate, 'MMMM dd, yyyy'),
-          time: `${format(selectedStartTime, 'h:mm a')} - ${format(selectedEndTime, 'h:mm a')}`,
-          total: totalPrice,
-          email: userDetails.email,
-          createdAt: new Date().toISOString(),
-        })
+        // No local storage reservation write; server will create it after payment
 
         // Ensure event_id is present in checkout URL as query param (defense in depth)
         let redirectUrl = functionData.checkout_url as string
@@ -361,8 +299,15 @@ const ReservationPage: React.FC = () => {
           const urlObj = new URL(redirectUrl)
           if (!urlObj.searchParams.get('event_id')) {
             urlObj.searchParams.set('event_id', eventId)
-            redirectUrl = urlObj.toString()
           }
+          // Also include amount/currency for client-side Pixel Purchase tracking convenience
+          if (!urlObj.searchParams.get('amount')) {
+            urlObj.searchParams.set('amount', String(totalPrice))
+          }
+          if (!urlObj.searchParams.get('currency')) {
+            urlObj.searchParams.set('currency', 'XOF')
+          }
+          redirectUrl = urlObj.toString()
         } catch {}
 
         // Redirect to lomi. checkout page
@@ -370,23 +315,7 @@ const ReservationPage: React.FC = () => {
       } else {
         // Handle on-spot payment
         toast.success(t('reservationPage.reservationSuccess'))
-
-        // Store reservation data in localStorage for tracking
-        const reservationInfo = {
-          id: reservation.id,
-          court: court.name,
-          date: format(selectedDate, 'MMMM dd, yyyy'),
-          time: `${format(selectedStartTime, 'h:mm a')} - ${format(selectedEndTime, 'h:mm a')}`,
-          total: totalPrice,
-          email: userDetails.email,
-          status: 'pending' as const,
-          createdAt: new Date().toISOString(),
-        }
-
-        // Store in localStorage using utility
-        addStoredReservation(reservationInfo)
-
-        // Navigate to a success page or home
+        // For on-spot payments, we currently do not create reservations automatically.
         navigate('/home')
       }
     } catch (error) {

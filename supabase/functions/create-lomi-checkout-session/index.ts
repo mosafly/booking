@@ -35,7 +35,7 @@ serve(async (req: Request) => {
       // --- Required Fields ---
       amount, // Base amount (e.g., 8000 for 8000 XOF) - used for direct amount checkout.
       currencyCode, // 3-letter ISO currency code (e.g., "XOF").
-      reservationId, // Your internal reservation ID (UUID or string).
+      reservationId, // Your internal reservation ID (UUID or string). OPTIONAL now
       courtId, // Court ID to get product_id from (NEW)
       useDynamicPricing = false, // Override to force dynamic pricing (NEW)
 
@@ -44,6 +44,9 @@ serve(async (req: Request) => {
       userName = null, // Customer's name, pre-fills lomi.checkout.
       userPhone = null, // Customer's phone number, pre-fills lomi.checkout.
       gymBookingId = null, // Gym booking ID for fitness classes
+      // Slot timing (for webhook reconstruction if no reservation yet)
+      slotStartIso = null,
+      slotEndIso = null,
       successUrlPath = '/payment/success', // Relative path for success redirect (e.g., /payment/success).
       cancelUrlPath = '/payment/cancel', // Relative path for cancel redirect (e.g., /payment/cancel).
       allowedProviders = null, // Array of allowed payment providers (e.g., ["WAVE", "ORANGE_MONEY"]).
@@ -79,11 +82,11 @@ serve(async (req: Request) => {
     }
 
     // --- Input Validation ---
-    if (!currencyCode || !reservationId) {
-      console.error('Missing required fields:', { currencyCode, reservationId })
+    if (!currencyCode) {
+      console.error('Missing required fields:', { currencyCode })
       return new Response(
         JSON.stringify({
-          error: 'Missing required fields: currencyCode or reservationId',
+          error: 'Missing required field: currencyCode',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -219,12 +222,20 @@ serve(async (req: Request) => {
 
     // Generate default metadata if not provided
     const defaultMetadata = {
-      reservation_id: reservationId,
+      reservation_id: reservationId || 'none',
       source: 'padel_app',
       is_product_based: String(isProductBased),
       court_id: courtId || 'unknown',
       gym_booking_id: gymBookingId || 'none',
       ...(eventId ? { event_id: eventId } : {}),
+      // Enrich for webhook creation if no reservation yet
+      slot_start_iso: slotStartIso,
+      slot_end_iso: slotEndIso,
+      amount: typeof amount === 'number' ? String(amount) : amount,
+      currency: currencyCode,
+      user_name: userName,
+      user_email: userEmail,
+      user_phone: userPhone,
     }
     const finalMetadata = metadata || defaultMetadata
 
@@ -234,8 +245,8 @@ serve(async (req: Request) => {
 
     // Base payload sent to lomi.
     const baseLomiPayload = {
-      success_url: `${APP_BASE_URL}${successUrlPath}?reservation_id=${reservationId}&status=success${eventId ? `&event_id=${eventId}` : ''}`,
-      cancel_url: `${APP_BASE_URL}${cancelUrlPath}?reservation_id=${reservationId}&status=cancelled${eventId ? `&event_id=${eventId}` : ''}`,
+      success_url: `${APP_BASE_URL}${successUrlPath}?${reservationId ? `reservation_id=${reservationId}&` : ''}status=success${eventId ? `&event_id=${eventId}` : ''}&amount=${encodeURIComponent(String(finalAmount ?? amount ?? ''))}&currency=${encodeURIComponent(currencyCode)}`,
+      cancel_url: `${APP_BASE_URL}${cancelUrlPath}?${reservationId ? `reservation_id=${reservationId}&` : ''}status=cancelled${eventId ? `&event_id=${eventId}` : ''}&amount=${encodeURIComponent(String(finalAmount ?? amount ?? ''))}&currency=${encodeURIComponent(currencyCode)}`,
       allowed_providers: allowedProviders || DEFAULT_ALLOWED_PROVIDERS,
       currency_code: currencyCode,
       // Only include quantity if it's more than 1 or explicitly allowed
