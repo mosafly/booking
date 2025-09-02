@@ -66,17 +66,22 @@ const ReservationPage: React.FC = () => {
 
         setCourt(courtData)
 
-        // Track ViewContent for Pixel
-        trackPixelEvent('ViewContent', {
-          content_name: courtData.name,
-          content_category: 'padel_court',
-        })
+        // Track ViewContent (Pixel + CAPI) with the SAME event_id for deduplication
+        const vcEventId = getEventId()
+        trackPixelEvent(
+          'ViewContent',
+          {
+            content_name: courtData.name,
+            content_category: 'padel_court',
+          },
+          vcEventId,
+        )
 
-        // Track ViewContent via Meta CAPI (server-side)
+        // Track ViewContent via Meta CAPI (server-side) with same event_id
         try {
           await capiTrack({
             event_name: 'ViewContent',
-            event_id: getEventId(),
+            event_id: vcEventId,
             event_source_url: window.location.href,
             custom_data: {
               content_name: courtData.name,

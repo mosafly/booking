@@ -74,14 +74,15 @@ export function MarketingPixels() {
         })
       }
       // @ts-ignore fbq is injected by Meta Pixel script
+      const pvEventId = getEventId()
       if ((window as any).fbq) {
-        ;(window as any).fbq('track', 'PageView')
+        ;(window as any).fbq('track', 'PageView', {}, { eventID: pvEventId })
       }
 
-      // Also send PageView via Meta CAPI for server-side tracking
+      // Also send PageView via Meta CAPI for server-side tracking using the SAME event_id
       capiTrack({
         event_name: 'PageView',
-        event_id: getEventId(),
+        event_id: pvEventId,
         event_source_url: window.location.origin + location.pathname + location.search,
         action_source: 'website',
       }).catch((e) => console.warn('CAPI PageView error', e))
@@ -94,9 +95,9 @@ export function MarketingPixels() {
 }
 
 // Helper pour tracker des événements custom (ex: InitiateCheckout)
-export function trackPixelEvent(event: string, parameters?: any) {
+export function trackPixelEvent(event: string, parameters?: any, eventId?: string) {
   // @ts-ignore fbq is injected by Meta Pixel script
   if (FB_PIXEL_ID && (window as any).fbq) {
-    ;(window as any).fbq('track', event, parameters)
+    ;(window as any).fbq('track', event, parameters, eventId ? { eventID: eventId } : undefined)
   }
 }
