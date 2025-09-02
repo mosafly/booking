@@ -20,6 +20,7 @@ import {
 } from '@/lib/utils/reservation-storage'
 import { createConversionClickHandler } from '@/lib/utils/conversion-tracking'
 import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
+import { getEventId, capiTrack, trackInitiateCheckout } from '@/lib/analytics/meta'
 
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams()
@@ -70,6 +71,23 @@ const ReservationPage: React.FC = () => {
           content_name: courtData.name,
           content_category: 'padel_court',
         })
+
+        // Track ViewContent via Meta CAPI (server-side)
+        try {
+          await capiTrack({
+            event_name: 'ViewContent',
+            event_id: getEventId(),
+            event_source_url: window.location.href,
+            custom_data: {
+              content_name: courtData.name,
+              content_category: 'padel_court',
+              court_id: courtData.id,
+            },
+            action_source: 'website',
+          })
+        } catch (e) {
+          console.warn('CAPI ViewContent error', e)
+        }
       } catch (error) {
         console.error('Error fetching court:', error)
         toast.error(t('reservationPage.errorLoadingCourt'))
@@ -261,6 +279,35 @@ const ReservationPage: React.FC = () => {
         console.log(
           "Calling Supabase function 'create-lomi-checkout-session'...",
         )
+
+        // Generate a Meta event_id (prefixed) and store it for backup/dedup
+        const eventId = `pp-${getEventId()}`
+        try {
+          localStorage.setItem(`pp_event_id_${reservation.id}`, eventId)
+        } catch {}
+
+        // Send Meta Pixel + CAPI InitiateCheckout with the generated eventId
+        try {
+          await trackInitiateCheckout({
+            eventId,
+            value: totalPrice,
+            currency: 'XOF',
+            slotId: `${court.id}-${selectedStartTime.toISOString()}`,
+            itemPrice: totalPrice,
+            category: 'court',
+            court_id: court.id,
+            coach_id: null,
+            slot_start_iso: selectedStartTime.toISOString(),
+            slot_end_iso: selectedEndTime.toISOString(),
+            location_city: undefined,
+            external_id: user?.id || undefined,
+            email: userDetails.email,
+            phone: userDetails.phone,
+          })
+        } catch (e) {
+          console.warn('InitiateCheckout tracking error (Pixel/CAPI)', e)
+        }
+
         const { data: functionData, error: functionError } =
           await supabase.functions.invoke('create-lomi-checkout-session', {
             body: {
@@ -271,6 +318,7 @@ const ReservationPage: React.FC = () => {
               userEmail: userDetails.email,
               userName: userDetails.name,
               userPhone: userDetails.phone,
+              eventId, // forward event id so backend can attach to lomi metadata/urls
             },
           })
 
@@ -302,8 +350,18 @@ const ReservationPage: React.FC = () => {
           createdAt: new Date().toISOString(),
         })
 
+        // Ensure event_id is present in checkout URL as query param (defense in depth)
+        let redirectUrl = functionData.checkout_url as string
+        try {
+          const urlObj = new URL(redirectUrl)
+          if (!urlObj.searchParams.get('event_id')) {
+            urlObj.searchParams.set('event_id', eventId)
+            redirectUrl = urlObj.toString()
+          }
+        } catch {}
+
         // Redirect to lomi. checkout page
-        window.location.href = functionData.checkout_url
+        window.location.href = redirectUrl
       } else {
         // Handle on-spot payment
         toast.success(t('reservationPage.reservationSuccess'))

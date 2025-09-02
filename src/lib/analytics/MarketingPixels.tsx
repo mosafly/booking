@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { capiTrack, getEventId } from './meta'
 
 // Reads IDs from Vite env:
 // - VITE_GADS_ID: Google Ads ID (e.g. AW-XXXXXXXXX)
@@ -76,6 +77,14 @@ export function MarketingPixels() {
       if ((window as any).fbq) {
         ;(window as any).fbq('track', 'PageView')
       }
+
+      // Also send PageView via Meta CAPI for server-side tracking
+      capiTrack({
+        event_name: 'PageView',
+        event_id: getEventId(),
+        event_source_url: window.location.origin + location.pathname + location.search,
+        action_source: 'website',
+      }).catch((e) => console.warn('CAPI PageView error', e))
     } catch (e) {
       console.warn('MarketingPixels: track error', e)
     }

@@ -7,12 +7,13 @@ import {
   clearPendingReservation,
   addStoredReservation,
 } from '@/lib/utils/reservation-storage'
-import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
+import { pixelTrack } from '@/lib/analytics/meta'
 
 const PaymentSuccessPage: React.FC = () => {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const reservationId = searchParams.get('reservation_id')
+  const urlEventId = searchParams.get('event_id') || undefined
 
   useEffect(() => {
     // This effect handles confirming the reservation in localStorage for guest users
@@ -34,17 +35,34 @@ const PaymentSuccessPage: React.FC = () => {
         })
       }
 
-      // Track Meta Pixel Purchase
+      // Determine Meta event_id for deduplication: URL first, then localStorage fallback
+      let eventId = urlEventId
+      try {
+        if (!eventId && reservationId) {
+          eventId = localStorage.getItem(`pp_event_id_${reservationId}`) || undefined
+        }
+      } catch {}
+
+      // Track Meta Pixel Purchase with event_id (for dedup with CAPI)
       const value = pendingReservation.total
-      trackPixelEvent('Purchase', {
-        value: value,
-        currency: 'XOF',
-        content_category: 'padel_booking',
-        content_name: pendingReservation.court,
-        transaction_id: reservationId,
-      })
+      pixelTrack(
+        'Purchase',
+        {
+          value,
+          currency: 'XOF',
+          content_category: 'padel_booking',
+          content_name: pendingReservation.court,
+          transaction_id: reservationId,
+        },
+        eventId,
+      )
+
+      // Cleanup stored event id after use
+      try {
+        if (reservationId) localStorage.removeItem(`pp_event_id_${reservationId}`)
+      } catch {}
     }
-  }, [reservationId])
+  }, [reservationId, urlEventId])
 
   return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-md shadow-lg text-center">

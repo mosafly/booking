@@ -62,6 +62,8 @@ serve(async (req: Request) => {
       metadata = null, // Custom key-value pairs (values must be strings) - will be auto-generated if null.
       expiration_minutes = 30, // How long the checkout link is valid.
       allow_coupon_code = true, // Set to true/false to explicitly allow/disallow coupons.
+      // --- Tracking ---
+      eventId = null, // Meta Pixel/CAPI event_id for deduplication
     } = await req.json()
 
     // --- API Key Validation ---
@@ -222,6 +224,7 @@ serve(async (req: Request) => {
       is_product_based: String(isProductBased),
       court_id: courtId || 'unknown',
       gym_booking_id: gymBookingId || 'none',
+      ...(eventId ? { event_id: eventId } : {}),
     }
     const finalMetadata = metadata || defaultMetadata
 
@@ -231,8 +234,8 @@ serve(async (req: Request) => {
 
     // Base payload sent to lomi.
     const baseLomiPayload = {
-      success_url: `${APP_BASE_URL}${successUrlPath}?reservation_id=${reservationId}&status=success`,
-      cancel_url: `${APP_BASE_URL}${cancelUrlPath}?reservation_id=${reservationId}&status=cancelled`,
+      success_url: `${APP_BASE_URL}${successUrlPath}?reservation_id=${reservationId}&status=success${eventId ? `&event_id=${eventId}` : ''}`,
+      cancel_url: `${APP_BASE_URL}${cancelUrlPath}?reservation_id=${reservationId}&status=cancelled${eventId ? `&event_id=${eventId}` : ''}`,
       allowed_providers: allowedProviders || DEFAULT_ALLOWED_PROVIDERS,
       currency_code: currencyCode,
       // Only include quantity if it's more than 1 or explicitly allowed
