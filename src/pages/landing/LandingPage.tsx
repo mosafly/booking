@@ -448,7 +448,7 @@ const LandingPage: React.FC = () => {
                 className="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
                 onError={(e) => {
                   e.currentTarget.src =
-                    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+                    '/images/gym/salle-sport.jpg'
                 }}
               />
             </div>

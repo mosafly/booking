@@ -39,6 +39,9 @@ const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 const resendApiKey = Deno.env.get('RESEND_API_KEY')
 const fromEmail =
   Deno.env.get('FROM_EMAIL') || 'noreply@updates.padelsociety.ci'
+// Optional: admin notification recipient (fallback to club contact)
+const adminNotificationEmail =
+  Deno.env.get('ADMIN_NOTIFICATION_EMAIL') || 'contact@padelpalmeraie.com'
 const APP_BASE_URL = Deno.env.get('APP_BASE_URL') || 'http://localhost:5173'
 
 async function updateEmailDispatchStatus(
@@ -508,7 +511,41 @@ serve(async (req: Request) => {
       )
     }
 
-    // --- 7. Update Status to Success ---
+    // --- 7. Send admin notification (non-blocking) ---
+    try {
+      const adminHtml = `
+        <html>
+          <body>
+            <h2>Nouvelle réservation confirmée</h2>
+            <p><strong>Réservation:</strong> ${reservationIdFromRequest.substring(0, 8)}</p>
+            <p><strong>Client:</strong> ${bookingData.user_name} (${bookingData.user_email})</p>
+            <p><strong>Terrain:</strong> ${bookingData.court_name}</p>
+            <p><strong>Date/Heure:</strong> ${new Date(bookingData.start_time).toLocaleString('fr-FR')}</p>
+            <p><strong>Prix:</strong> ${bookingData.total_price} ${bookingData.currency || 'XOF'}</p>
+            <p><a href="${APP_BASE_URL}/verify-booking?id=[hidden]&reservation=${encodeURIComponent(reservationIdFromRequest)}" target="_blank" rel="noopener noreferrer">Voir la réservation</a></p>
+          </body>
+        </html>`
+
+      const { error: adminEmailError } = await resend.emails.send({
+        from: `Padel Palmeraie CI <${fromEmail}>`,
+        to: adminNotificationEmail,
+        subject: `Nouvelle réservation confirmée - ${bookingData.court_name}`,
+        html: adminHtml,
+      })
+      if (adminEmailError) {
+        console.warn(
+          `send-booking-confirmation: Admin notification email failed for ${reservationIdFromRequest}:`,
+          adminEmailError,
+        )
+      }
+    } catch (adminErr) {
+      console.warn(
+        `send-booking-confirmation: Unexpected error while sending admin notification for ${reservationIdFromRequest}:`,
+        adminErr,
+      )
+    }
+
+    // --- 8. Update Status to Success ---
     await updateEmailDispatchStatus(
       supabase,
       reservationIdFromRequest,

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle, Home, Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
+import { capiTrack } from '@/lib/analytics/meta'
 
 const PaymentSuccessPage: React.FC = () => {
   const { t } = useTranslation()
@@ -34,6 +35,25 @@ const PaymentSuccessPage: React.FC = () => {
         },
         urlEventId,
       )
+
+      // Also send Purchase via Meta CAPI using the same event_id for deduplication
+      capiTrack({
+        event_name: 'Purchase',
+        event_id: urlEventId,
+        event_source_url: window.location.href,
+        action_source: 'website',
+        custom_data: {
+          value,
+          currency,
+          content_type: 'product',
+          content_ids: reservationId ? [reservationId] : undefined,
+          contents: reservationId
+            ? [{ id: reservationId, quantity: 1, item_price: value }]
+            : undefined,
+          order_id: reservationId,
+          content_category: 'padel_booking',
+        },
+      }).catch((e) => console.warn('CAPI Purchase error', e))
     }
   }, [reservationId, urlEventId, amountParam, currencyParam])
 
