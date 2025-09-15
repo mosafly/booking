@@ -28,28 +28,34 @@ function injectFacebookPixelOnce() {
 
   try {
     if (!w.fbq) {
-      // Standard Meta Pixel snippet
+      // Defensive Meta Pixel stub with Proxy guards to ignore writes to 'length'
       (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
         if (f.fbq) return
-        // Base fbq function (callable)
+        // Base callable function
         n = function () {
           ;(n!.callMethod ? n!.callMethod : n!.queue.push).apply(n, arguments as any)
         }
-        // Initialize queue and a push function compatible with older integrations
         ;(n as any).queue = []
-        ;(n as any).push = function () {
+        // push function that queues calls
+        let pushFn: any = function () {
           ;(n as any).queue.push(arguments as any)
         }
+        // Proxy for push to ignore 'length' writes
+        pushFn = new Proxy(pushFn, {
+          set(target, prop: PropertyKey, value) {
+            if (prop === 'length') return true
+            ;(target as any)[prop] = value
+            return true
+          },
+        })
+        ;(n as any).push = pushFn
         ;(n as any).loaded = true
         ;(n as any).version = '2.0'
 
-        // Wrap with a Proxy to ignore assignments to read-only Function.length
+        // Proxy for fbq itself to ignore 'length' writes
         const proxy = new Proxy(n as any, {
           set(target, prop: PropertyKey, value) {
-            if (prop === 'length') {
-              // Silently ignore attempts to set length
-              return true
-            }
+            if (prop === 'length') return true
             ;(target as any)[prop] = value
             return true
           },
@@ -66,8 +72,10 @@ function injectFacebookPixelOnce() {
       })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js')
     }
 
-    w.fbq('init', FB_PIXEL_ID)
-    w.fbq('track', 'PageView')
+    if (w.fbq) {
+      w.fbq('init', FB_PIXEL_ID)
+      w.fbq('track', 'PageView')
+    }
     w.__fb_pixel_injected = true
   } catch (e) {
     console.warn('MarketingPixels: fb pixel injection failed', e)
