@@ -31,13 +31,33 @@ function injectFacebookPixelOnce() {
       // Standard Meta Pixel snippet
       (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
         if (f.fbq) return
-        n = f.fbq = function () {
+        // Base fbq function (callable)
+        n = function () {
           ;(n!.callMethod ? n!.callMethod : n!.queue.push).apply(n, arguments as any)
         }
-        if (!f._fbq) f._fbq = n
-        n.loaded = true
-        n.version = '2.0'
-        n.queue = []
+        // Initialize queue and a push function compatible with older integrations
+        ;(n as any).queue = []
+        ;(n as any).push = function () {
+          ;(n as any).queue.push(arguments as any)
+        }
+        ;(n as any).loaded = true
+        ;(n as any).version = '2.0'
+
+        // Wrap with a Proxy to ignore assignments to read-only Function.length
+        const proxy = new Proxy(n as any, {
+          set(target, prop: PropertyKey, value) {
+            if (prop === 'length') {
+              // Silently ignore attempts to set length
+              return true
+            }
+            ;(target as any)[prop] = value
+            return true
+          },
+        })
+
+        f.fbq = proxy
+        if (!f._fbq) f._fbq = proxy
+
         t = b.createElement(e)
         t.async = true
         t.src = v
