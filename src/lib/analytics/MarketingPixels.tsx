@@ -22,34 +22,36 @@ function injectGoogleAdsOnce() {
 
 function injectFacebookPixelOnce() {
   if (!FB_PIXEL_ID) return
-  // Avoid duplicate injection
-  if ((window as any).fbq) return
+  const w = window as any
+  // Prevent double-injection in React StrictMode/dev
+  if (w.__fb_pixel_injected) return
 
-  // Standard Meta Pixel snippet
-  (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-    if (f.fbq) return
-    n = f.fbq = function () {
-      ;(n!.callMethod ? n!.callMethod : n!.queue.push).apply(n, arguments as any)
+  try {
+    if (!w.fbq) {
+      // Standard Meta Pixel snippet
+      (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
+        if (f.fbq) return
+        n = f.fbq = function () {
+          ;(n!.callMethod ? n!.callMethod : n!.queue.push).apply(n, arguments as any)
+        }
+        if (!f._fbq) f._fbq = n
+        n.loaded = true
+        n.version = '2.0'
+        n.queue = []
+        t = b.createElement(e)
+        t.async = true
+        t.src = v
+        s = b.getElementsByTagName(e)[0]
+        s.parentNode!.insertBefore(t, s)
+      })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js')
     }
-    if (!f._fbq) f._fbq = n
-    n.push = n
-    n.loaded = true
-    n.version = '2.0'
-    n.queue = []
-    t = b.createElement(e)
-    t.async = true
-    t.src = v
-    s = b.getElementsByTagName(e)[0]
-    s.parentNode!.insertBefore(t, s)
-  })(
-    window,
-    document,
-    'script',
-    'https://connect.facebook.net/en_US/fbevents.js',
-  )
 
-  ;(window as any).fbq('init', FB_PIXEL_ID)
-  ;(window as any).fbq('track', 'PageView')
+    w.fbq('init', FB_PIXEL_ID)
+    w.fbq('track', 'PageView')
+    w.__fb_pixel_injected = true
+  } catch (e) {
+    console.warn('MarketingPixels: fb pixel injection failed', e)
+  }
 }
 
 export function MarketingPixels() {
