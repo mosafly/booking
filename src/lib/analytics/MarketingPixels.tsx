@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { capiTrack, getEventId } from './meta'
 
@@ -27,11 +27,28 @@ function injectFacebookPixelOnce() {
   if (w.__fb_pixel_injected) return
 
   try {
-    // Rely on index.html to load Meta Pixel; just mark injected and optionally init/track if available
-    if (w.fbq) {
-      w.fbq('init', FB_PIXEL_ID)
-      w.fbq('track', 'PageView')
+    if (!w.fbq) {
+      // Standard Meta Pixel snippet
+      (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
+        if (f.fbq) return
+        n = f.fbq = function () {
+          ;(n!.callMethod ? n!.callMethod : n!.queue.push).apply(n, arguments as any)
+        }
+        if (!f._fbq) f._fbq = n
+        n.push = n
+        n.loaded = true
+        n.version = '2.0'
+        n.queue = []
+        t = b.createElement(e)
+        t.async = true
+        t.src = v
+        s = b.getElementsByTagName(e)[0]
+        s.parentNode!.insertBefore(t, s)
+      })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js')
     }
+
+    w.fbq('init', FB_PIXEL_ID)
+    w.fbq('track', 'PageView')
     w.__fb_pixel_injected = true
   } catch (e) {
     console.warn('MarketingPixels: fb pixel injection failed', e)
@@ -40,7 +57,6 @@ function injectFacebookPixelOnce() {
 
 export function MarketingPixels() {
   const location = useLocation()
-  const didMountRef = useRef(false)
 
   // Inject scripts on first mount
   useEffect(() => {
@@ -62,9 +78,7 @@ export function MarketingPixels() {
       }
       // @ts-ignore fbq is injected by Meta Pixel script
       const pvEventId = getEventId()
-      const skipFbqInitial = !didMountRef.current
-      didMountRef.current = true
-      if ((window as any).fbq && !skipFbqInitial) {
+      if ((window as any).fbq) {
         ;(window as any).fbq('track', 'PageView', {}, { eventID: pvEventId })
       }
 
