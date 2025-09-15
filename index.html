@@ -123,12 +123,21 @@
       const FB_PIXEL_ID = import.meta.env.VITE_FB_PIXEL_ID || import.meta.env.VITE_META_PIXEL_ID;
       if (FB_PIXEL_ID) {
         (function(f,b,e,v,n,t,s){
-          if (f.fbq) return; n = f.fbq = function(){
+          if (f.fbq) return; n = function(){
             (n.callMethod ? n.callMethod : n.queue.push).apply(n, arguments);
-          }; if (!f._fbq) f._fbq = n; n.queue = [];
-          // safer push that won't have a read-only length property
-          n.push = function(){ n.queue.push(arguments); };
+          }; n.queue = [];
+          // Make push an array so writes to push.length don't throw in strict mode
+          // Some third-party scripts try to reset fbq.push.length = 0
+          n.push = [];
           n.loaded = true; n.version = '2.0';
+          // Wrap fbq with a Proxy to ignore writes to read-only 'length'
+          const proxy = new Proxy(n, {
+            set(target, prop, value) {
+              if (prop === 'length') return true; // ignore
+              target[prop] = value; return true;
+            }
+          });
+          f.fbq = proxy; if (!f._fbq) f._fbq = proxy;
           t = b.createElement(e); t.async = true; t.src = v;
           s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t,s);
         })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
