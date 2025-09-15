@@ -32,7 +32,11 @@ function injectFacebookPixelOnce() {
       (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
         if (f.fbq) return
         n = f.fbq = function () {
-          ;(n!.callMethod ? n!.callMethod : n!.queue.push).apply(n, arguments as any)
+          if (n!.callMethod) {
+            n!.callMethod.apply(n, arguments as any)
+          } else {
+            n!.queue.push(arguments)
+          }
         }
         if (!f._fbq) f._fbq = n
         n.push = n

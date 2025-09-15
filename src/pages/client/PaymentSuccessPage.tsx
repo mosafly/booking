@@ -14,46 +14,54 @@ const PaymentSuccessPage: React.FC = () => {
   const currencyParam = searchParams.get('currency') || undefined
 
   useEffect(() => {
-    // Track Google Ads conversion (fire-and-forget)
-    if ((window as any).gtag) {
-      ;(window as any).gtag('event', 'conversion', {
-        send_to: 'AW-17422060448/LGGiCMC89fwaEKCXvvNA',
-      })
+    // Track Google Ads conversion (fire-and-forget, protégé)
+    try {
+      if ((window as any).gtag) {
+        ;(window as any).gtag('event', 'conversion', {
+          send_to: 'AW-17422060448/LGGiCMC89fwaEKCXvvNA',
+        })
+      }
+    } catch (e) {
+      console.warn('PaymentSuccessPage: gtag conversion error', e)
     }
 
     // Track Meta Pixel Purchase with event_id (dedup with CAPI)
     const value = amountParam ? Number(amountParam) : undefined
     const currency = currencyParam || 'XOF'
-    if (urlEventId && value) {
-      trackPixelEvent(
-        'Purchase',
-        {
-          value,
-          currency,
-          content_category: 'padel_booking',
-          transaction_id: reservationId,
-        },
-        urlEventId,
-      )
+    try {
+      if (urlEventId && typeof value === 'number' && !Number.isNaN(value)) {
+        trackPixelEvent(
+          'Purchase',
+          {
+            value,
+            currency,
+            content_category: 'padel_booking',
+            transaction_id: reservationId,
+          },
+          urlEventId,
+        )
 
-      // Also send Purchase via Meta CAPI using the same event_id for deduplication
-      capiTrack({
-        event_name: 'Purchase',
-        event_id: urlEventId,
-        event_source_url: window.location.href,
-        action_source: 'website',
-        custom_data: {
-          value,
-          currency,
-          content_type: 'product',
-          content_ids: reservationId ? [reservationId] : undefined,
-          contents: reservationId
-            ? [{ id: reservationId, quantity: 1, item_price: value }]
-            : undefined,
-          order_id: reservationId,
-          content_category: 'padel_booking',
-        },
-      }).catch((e) => console.warn('CAPI Purchase error', e))
+        // Also send Purchase via Meta CAPI using the same event_id for deduplication
+        capiTrack({
+          event_name: 'Purchase',
+          event_id: urlEventId,
+          event_source_url: window.location.href,
+          action_source: 'website',
+          custom_data: {
+            value,
+            currency,
+            content_type: 'product',
+            content_ids: reservationId ? [reservationId] : undefined,
+            contents: reservationId
+              ? [{ id: reservationId, quantity: 1, item_price: value }]
+              : undefined,
+            order_id: reservationId,
+            content_category: 'padel_booking',
+          },
+        }).catch((e) => console.warn('CAPI Purchase error', e))
+      }
+    } catch (e) {
+      console.warn('PaymentSuccessPage: Pixel Purchase tracking error', e)
     }
   }, [reservationId, urlEventId, amountParam, currencyParam])
 
