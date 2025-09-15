@@ -26,8 +26,19 @@ const MyReservationsPage: React.FC = () => {
         let reservationData: Reservation[] = []
 
         if (user) {
-          // Fetch reservations for authenticated users
-          const { data, error } = await supabase
+          // Tenter de lier d'abord les réservations orphelines (user_id null) à cet utilisateur via son email
+          try {
+            if (user.email) {
+              await supabase.rpc('link_user_reservations_by_email', {
+                p_email: user.email,
+                p_user_id: user.id,
+              })
+            }
+          } catch (linkErr) {
+            console.warn('MyReservationsPage: link_user_reservations_by_email skipped', linkErr)
+          }
+          // 1) Récupération par user_id (réservations déjà liées au compte)
+          const byUserIdPromise = supabase
             .from('reservations')
             .select(
               `
@@ -38,12 +49,45 @@ const MyReservationsPage: React.FC = () => {
             .eq('user_id', user.id)
             .order('start_time', { ascending: false })
 
-          if (error) throw error
+          // 2) Récupération complémentaire par email si des réservations ont été créées par le webhook sans user_id
+          //    NB: cela dépend des politiques RLS. Si la politique n'autorise pas ce filtre, on ignore l'erreur.
+          const byEmailPromise = user.email
+            ? supabase
+                .from('reservations')
+                .select(
+                  `
+                  *,
+                  courts(name)
+                `,
+                )
+                .is('user_id', null)
+                .eq('user_email', user.email)
+                .order('start_time', { ascending: false })
+            : Promise.resolve({ data: [], error: null } as any)
 
-          // Transform the data to match our Reservation type
-          reservationData = data.map((item) => ({
+          const [{ data: dataByUserId, error: err1 }, { data: dataByEmail, error: err2 }] =
+            await Promise.all([byUserIdPromise, byEmailPromise])
+
+          if (err1) throw err1
+          if (err2) {
+            // Si la requête email échoue (RLS stricte), on log et on continue avec dataByUserId uniquement
+            console.warn('MyReservationsPage: email-based query skipped due to RLS/policy', err2)
+          }
+
+          const rows: any[] = [...(dataByUserId || []), ...((dataByEmail as any[]) || [])]
+
+          // Déduplication par id
+          const dedupMap = new Map<string, any>()
+          for (const item of rows) {
+            dedupMap.set(item.id, item)
+          }
+
+          const merged = Array.from(dedupMap.values())
+
+          // Transform to Reservation type
+          reservationData = merged.map((item: any) => ({
             ...item,
-            court_name: item.courts.name,
+            court_name: item.courts?.name,
           }))
         } else {
           // For anonymous users, get reservations from localStorage

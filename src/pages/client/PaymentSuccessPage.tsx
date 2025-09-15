@@ -3,10 +3,12 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle, Home, Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
+import { useAuth } from '@/lib/contexts/Auth'
 import { capiTrack } from '@/lib/analytics/meta'
 
 const PaymentSuccessPage: React.FC = () => {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const reservationId = searchParams.get('reservation_id') || undefined
   const urlEventId = searchParams.get('event_id') || undefined
@@ -85,6 +87,25 @@ const PaymentSuccessPage: React.FC = () => {
         </div>
       )}
       <div className="space-y-3">
+        {!user && (
+          <div className="p-4 rounded-md bg-blue-50 text-blue-700 text-sm">
+            <p className="mb-3">{t('paymentSuccessPage.postPurchaseCta') || 'Créez un compte pour retrouver facilement vos réservations.'}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <a
+                href={`/signup?redirect=${encodeURIComponent('/home/my-reservations')}`}
+                className="w-full inline-flex items-center justify-center py-3 px-6 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold rounded-md shadow-md transition duration-300"
+              >
+                {t('common.signUp') || 'Créer un compte'}
+              </a>
+              <a
+                href={`/login?redirect=${encodeURIComponent('/home/my-reservations')}`}
+                className="w-full inline-flex items-center justify-center py-3 px-6 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+              >
+                {t('common.signIn') || 'Se connecter'}
+              </a>
+            </div>
+          </div>
+        )}
         <Link
           to="/home/my-reservations"
           className="w-full inline-flex items-center justify-center py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md transition duration-300"

@@ -46,6 +46,7 @@ import { GymBookingPage } from './pages/gym/GymBookingPage'
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
+import ClientSignUpPage from './pages/auth/ClientSignUpPage'
 import LandingPage from './pages/landing/LandingPage'
 
 // Protected Route Component
@@ -129,6 +130,7 @@ function App() {
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/signup" element={<ClientSignUpPage />} />
 
               {/* Public Client Routes */}
               <Route

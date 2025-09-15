@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Brackets as Racket, Mail, Lock } from 'lucide-react'
 import { useAuth } from '@/lib/contexts/Auth'
 import { useSupabase } from '@/lib/contexts/Supabase'
@@ -13,6 +13,8 @@ const LoginPage: React.FC = () => {
   const { signIn } = useAuth()
   const { supabase } = useSupabase()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect') || undefined
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,7 +39,9 @@ const LoginPage: React.FC = () => {
 
         // Redirect based on role
         const userRole = profile?.role
-        if (userRole === 'super_admin') {
+        if (redirect) {
+          navigate(redirect)
+        } else if (userRole === 'super_admin') {
           navigate('/admin') // Super Admin gets full admin access
         } else if (userRole === 'admin') {
           navigate('/admin')
@@ -48,7 +52,7 @@ const LoginPage: React.FC = () => {
           navigate('/home')
         }
       } else {
-        navigate('/home')
+        navigate(redirect || '/home')
       }
     } catch (error: unknown) {
       console.error('Login error:', error)
@@ -83,7 +87,7 @@ const LoginPage: React.FC = () => {
           <p className="mt-2 text-sm text-gray-600">
             Or{' '}
             <Link
-              to="/register"
+              to={`/register${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
               className="font-medium text-[var(--primary)] hover:text-[var(--primary-dark)]"
             >
               create a new admin account
