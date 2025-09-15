@@ -117,6 +117,26 @@
       gtag('js', new Date());
       gtag('config', 'AW-17422060448');
     </script>
+
+    <!-- Meta Pixel (loaded early via module so we can access Vite env) -->
+    <script type="module">
+      const FB_PIXEL_ID = import.meta.env.VITE_FB_PIXEL_ID || import.meta.env.VITE_META_PIXEL_ID;
+      if (FB_PIXEL_ID) {
+        (function(f,b,e,v,n,t,s){
+          if (f.fbq) return; n = f.fbq = function(){
+            (n.callMethod ? n.callMethod : n.queue.push).apply(n, arguments);
+          }; if (!f._fbq) f._fbq = n; n.queue = [];
+          // safer push that won't have a read-only length property
+          n.push = function(){ n.queue.push(arguments); };
+          n.loaded = true; n.version = '2.0';
+          t = b.createElement(e); t.async = true; t.src = v;
+          s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t,s);
+        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+        window.fbq('init', FB_PIXEL_ID);
+        window.fbq('track', 'PageView');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
