@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/components/dashboard/language-switcher'
 import { useAuth } from '@/lib/contexts/Auth'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { ChevronDown, Settings, Users, User } from 'lucide-react'
 
 interface PublicLayoutProps {
@@ -15,6 +15,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   const { t } = useTranslation()
   const { userRole } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [currentView, setCurrentView] = useState<ViewMode>('client')
   const [viewDropdownOpen, setViewDropdownOpen] = useState(false)
@@ -143,6 +144,33 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
           </div>
         </div>
       </header>
+      {/* Quick access tabs for booking navigation */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="-mb-px flex" aria-label="Quick tabs">
+            <Link
+              to="/home"
+              className={`w-1/2 text-center py-3 border-b-2 text-sm font-medium ${location.pathname.startsWith('/home/reservation') || location.pathname === '/home'
+                ? 'border-[var(--primary)] text-[var(--primary)]'
+                : 'border-transparent hover:text-[var(--primary)] hover:border-[var(--primary)]'
+                }`}
+              aria-current={location.pathname === '/home' || location.pathname.startsWith('/home/reservation') ? 'page' : undefined}
+            >
+              {t('courts')}
+            </Link>
+            <Link
+              to="/home/my-reservations"
+              className={`w-1/2 text-center py-3 border-b-2 text-sm font-medium ${location.pathname.startsWith('/home/my-reservations')
+                ? 'border-[var(--primary)] text-[var(--primary)]'
+                : 'border-transparent hover:text-[var(--primary)] hover:border-[var(--primary)]'
+                }`}
+              aria-current={location.pathname.startsWith('/home/my-reservations') ? 'page' : undefined}
+            >
+              {t('myReservations')}
+            </Link>
+          </nav>
+        </div>
+      </div>
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}

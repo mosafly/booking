@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { addDays, format, startOfDay, endOfDay } from 'date-fns'
 import { useSupabase } from '@/lib/contexts/Supabase'
 import { useAuth } from '@/lib/contexts/Auth'
@@ -21,6 +21,7 @@ import { getEventId, capiTrack, trackInitiateCheckout } from '@/lib/analytics/me
 const ReservationPage: React.FC = () => {
   const { courtId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { supabase } = useSupabase()
   const { user } = useAuth() // Still needed for admin functions, but not required for reservations
   const { t } = useTranslation()
@@ -100,6 +101,29 @@ const ReservationPage: React.FC = () => {
 
     fetchCourt()
   }, [courtId, supabase, navigate, t])
+
+  // Prefill from query params (date, start, end) if provided (e.g., from Rebook)
+  useEffect(() => {
+    const dateStr = searchParams.get('date')
+    const startIso = searchParams.get('start')
+    const endIso = searchParams.get('end')
+    try {
+      if (dateStr) {
+        const d = new Date(dateStr)
+        if (!Number.isNaN(d.getTime())) {
+          setSelectedDate(startOfDay(d))
+        }
+      }
+      if (startIso && endIso) {
+        const s = new Date(startIso)
+        const e = new Date(endIso)
+        if (!Number.isNaN(s.getTime()) && !Number.isNaN(e.getTime())) {
+          setSelectedStartTime(s)
+          setSelectedEndTime(e)
+        }
+      }
+    } catch {}
+  }, [searchParams])
 
   // Fetch available slots for selected date
   useEffect(() => {
@@ -353,7 +377,7 @@ const ReservationPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="pb-28 md:pb-32">
       <div className="mb-6">
         <button
           onClick={() => navigate('/home')}
@@ -461,18 +485,31 @@ const ReservationPage: React.FC = () => {
             </div>
           )}
 
-          {selectedStartTime && selectedEndTime && (
-            <div className="mt-4 md:mt-6">
-              <button
-                onClick={createConversionClickHandler(() => setShowPurchaseModal(true))}
-                className="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-medium py-3 md:py-4 px-6 rounded-md transition-colors text-sm md:text-base"
-              >
-                {t('reservationPage.proceedToPayment')}
-              </button>
-            </div>
-          )}
+          {selectedStartTime && selectedEndTime && null}
         </div>
       </div>
+
+      {/* Floating summary + CTA */}
+      {selectedStartTime && selectedEndTime && (
+        <div className="fixed inset-x-0 bottom-0 z-50 bg-white/95 backdrop-blur border-t shadow-lg">
+          <div className="max-w-4xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-xs md:text-sm text-gray-600 truncate">
+                {format(selectedDate, 'MMMM dd, yyyy')} · {format(selectedStartTime, 'h:mm a')} - {format(selectedEndTime, 'h:mm a')}
+              </div>
+              <div className="text-sm md:text-base font-semibold text-gray-900">
+                {t('reservationPage.summaryTotalLabel')} {formatFCFA(calculateTotalPrice())}
+              </div>
+            </div>
+            <button
+              onClick={createConversionClickHandler(() => setShowPurchaseModal(true))}
+              className="shrink-0 inline-flex items-center justify-center px-4 md:px-6 py-2.5 md:py-3 rounded-md bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-medium text-sm md:text-base transition-colors"
+            >
+              {t('reservationPage.proceedToPayment')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Purchase Form Modal */}
       {court && selectedStartTime && selectedEndTime && (

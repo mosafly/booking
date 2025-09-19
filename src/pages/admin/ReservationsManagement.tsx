@@ -34,53 +34,57 @@ const ReservationsManagement: React.FC = () => {
     const fetchReservations = async () => {
       try {
         setIsLoading(true)
-        // 1. Fetch reservations
+        // 1. Fetch reservations with joined court name (limite les requêtes)
         const { data: resData, error: resError } = await supabase
           .from('reservations')
-          .select('*')
+          .select(`
+            *,
+            courts(name)
+          `)
           .gte('start_time', `${dateRange.start}T00:00:00`)
           .lte('start_time', `${dateRange.end}T23:59:59`)
           .order('start_time', { ascending: false })
         if (resError) throw resError
 
-        // 2. Fetch related courts
-        const courtIds = [
-          ...new Set(resData!.map((r: { court_id: string }) => r.court_id)),
-        ]
-        const { data: courtsData } = await supabase
-          .from('courts')
-          .select('id, name')
-          .in('id', courtIds)
+        // 2. Fetch related users emails (only for reservations that have a user_id)
+        const userIds = Array.from(
+          new Set((resData || []).map((r: any) => r.user_id).filter(Boolean)),
+        )
+        let profilesData: Array<{ id: string; email: string }> | undefined
+        if (userIds.length > 0) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id, email')
+            .in('id', userIds as string[])
+          profilesData = data || []
+        } else {
+          profilesData = []
+        }
 
-        // 3. Fetch related users
-        const userIds = [
-          ...new Set(resData!.map((r: { user_id: string }) => r.user_id)),
-        ]
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, email')
-          .in('id', userIds)
+        // 3. Transform to AdminReservation + appliquer filtre statut côté client si nécessaire
+        const transformed = (resData || []).map((r: any) => {
+          const emailFromProfile = profilesData?.find((p) => p.id === r.user_id)?.email || ''
+          return {
+            id: r.id,
+            start_time: r.start_time,
+            end_time: r.end_time,
+            status: r.status,
+            court_id: r.court_id,
+            court_name: r.courts?.name || '',
+            user_id: r.user_id,
+            // Préférer l'email stocké sur la réservation si présent (cas invité), sinon profil
+            user_email: r.user_email || emailFromProfile,
+            total_price: r.total_price,
+            created_at: r.created_at,
+          } as AdminReservation
+        })
 
-        // 4. Transform to AdminReservation
-        const transformed = resData!.map((r: AdminReservation) => ({
-          id: r.id,
-          start_time: r.start_time,
-          end_time: r.end_time,
-          status: r.status,
-          court_id: r.court_id,
-          court_name:
-            courtsData?.find(
-              (c: { id: string; name: string }) => c.id === r.court_id,
-            )?.name || '',
-          user_id: r.user_id,
-          user_email:
-            profilesData?.find(
-              (p: { id: string; email: string }) => p.id === r.user_id,
-            )?.email || '',
-          total_price: r.total_price,
-          created_at: r.created_at,
-        }))
-        setReservations(transformed)
+        const filtered =
+          filterStatus === 'all'
+            ? transformed
+            : transformed.filter((r) => r.status === filterStatus)
+
+        setReservations(filtered)
       } catch (err) {
         console.error('Error fetching reservations:', err)
         toast.error('Failed to load reservations')

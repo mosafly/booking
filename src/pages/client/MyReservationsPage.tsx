@@ -34,6 +34,7 @@ const MyReservationsPage: React.FC = () => {
                 p_user_id: user.id,
               })
             }
+
           } catch (linkErr) {
             console.warn('MyReservationsPage: link_user_reservations_by_email skipped', linkErr)
           }
@@ -161,6 +162,10 @@ const MyReservationsPage: React.FC = () => {
       console.error('Error cancelling reservation:', error)
       toast.error(t('myReservationsPage.cancelError'))
     }
+  }
+
+  function handleRebook(reservation: Reservation): void {
+    throw new Error('Function not implemented.')
   }
 
   return (

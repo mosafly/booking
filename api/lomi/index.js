@@ -64,6 +64,17 @@ async function getRawBody(req) {
   return Buffer.concat(chunks)
 }
 
+// Normalize reservation_id coming from external metadata (some send 'none'/'null')
+function isMissingReservationId(val) {
+  try {
+    if (val === null || val === undefined) return true
+    const s = String(val).trim().toLowerCase()
+    return s === '' || s === 'none' || s === 'null' || s === 'undefined'
+  } catch {
+    return true
+  }
+}
+
 // --- Vercel Function Handler ---
 export default async function handler(req, res) {
   console.log(
@@ -195,7 +206,7 @@ export default async function handler(req, res) {
       )
 
       // If no reservation yet, create it using metadata from checkout
-      if (!reservationId) {
+      if (isMissingReservationId(reservationId)) {
         try {
           const meta = eventData.metadata || {}
           const courtIdMeta = meta.court_id

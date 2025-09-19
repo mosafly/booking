@@ -24,7 +24,7 @@ const LandingPage: React.FC = () => {
   const { t, i18n } = useTranslation()
   const { supabase } = useSupabase()
 
-  // CMS hero content (overrides translations if present)
+  // CMS hero content (disabled for hero to avoid flicker). We keep state for future sections if needed.
   const [hero, setHero] = useState<{ title?: string; subtitle?: string; image?: string } | null>(null)
 
   // Courts from DB (use image_url from storage)
@@ -47,14 +47,8 @@ const LandingPage: React.FC = () => {
           .eq('page_id', page.id)
           .eq('locale', i18n.language || 'fr')
           .order('sort_order', { ascending: true })
-        const heroSec = (sections || []).find((s: any) => s.key === 'hero' || s.type === 'hero')
-        if (heroSec?.content && typeof heroSec.content === 'object') {
-          setHero({
-            title: heroSec.content.title || undefined,
-            subtitle: heroSec.content.subtitle || undefined,
-            image: heroSec.content.image || undefined,
-          })
-        }
+        // Note: We no longer override hero title/subtitle/image from CMS to avoid flicker with i18n.
+        // If needed later, re-enable by setting hero state here.
       } catch (e) {
         // silent fallback to static content
       }
@@ -82,8 +76,8 @@ const LandingPage: React.FC = () => {
     loadCourts()
   }, [supabase, i18n.language])
 
-  const heroTitle = useMemo(() => hero?.title ?? t('landingPage.hero.title'), [hero, t])
-  const heroSubtitle = useMemo(() => hero?.subtitle ?? t('landingPage.hero.subtitle'), [hero, t])
+  const heroTitle = useMemo(() => t('landingPage.hero.title'), [t])
+  const heroSubtitle = useMemo(() => t('landingPage.hero.subtitle'), [t])
 
   const handleGetStarted = createConversionClickHandler(() => {
     navigate('/home/reservation')
@@ -183,7 +177,7 @@ const LandingPage: React.FC = () => {
       >
         <div className="absolute inset-0">
           <img
-            src={hero?.image || '/hero.png'}
+            src={'/hero.png'}
             alt="Padel Palmeraie - Terrain de padel moderne"
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -197,7 +191,6 @@ const LandingPage: React.FC = () => {
 
         <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
-            {t('landingPage.hero.welcome')} <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-green-400">
               {heroTitle}
             </span>

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { trackPixelEvent } from '@/lib/analytics/MarketingPixels'
 import { useAuth } from '@/lib/contexts/Auth'
 import { capiTrack } from '@/lib/analytics/meta'
+import toast from 'react-hot-toast'
 
 const PaymentSuccessPage: React.FC = () => {
   const { t } = useTranslation()
@@ -65,6 +66,11 @@ const PaymentSuccessPage: React.FC = () => {
     } catch (e) {
       console.warn('PaymentSuccessPage: Pixel Purchase tracking error', e)
     }
+
+    // Small UX feedback: success toast once on load
+    try {
+      toast.success(t('paymentSuccessPage.successToast', { defaultValue: 'Réservation confirmée' }))
+    } catch {}
   }, [reservationId, urlEventId, amountParam, currencyParam])
 
   return (
@@ -87,6 +93,26 @@ const PaymentSuccessPage: React.FC = () => {
         </div>
       )}
       <div className="space-y-3">
+        {/* Onglets de navigation post-achat */}
+        <div className="bg-white rounded-md shadow-sm">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex" aria-label="Tabs">
+              <a
+                href="/home/my-reservations"
+                aria-current="page"
+                className="w-1/2 border-b-2 py-4 px-1 text-center text-sm font-medium border-[var(--primary)] text-[var(--primary)]"
+              >
+                {t('paymentSuccessPage.tabMyReservations') || 'Mes réservations'}
+              </a>
+              <a
+                href="/home"
+                className="w-1/2 border-b-2 border-transparent py-4 px-1 text-center text-sm font-medium hover:text-[var(--primary)] hover:border-[var(--primary)]"
+              >
+                {t('paymentSuccessPage.tabCourts') || 'Voir les courts'}
+              </a>
+            </nav>
+          </div>
+        </div>
         {!user && (
           <div className="p-4 rounded-md bg-blue-50 text-blue-700 text-sm">
             <p className="mb-3">{t('paymentSuccessPage.postPurchaseCta') || 'Créez un compte pour retrouver facilement vos réservations.'}</p>
@@ -106,20 +132,22 @@ const PaymentSuccessPage: React.FC = () => {
             </div>
           </div>
         )}
-        <Link
-          to="/home/my-reservations"
-          className="w-full inline-flex items-center justify-center py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md transition duration-300"
-        >
-          <Eye className="w-5 h-5 mr-2" />
-          {t('paymentSuccessPage.button')}
-        </Link>
-        <Link
-          to="/home"
-          className="w-full inline-flex items-center justify-center py-3 px-6 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-md shadow-md transition duration-300"
-        >
-          <Home className="w-5 h-5 mr-2" />
-          {t('paymentSuccessPage.backToHome')}
-        </Link>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Link
+            to="/home/my-reservations"
+            className="w-full inline-flex items-center justify-center py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+          >
+            <Eye className="w-5 h-5 mr-2" />
+            {t('paymentSuccessPage.button')}
+          </Link>
+          <Link
+            to="/home"
+            className="w-full inline-flex items-center justify-center py-3 px-6 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+          >
+            <Home className="w-5 h-5 mr-2" />
+            {t('paymentSuccessPage.backToHome')}
+          </Link>
+        </div>
       </div>
     </div>
   )

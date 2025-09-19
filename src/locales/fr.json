@@ -49,7 +49,8 @@
     "noReservations": "Aucune réservation trouvée.",
     "userPrefix": "Utilisateur :",
     "confirmButton": "Confirmer",
-    "cancelButton": "Annuler"
+    "cancelButton": "Annuler",
+    "rebookButton": "Réserver à nouveau"
   },
   "timeSlotPicker": {
     "title": "Créneaux horaires disponibles",
@@ -152,7 +153,14 @@
     "message": "Votre paiement a été traité avec succès. Le statut de votre réservation sera mis à jour sous peu.",
     "reservationIdLabel": "ID de réservation :",
     "button": "Voir mes réservations",
-    "backToHome": "Retour à l'accueil"
+    "backToHome": "Retour à l'accueil",
+    "postPurchaseCta": "Créez un compte pour retrouver facilement vos réservations.",
+    "tabMyReservations": "Mes réservations",
+    "tabCourts": "Voir les courts"
+  },
+  "common": {
+    "signUp": "Créer un compte",
+    "signIn": "Se connecter"
   },
   "paymentCancelPage": {
     "title": "Le paiement a échoué",
@@ -213,9 +221,9 @@
     },
     "hero": {
       "welcome": "Bienvenue au",
-      "title": "Padel Palmeraie",
-      "subtitle": "Le club de padel premium de Riviera Faya. Découvrez le sport le plus passionnant dans un cadre exceptionnel à Abidjan.",
-      "bookCourt": "Réservez votre terrain",
+      "title": "Le seul terrain à Faya et ses environs",
+      "subtitle": "Découvrez le padel à la Palmeraie",
+      "bookCourt": "Réservez votre terrain facilement",
       "discoverClub": "Découvrir le club"
     },
     "about": {
