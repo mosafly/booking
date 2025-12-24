@@ -79,13 +79,15 @@ serve(async (req: Request) => {
       // --- All Optional lomi Parameters (provide in request body to override defaults) ---
       // See lomi. API docs: https://api.lomi.africa/v1/docs#tag/CheckoutSessions/operation/CheckoutSessionsController_create
       title = null, // Title displayed on lomi. checkout page - will be auto-generated if null.
-      public_description = null, // Description on lomi. checkout page - will be auto-generated if null.
+      description = null, // Description on lomi. checkout page - will be auto-generated if null.
       // product_id will be determined from court or dynamic pricing
+      price_id = null, // Price ID (UUID) for product pricing - used with product_id.
       subscription_id = null, // Subscription ID (UUID) to associate.
       plan_id = null, // Plan ID (UUID) to associate.
       metadata = null, // Custom key-value pairs (values must be strings) - will be auto-generated if null.
       expiration_minutes = 30, // How long the checkout link is valid.
       allow_coupon_code = true, // Set to true/false to explicitly allow/disallow coupons.
+      require_billing_address = false, // Whether to require billing address collection.
       // --- Tracking ---
       eventId = null, // Meta Pixel/CAPI event_id for deduplication
     } = await req.json()
@@ -108,6 +110,20 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({
           error: 'Missing required field: currencyCode',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        },
+      )
+    }
+
+    // Validate amount if provided (must be positive)
+    if (amount !== undefined && amount !== null && amount <= 0) {
+      console.error('Invalid amount:', amount)
+      return new Response(
+        JSON.stringify({
+          error: 'Amount must be greater than 0',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -197,17 +213,19 @@ serve(async (req: Request) => {
       currency_code: string
       quantity?: number
       title?: string | null
-      public_description?: string | null
+      description?: string | null
       customer_email?: string | null
       customer_name?: string | null
       customer_phone?: string | null
       metadata?: Record<string, string> | null
       expiration_minutes?: number | null
       product_id?: string | null
+      price_id?: string | null
       subscription_id?: string | null
       plan_id?: string | null
       allow_coupon_code?: boolean | null
       allow_quantity?: boolean | null
+      require_billing_address?: boolean | null
     }
 
     // --- Prepare lomi. Payload ---
@@ -261,7 +279,26 @@ serve(async (req: Request) => {
 
     // Generate default title and description if not provided
     const finalTitle = title || `Réservation ${bookingDetails.title}`
-    const finalDescription = public_description || `Paiement pour une réservation de ${bookingDetails.description_prefix}`
+
+    // Build dynamic description with time slot if available
+    let dynamicDescription = `Paiement pour une réservation de ${bookingDetails.description_prefix}`
+    if (slotStartIso && slotEndIso) {
+      try {
+        const startTime = new Date(slotStartIso).toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        const endTime = new Date(slotEndIso).toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        dynamicDescription += ` de ${startTime} à ${endTime}`
+      } catch (error) {
+        console.warn('Failed to format slot times:', error)
+      }
+    }
+
+    const finalDescription = description || dynamicDescription
 
     // Base payload sent to lomi.
     const baseLomiPayload = {
@@ -284,19 +321,22 @@ serve(async (req: Request) => {
           ...baseLomiPayload,
           product_id: finalProductId,
           title: finalTitle,
-          public_description: finalDescription,
+          description: finalDescription,
         }
       : {
           ...baseLomiPayload,
           // Amount-based checkout: Use the amount directly
           amount: finalAmount,
           title: finalTitle,
-          public_description: finalDescription,
+          description: finalDescription,
         }
 
     // Conditionally add optional fields to the payload if they were provided in the request
+    if (price_id) payload.price_id = price_id
     if (subscription_id) payload.subscription_id = subscription_id
     if (plan_id) payload.plan_id = plan_id
+    // Always include require_billing_address (defaults to false)
+    payload.require_billing_address = require_billing_address
 
     console.log(
       'Using',
