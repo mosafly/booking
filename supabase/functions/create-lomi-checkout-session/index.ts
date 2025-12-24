@@ -14,16 +14,38 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 }
 const supabase = createClient(supabaseUrl || '', supabaseServiceRoleKey || '')
 
-// Environment variables (should be set in Supabase Function settings)
+// lomi. API Config
 const LOMI_API_KEY = Deno.env.get('LOMI_API_KEY')
-const LOMI_API_URL =
-  Deno.env.get('LOMI_API_URL') || 'https://api.lomi.africa/v1'
+const LOMI_API_BASE_URL =
+  Deno.env.get('LOMI_API_URL') || 'https://api.lomi.africa'
 const APP_BASE_URL = Deno.env.get('APP_BASE_URL') || 'http://localhost:5173'
 
-// Default allowed providers
-const DEFAULT_ALLOWED_PROVIDERS = ['WAVE']
-
 serve(async (req: Request) => {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return new Response(
+      JSON.stringify({
+        error:
+          'Supabase environment variables not configured for the function.',
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      },
+    )
+  }
+  if (!LOMI_API_KEY) {
+    console.error('LOMI_API_KEY is not set for the function.')
+    return new Response(
+      JSON.stringify({
+        error: 'LOMI API key not configured for the function.',
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      },
+    )
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -49,7 +71,6 @@ serve(async (req: Request) => {
       slotEndIso = null,
       successUrlPath = '/payment/success', // Relative path for success redirect (e.g., /payment/success).
       cancelUrlPath = '/payment/cancel', // Relative path for cancel redirect (e.g., /payment/cancel).
-      allowedProviders = null, // Array of allowed payment providers (e.g., ["WAVE", "ORANGE_MONEY"]).
 
       // --- Quantity Support ---
       quantity = 1, // Number of items/reservations.
@@ -172,7 +193,6 @@ serve(async (req: Request) => {
     type LomiPayload = {
       success_url: string
       cancel_url: string
-      allowed_providers: string[]
       amount?: number
       currency_code: string
       quantity?: number
@@ -247,7 +267,6 @@ serve(async (req: Request) => {
     const baseLomiPayload = {
       success_url: `${APP_BASE_URL}${successUrlPath}?${reservationId ? `reservation_id=${reservationId}&` : ''}status=success${eventId ? `&event_id=${eventId}` : ''}&amount=${encodeURIComponent(String(finalAmount ?? amount ?? ''))}&currency=${encodeURIComponent(currencyCode)}`,
       cancel_url: `${APP_BASE_URL}${cancelUrlPath}?${reservationId ? `reservation_id=${reservationId}&` : ''}status=cancelled${eventId ? `&event_id=${eventId}` : ''}&amount=${encodeURIComponent(String(finalAmount ?? amount ?? ''))}&currency=${encodeURIComponent(currencyCode)}`,
-      allowed_providers: allowedProviders || DEFAULT_ALLOWED_PROVIDERS,
       currency_code: currencyCode,
       // Only include quantity if it's more than 1 or explicitly allowed
       ...(quantity > 1 || allowQuantity ? { quantity: quantity } : {}),
@@ -287,48 +306,93 @@ serve(async (req: Request) => {
     console.log('Final lomi payload:', JSON.stringify(payload, null, 2))
 
     // --- Call lomi. API ---
-    const response = await fetch(`${LOMI_API_URL}/checkout-sessions`, {
+    const lomiResponse = await fetch(`${LOMI_API_BASE_URL}/checkout-sessions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': LOMI_API_KEY,
+        'x-api-key': LOMI_API_KEY,
       },
       body: JSON.stringify(payload),
     })
 
-    const responseData = await response.json()
+    console.log('lomi. API response status:', lomiResponse.status)
+    console.log(
+      'lomi. API response headers:',
+      Object.fromEntries(lomiResponse.headers.entries()),
+    )
 
-    // --- Handle lomi. Response ---
-    if (!response.ok || !responseData.data || !responseData.data.url) {
-      console.error('lomi. error:', responseData)
+    // Get response text first to handle both JSON and HTML responses
+    const lomiResponseText = await lomiResponse.text()
+    console.log('lomi. API response body:', lomiResponseText)
+
+    let lomiResponseData
+    try {
+      lomiResponseData = JSON.parse(lomiResponseText)
+    } catch (parseError) {
+      console.error('Failed to parse lomi. API response as JSON:', parseError)
+      console.error('Response was:', lomiResponseText)
+
       return new Response(
         JSON.stringify({
-          error: 'Failed to create lomi. checkout session',
-          details: responseData.error || responseData,
+          error: 'Invalid response from payment provider',
+          details:
+            'The payment provider returned an invalid response. Please try again later.',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: responseData.error?.status || 500,
+          status: 502,
         },
       )
     }
 
+    if (!lomiResponse.ok || !lomiResponseData.checkout_session_id) {
+      console.error('lomi. API error:', lomiResponseData)
+
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to create lomi. checkout session',
+          details: lomiResponseData.error || lomiResponseData,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: lomiResponseData.error?.status || 500,
+        },
+      )
+    }
+
+    // --- Use checkout URL directly from lomi. API response ---
+    const checkoutUrl = lomiResponseData.checkout_url
+
+    console.log(
+      'Successfully created checkout session:',
+      lomiResponseData.checkout_session_id,
+    )
+
     // --- Success Response ---
-    // Return the lomi. checkout URL to the client
     return new Response(
-      JSON.stringify({ checkout_url: responseData.data.url }),
+      JSON.stringify({
+        checkout_url: checkoutUrl,
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       },
     )
   } catch (error) {
-    // --- Error Handling ---
-    console.error('!!!!!!!!!! CAUGHT ERROR in main try/catch !!!!!!!!!:', error)
-    console.error('Error details:', error.message, error.stack)
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
-    })
+    console.error(
+      '!!!!!!!!!! CAUGHT ERROR in main try/catch !!!!!!!!!:',
+      error,
+    )
+    let message = 'An unexpected error occurred.'
+    if (error instanceof Error) {
+      message = error.message
+    }
+    return new Response(
+      JSON.stringify({ error: message, details: String(error) }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      },
+    )
   }
 })

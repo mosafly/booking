@@ -75,6 +75,45 @@ function isMissingReservationId(val) {
   }
 }
 
+// --- Helper: Check if webhook has already been processed ---
+async function isWebhookAlreadyProcessed(supabase, webhookEventId) {
+  try {
+    const { data, error } = await supabase.rpc(
+      "check_webhook_already_processed",
+      {
+        p_webhook_event_id: webhookEventId,
+      },
+    );
+
+    if (error) {
+      console.warn("Error checking webhook processing status via RPC:", error);
+      return false; // Default to allowing processing if check fails
+    }
+
+    return data || false;
+  } catch (error) {
+    console.warn("Error checking webhook processing status:", error);
+    return false;
+  }
+}
+
+// --- Helper: Mark webhook as processed ---
+async function markWebhookAsProcessed(supabase, webhookEventId, reservationId) {
+  try {
+    const { error } = await supabase.rpc("update_reservation_webhook_metadata", {
+      p_reservation_id: reservationId,
+      p_webhook_event_id: webhookEventId,
+    });
+
+    if (error) {
+      console.warn("Error marking webhook as processed:", error);
+      // Don't throw - logging failure shouldn't break webhook processing
+    }
+  } catch (error) {
+    console.warn("Error marking webhook as processed:", error);
+  }
+}
+
 // --- Vercel Function Handler ---
 export default async function handler(req, res) {
   console.log(
@@ -164,19 +203,50 @@ export default async function handler(req, res) {
       JSON.stringify(eventPayload, null, 2),
     )
 
-    let reservationId = eventData.metadata?.reservation_id
-    const lomiPaymentId = eventData.transaction_id || eventData.id
-    let lomiCheckoutSessionId
-    if (
-      lomiEventType === 'checkout.completed' ||
-      lomiEventType === 'CHECKOUT_COMPLETED'
-    ) {
-      lomiCheckoutSessionId = eventData.id
-    } else {
-      lomiCheckoutSessionId = eventData.metadata?.linkId || eventData.id
+    // Assuming Lomi sends metadata.reservation_id as set in create-lomi-checkout-session
+    const reservationId = eventData.metadata?.reservation_id;
+    const lomiTransactionId = eventData.transaction_id || eventData.id; // Transaction ID
+
+    // checkout_session_id is sent directly on eventData from lomi, also available in metadata
+    // For PAYMENT_SUCCEEDED events from lomi, checkout_session_id is a direct field
+    const lomiCheckoutSessionId = String(
+      eventData.checkout_session_id ||
+      eventData.metadata?.checkout_session_id ||
+      eventData.metadata?.linkId ||
+      eventData.id ||
+      "",
+    );
+
+    // Check if this webhook has already been processed to prevent duplicates
+    const webhookEventId = `${lomiEventType}:${lomiTransactionId || lomiCheckoutSessionId}`;
+    const webhookProcessed = await isWebhookAlreadyProcessed(
+      supabase,
+      webhookEventId,
+    );
+    if (webhookProcessed) {
+      console.warn(
+        `Padel App Webhook: ${webhookEventId} already processed, skipping duplicate`,
+      );
+      return res
+        .status(200)
+        .json({ received: true, message: 'Webhook already processed' });
     }
-    const amount = eventData.amount || eventData.gross_amount
-    const currency = eventData.currency_code
+
+    if (!reservationId) {
+      console.error(
+        "Padel App Webhook Error: Missing reservation_id in Lomi webhook metadata.",
+        { lomiEventData: eventData },
+      );
+      return res.status(400).json({
+        error: "Missing reservation_id in Lomi webhook metadata.",
+      });
+    }
+    // Amount: lomi sends gross_amount from the transactions table
+    const amount = parseFloat(
+      eventData.gross_amount || eventData.amount || eventData.net_amount || "0",
+    );
+    // Currency: lomi sends currency_code from the transactions table
+    const currency = eventData.currency_code || eventData.currency || "XOF";
 
     // Note: after refactor, reservation may be created only after successful payment
     // so reservation_id can be missing here. We'll create it if payment succeeded.
@@ -263,7 +333,7 @@ export default async function handler(req, res) {
         'record_padel_lomi_payment',
         {
           p_reservation_id: reservationId,
-          p_lomi_payment_id: lomiPaymentId,
+          p_lomi_payment_id: lomiTransactionId,
           p_lomi_checkout_session_id: lomiCheckoutSessionId,
           p_amount_paid: amount,
           p_currency_paid: currency,
@@ -283,6 +353,9 @@ export default async function handler(req, res) {
       console.log(
         `Padel App: Payment for reservation ${reservationId} recorded successfully.`,
       )
+
+      // Mark webhook as processed after successful payment recording
+      await markWebhookAsProcessed(supabase, webhookEventId, reservationId)
 
       // ---- Track Meta Conversions API Purchase ----
       try {
